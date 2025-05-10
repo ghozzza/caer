@@ -32,6 +32,11 @@ interface IPosition {
     function buyTradingPosition(uint256 _price, address _buyer) external;
 }
 
+interface IFactory {
+    function solver() external view returns (address);
+    function oracle() external view returns (address);
+}
+
 contract LendingPool is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -43,15 +48,16 @@ contract LendingPool is ReentrancyGuard {
     error LTVExceedMaxAmount();
     error PositionNotCreated();
     error PositionUnavailable();
+    error PositionAlreadyCreated();
     error TokenNotAvailable();
     error ZeroAmount();
 
-    event Supply(address user, uint256 amount, uint256 shares);
+    event SupplyLiquidity(address user, uint256 amount, uint256 shares);
     event Withdraw(address user, uint256 amount, uint256 shares);
-    event SupplyCollateralByPosition(address user, uint256 amount);
+    event SupplyCollateral(address user, uint256 amount);
     event WithdrawCollateral(address user, uint256 amount);
-    event BorrowByPosition(address user, uint256 amount, uint256 shares);
-    event RepayByPosition(address user, uint256 amount, uint256 shares);
+    event BorrowDebt(address user, uint256 amount, uint256 shares);
+    event RepayDebt(address user, uint256 amount, uint256 shares);
     event RepayWithCollateralByPosition(address user, uint256 amount, uint256 shares);
     event SwapByPosition(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
     event CreatePosition(address user, address positionAddress);
@@ -67,18 +73,18 @@ contract LendingPool is ReentrancyGuard {
     mapping(address => uint256) public userSupplyShares;
     mapping(address => uint256) public userBorrowShares;
     mapping(address => uint256) public userCollaterals;
-    mapping(address => address[]) public addressPositions;
+    mapping(address => address) public addressPositions;
 
     address public collateralToken;
     address public borrowToken;
-    address public oracle;
+    address public factory;
 
     uint256 public lastAccrued;
 
-    uint256 ltv;
+    uint256 public ltv;
 
     modifier positionRequired() {
-        if (addressPositions[msg.sender].length == 0) {
+        if (addressPositions[msg.sender] == address(0)) {
             revert PositionNotCreated();
         }
         _;
@@ -96,39 +102,24 @@ contract LendingPool is ReentrancyGuard {
      *
      * @param _collateralToken The address of the token used as collateral.
      * @param _borrowToken The address of the token that can be borrowed.
-     * @param _oracle The address of the price oracle contract.
+     * @param _factory The address of the factory contract.
      * @param _ltv The Loan-to-Value ratio (must not exceed `1e18`).
      */
-    constructor(address _collateralToken, address _borrowToken, address _oracle, uint256 _ltv) {
+    constructor(address _collateralToken, address _borrowToken, address _factory, uint256 _ltv) {
         collateralToken = _collateralToken;
         borrowToken = _borrowToken;
+        factory = _factory;
         lastAccrued = block.timestamp;
-
-        if (_oracle == address(0)) revert InvalidOracle();
-        oracle = _oracle;
 
         if (_ltv > 1e18) revert LTVExceedMaxAmount();
         ltv = _ltv;
     }
 
-    /**
-     * @dev Creates a new tokenized trading position.
-     *
-     * - Increments the position counter to track unique positions.
-     * - Deploys a new `Position` contract instance using the specified collateral and borrow tokens.
-     * - Stores the newly created position details in mappings for tracking.
-     * - Associates the position with the sender's address.
-     *
-     */
     function createPosition() public {
-        position = new Position(collateralToken, borrowToken);
-        addressPositions[msg.sender].push(address(position));
+        if (addressPositions[msg.sender] != address(0)) revert PositionAlreadyCreated();
+        position = new Position(collateralToken, borrowToken, address(this), factory);
+        addressPositions[msg.sender] = address(position);
         emit CreatePosition(msg.sender, address(position));
-    }
-
-    function listingTrading(address _positionAddress, address _token, uint256 _price, string memory _name) public {
-        IPosition(_positionAddress).listingTradingPosition(_token, _price, _name);
-        emit ListingTrading(msg.sender, _positionAddress, _token, _price, _name);
     }
 
     /**
@@ -142,12 +133,11 @@ contract LendingPool is ReentrancyGuard {
      * - Otherwise, it calculates shares proportionally based on total supply.
      * - Updates the user's share balance and the protocol's total supply.
      * - Transfers the tokens from the user to the contract securely.
-     * - Emits a `Supply` event with details of the deposit.
+     * - Emits a `SupplyLiquidity` event with details of the deposit.
      *
      * @param amount The amount of tokens to supply.
      */
-
-    function supply(uint256 amount) public nonReentrant {
+    function supplyLiquidity(uint256 amount) public nonReentrant {
         if (amount == 0) revert ZeroAmount();
         _accrueInterest();
         uint256 shares = 0;
@@ -163,7 +153,7 @@ contract LendingPool is ReentrancyGuard {
 
         IERC20(borrowToken).safeTransferFrom(msg.sender, address(this), amount);
 
-        emit Supply(msg.sender, amount, shares);
+        emit SupplyLiquidity(msg.sender, amount, shares);
     }
 
     /**
@@ -242,17 +232,17 @@ contract LendingPool is ReentrancyGuard {
      * - Accrues interest before processing the deposit to ensure up-to-date calculations.
      * - Increases the user's collateral balance.
      * - Transfers the specified collateral amount securely from the user to the contract.
-     * - Emits a `SupplyCollateralByPosition` event to log the deposit.
+     * - Emits a `SupplyCollateral` event to log the deposit.
      *
      * @param amount The amount of collateral tokens to supply.
      */
-    function supplyCollateralByPosition(uint256 amount) public nonReentrant {
+    function supplyCollateral(uint256 amount) public nonReentrant {
         if (amount == 0) revert ZeroAmount();
         accrueInterest();
         userCollaterals[msg.sender] += amount;
         IERC20(collateralToken).safeTransferFrom(msg.sender, address(this), amount);
 
-        emit SupplyCollateralByPosition(msg.sender, amount);
+        emit SupplyCollateral(msg.sender, amount);
     }
 
     /**
@@ -280,7 +270,6 @@ contract LendingPool is ReentrancyGuard {
 
         emit WithdrawCollateral(msg.sender, amount);
     }
-
     /**
      * @dev Allows users to borrow assets using their supplied collateral.
      *
@@ -291,11 +280,12 @@ contract LendingPool is ReentrancyGuard {
      * - Ensures the user's position remains healthy after borrowing.
      * - Prevents borrowing if total borrowed assets exceed total supplied assets.
      * - Transfers the borrowed tokens securely to the user.
-     * - Emits a `BorrowByPosition` event to log the transaction.
+     * - Emits a `BorrowDebt` event to log the transaction.
      *
      * @param amount The amount of tokens the user wants to borrow.
      */
-    function borrowByPosition(uint256 amount, address _user) public nonReentrant {
+
+    function borrowDebt(uint256 amount, bool _crosschain) public nonReentrant {
         _accrueInterest();
         uint256 shares = 0;
         if (totalBorrowShares == 0) {
@@ -311,9 +301,13 @@ contract LendingPool is ReentrancyGuard {
         if (totalBorrowAssets > totalSupplyAssets) {
             revert InsufficientLiquidity();
         }
-        IERC20(borrowToken).safeTransfer(_user, amount);
+        if (_crosschain) {
+            IERC20(borrowToken).safeTransfer(IFactory(factory).solver(), amount);
+        } else {
+            IERC20(borrowToken).safeTransfer(msg.sender, amount);
+        }
 
-        emit BorrowByPosition(msg.sender, amount, shares);
+        emit BorrowDebt(msg.sender, amount, shares);
     }
 
     /**
@@ -324,11 +318,11 @@ contract LendingPool is ReentrancyGuard {
      * - Determines the corresponding borrow amount based on the user's borrow shares.
      * - Reduces the user's borrow shares and updates the protocol's total borrowed assets.
      * - Transfers the repayment amount securely from the user to the contract.
-     * - Emits a `RepayByPosition` event to log the transaction.
+     * - Emits a `RepayDebt` event to log the transaction.
      *
      * @param shares The number of borrow shares the user wants to repay.
      */
-    function repayByPosition(uint256 shares) public positionRequired nonReentrant {
+    function repayDebt(uint256 shares) public nonReentrant {
         if (shares == 0) revert ZeroAmount();
 
         _accrueInterest();
@@ -340,7 +334,7 @@ contract LendingPool is ReentrancyGuard {
 
         IERC20(borrowToken).safeTransferFrom(msg.sender, address(this), borrowAmount);
 
-        emit RepayByPosition(msg.sender, borrowAmount, shares);
+        emit RepayDebt(msg.sender, borrowAmount, shares);
     }
 
     /**
@@ -358,12 +352,11 @@ contract LendingPool is ReentrancyGuard {
      *
      * @param shares The number of borrow shares the user wants to repay.
      * @param _token The address of the token the user wants to use for repayment.
-     * @param _positionIndex The index of the user's position from which the token will be used.
      */
-    function repayWithSelectedToken(uint256 shares, address _token, uint256 _positionIndex) public nonReentrant {
+    function repayWithSelectedToken(uint256 shares, address _token) public nonReentrant {
         if (shares == 0) revert ZeroAmount();
-        if (addressPositions[msg.sender][_positionIndex] == address(0)) revert PositionUnavailable();
-        if (IPosition(addressPositions[msg.sender][_positionIndex]).getTokenCounter(_token) == 0 && _token != collateralToken) {
+        if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
+        if (IPosition(addressPositions[msg.sender]).getTokenCounter(_token) == 0 && _token != collateralToken) {
             revert TokenNotAvailable();
         }
 
@@ -372,8 +365,8 @@ contract LendingPool is ReentrancyGuard {
         uint256 borrowAmount = ((shares * totalBorrowAssets) / totalBorrowShares);
         uint256 tempBalance = _token == collateralToken
             ? userCollaterals[msg.sender]
-            : IERC20(_token).balanceOf(addressPositions[msg.sender][_positionIndex]);
-        amountOut = IOracle(oracle).tokenCalculator(tempBalance, _token, borrowToken);
+            : IERC20(_token).balanceOf(addressPositions[msg.sender]);
+        amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(tempBalance, _token, borrowToken);
         if (_token == collateralToken) {
             userCollaterals[msg.sender] = 0;
         }
@@ -386,15 +379,14 @@ contract LendingPool is ReentrancyGuard {
         /**
          * @dev After repayment, converts any excess borrowToken back to the original token type.
          */
-        amountOut = IOracle(oracle).tokenCalculator(amountOut, borrowToken, _token);
+        amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountOut, borrowToken, _token);
         if (_token == collateralToken) {
             userCollaterals[msg.sender] += amountOut;
             TokenSwap(collateralToken).burn(address(this), tempBalance - userCollaterals[msg.sender]);
         } else {
-            IPosition(addressPositions[msg.sender][_positionIndex]).costSwapToken(_token, borrowAmount);
+            IPosition(addressPositions[msg.sender]).costSwapToken(_token, borrowAmount);
             TokenSwap(_token).burn(
-                addressPositions[msg.sender][_positionIndex],
-                tempBalance - IERC20(_token).balanceOf(addressPositions[msg.sender][_positionIndex])
+                addressPositions[msg.sender], tempBalance - IERC20(_token).balanceOf(addressPositions[msg.sender])
             );
         }
         emit RepayWithCollateralByPosition(msg.sender, borrowAmount, shares);
@@ -421,20 +413,16 @@ contract LendingPool is ReentrancyGuard {
      * @param _tokenTo The address of the token the user wants to receive.
      * @param _tokenFrom The address of the token the user is swapping.
      * @param amountIn The amount of `_tokenFrom` the user wants to swap.
-     * @param _positionIndex The index of the user's position from which the token will be swapped.
      * @return amountOut The amount of `_tokenTo` received from the swap.
      */
-    function swapTokenByPosition(address _tokenTo, address _tokenFrom, uint256 amountIn, uint256 _positionIndex)
+    function swapTokenByPosition(address _tokenTo, address _tokenFrom, uint256 amountIn)
         public
         positionRequired
         returns (uint256 amountOut)
     {
         if (amountIn == 0) revert ZeroAmount();
-        if (addressPositions[msg.sender][_positionIndex] == address(0)) revert PositionUnavailable();
-        if (
-            _tokenFrom != collateralToken
-                && IPosition(addressPositions[msg.sender][_positionIndex]).getTokenCounter(_tokenFrom) == 0
-        ) {
+        if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
+        if (_tokenFrom != collateralToken && IPosition(addressPositions[msg.sender]).getTokenCounter(_tokenFrom) == 0) {
             revert TokenNotAvailable();
         }
 
@@ -442,16 +430,16 @@ contract LendingPool is ReentrancyGuard {
             TokenSwap(_tokenFrom).burn(address(this), amountIn);
             userCollaterals[msg.sender] -= amountIn;
         } else {
-            uint256 balances = IERC20(_tokenFrom).balanceOf(addressPositions[msg.sender][_positionIndex]);
+            uint256 balances = IERC20(_tokenFrom).balanceOf(addressPositions[msg.sender]);
             if (balances < amountIn) {
                 revert InsufficientToken();
             } else {
-                IPosition(addressPositions[msg.sender][_positionIndex]).costSwapToken(_tokenFrom, amountIn);
-                TokenSwap(_tokenFrom).burn(addressPositions[msg.sender][_positionIndex], amountIn);
+                IPosition(addressPositions[msg.sender]).costSwapToken(_tokenFrom, amountIn);
+                TokenSwap(_tokenFrom).burn(addressPositions[msg.sender], amountIn);
             }
         }
 
-        amountOut = IOracle(oracle).tokenCalculator(amountIn, _tokenFrom, _tokenTo);
+        amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountIn, _tokenFrom, _tokenTo);
 
         if (_tokenTo == collateralToken) {
             // Mint collateral token and send it to the lending pool.
@@ -459,8 +447,8 @@ contract LendingPool is ReentrancyGuard {
             userCollaterals[msg.sender] += amountOut;
         } else {
             // Mint token and send it to the user's position.
-            TokenSwap(_tokenTo).mint(addressPositions[msg.sender][_positionIndex], amountOut);
-            IPosition(addressPositions[msg.sender][_positionIndex]).swapToken(_tokenTo, amountOut);
+            TokenSwap(_tokenTo).mint(addressPositions[msg.sender], amountOut);
+            IPosition(addressPositions[msg.sender]).swapToken(_tokenTo, amountOut);
         }
 
         emit SwapByPosition(msg.sender, collateralToken, _tokenTo, amountIn, amountOut);

@@ -32,11 +32,11 @@ contract PositionTest is Test {
     function test_tokenBalances() public {
         // vm.startPrank(ahmad);
 
-        vm.startPrank(ghoza);
-        console.log("position mockUsdc IERC20 balance before", IERC20(mockUsdc).balanceOf(CONTRACT_ADDRESS));
-        lendingPool.repayWithSelectedToken(1e6, mockUsdc, 0); // 500 shares == 55 USDC
-        console.log("position mockUsdc IERC20 balance after", IERC20(mockUsdc).balanceOf(CONTRACT_ADDRESS));
-        vm.stopPrank();
+        // vm.startPrank(ghoza);
+        // console.log("position mockUsdc IERC20 balance before", IERC20(mockUsdc).balanceOf(CONTRACT_ADDRESS));
+        // lendingPool.repayWithSelectedToken(1e6, mockUsdc); // 500 shares == 55 USDC
+        // console.log("position mockUsdc IERC20 balance after", IERC20(mockUsdc).balanceOf(CONTRACT_ADDRESS));
+        // vm.stopPrank();
         // 56,153.525351
         // vm.stopPrank();
     }

@@ -6,6 +6,22 @@ import {LendingPool} from "./LendingPool.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 
+interface TokenSwap {
+    function mint(address _to, uint256 _amount) external;
+    function burn(address _spender, uint256 _amount) external;
+}
+interface IFactory {
+    function solver() external view returns (address);
+    function oracle() external view returns (address);
+}
+interface IOracle {
+    function tokenCalculator(uint256 _amount, address _tokenFrom, address _tokenTo) external view returns (uint256);
+    function getPrice(address _collateral, address _borrow) external view returns (uint256);
+    function getPriceTrade(address _tokenFrom, address _tokenTo) external view returns (uint256, uint256);
+    function getQuoteDecimal(address _token) external view returns (uint256);
+    function priceCollateral(address _token) external view returns (uint256);
+}
+
 contract Position is ReentrancyGuard {
     using SafeERC20 for IERC20; // fungsi dari IERC20 akan ketambahan SafeERC20
 
@@ -14,6 +30,8 @@ contract Position is ReentrancyGuard {
     error TradingAccountListed();
     error InvalidPrice();
     error NotForSale();
+    error ZeroAmount();
+    error SameToken();
 
     struct ListingDetail {
         bool isListing;
@@ -25,6 +43,8 @@ contract Position is ReentrancyGuard {
     address public collateralAssets;
     address public borrowAssets;
     address public owner;
+    address public lpAddress;
+    address public factory;
 
     uint256 public counter;
 
@@ -37,22 +57,14 @@ contract Position is ReentrancyGuard {
     event Liquidate(address user);
     event SwapToken(address user, address token, uint256 amount);
     event CostSwapToken(address user, address token, uint256 amount);
-    event ListingTradingPosition(
-        address user,
-        address token,
-        uint256 price,
-        string name
-    );
-    event BuyTradingPosition(
-        address user,
-        address token,
-        uint256 price,
-        string name
-    );
+    event ListingTradingPosition(address user, address token, uint256 price, string name);
+    event BuyTradingPosition(address user, address token, uint256 price, string name);
 
-    constructor(address _collateral, address _borrow) {
+    constructor(address _collateral, address _borrow, address _lpAddress, address _factory) {
         collateralAssets = _collateral;
         borrowAssets = _borrow;
+        lpAddress = _lpAddress;
+        factory = _factory;
         owner = msg.sender;
     }
 
@@ -76,50 +88,30 @@ contract Position is ReentrancyGuard {
         emit CostSwapToken(msg.sender, _token, _amount);
     }
 
-    function listingTradingPosition(
-        address _token,
-        uint256 _price,
-        string memory _name
-    ) public {
+    function listingTradingPosition(address _token, uint256 _price, string memory _name) public {
         if (listingDetail.isListing) revert TradingAccountListed();
         listingDetail = ListingDetail(true, _price, _name, _token);
         emit ListingTradingPosition(msg.sender, _token, _price, _name);
     }
 
-    function buyTradingPosition(
-        uint256 _price,
-        address _buyer
-    ) public nonReentrant {
+    function buyTradingPosition(uint256 _price, address _buyer) public nonReentrant {
         if (_price != listingDetail.price) revert InvalidPrice();
         if (!listingDetail.isListing) revert NotForSale();
-        IERC20(listingDetail.sellWithToken).safeTransferFrom(
-            _buyer,
-            owner,
-            _price
-        );
+        IERC20(listingDetail.sellWithToken).safeTransferFrom(_buyer, owner, _price);
         owner = _buyer;
         listingDetail = ListingDetail(false, 0, "", address(0));
-        emit BuyTradingPosition(
-            _buyer,
-            listingDetail.sellWithToken,
-            _price,
-            listingDetail.name
-        );
+        emit BuyTradingPosition(_buyer, listingDetail.sellWithToken, _price, listingDetail.name);
     }
 
     function getTokenOwnerLength() public view returns (uint256) {
         return counter;
     }
 
-    function getTokenOwnerAddress(
-        uint256 _counter
-    ) public view returns (address) {
+    function getTokenOwnerAddress(uint256 _counter) public view returns (address) {
         return tokenLists[_counter];
     }
 
-    function getTokenOwnerBalances(
-        address _token
-    ) public view returns (uint256) {
+    function getTokenOwnerBalances(address _token) public view returns (uint256) {
         return tokenBalances[_token];
     }
 

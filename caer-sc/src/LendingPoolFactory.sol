@@ -18,26 +18,34 @@ contract LendingPoolFactory {
     }
 
     address public oracle;
+    address public solver;
     Pools[] public pools;
     uint256 public poolCount;
 
     constructor(address _oracle) {
         oracle = _oracle;
+        solver = msg.sender;
     }
 
-    function createLendingPool(address LendingPoolToken1, address LendingPoolToken2, uint256 LTV)
+    function createLendingPool(address collateralToken, address borrowToken, uint256 LTV)
         public
         returns (address)
     {
-        LendingPool lendingPool = new LendingPool(LendingPoolToken1, LendingPoolToken2, oracle, LTV);
+        LendingPool lendingPool = new LendingPool(collateralToken, borrowToken, address(this), LTV);
 
-        pools.push(Pools(LendingPoolToken1, LendingPoolToken2, address(lendingPool)));
+        pools.push(Pools(collateralToken, borrowToken, address(lendingPool)));
         poolCount++;
-        emit CreateLendingPool(msg.sender, address(lendingPool), LendingPoolToken1, LendingPoolToken2, oracle, LTV);
+        emit CreateLendingPool(
+            msg.sender, address(lendingPool), collateralToken, borrowToken, address(this), LTV
+        );
         return address(lendingPool);
     }
 
     function editOracle(address _oracle) public {
         oracle = _oracle;
+    }
+
+    function editSolver(address _solver) public {
+        solver = _solver;
     }
 }

@@ -63,7 +63,7 @@ contract CaerScript is Script {
         lendingPoolFactory = new LendingPoolFactory(address(priceFeed));
         lendingPool = new LendingPool(address(mockWETH), address(mockUSDC), address(priceFeed), 7e17);
         lendingPoolSequencer = new LendingPoolSequencer(address(mockWETH), address(mockUSDC));
-        position = new Position(address(mockWETH), address(mockUSDC));
+        position = new Position(address(mockWETH), address(mockUSDC), address(lendingPool), address(lendingPoolFactory));
         vm.stopBroadcast();
 
         console.log("export const mockWeth = ", address(mockWETH));
