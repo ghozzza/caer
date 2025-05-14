@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowDownIcon } from "@heroicons/react/24/outline";
+import { ArrowDownIcon, } from "@heroicons/react/24/outline";
 import { TOKEN_OPTIONS, TokenOption } from "@/constants/tokenOption";
 import { useAccount } from "wagmi";
 import { formatUnits, Address } from "viem";
@@ -9,7 +9,8 @@ import { usePositionBalance } from "@/hooks/useTokenBalance";
 import { useSwapToken } from "@/hooks/useSwapToken";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
-import {MoveRight} from "lucide-react"
+import { MoveRight } from "lucide-react"
+import { ArrowDownUp } from "lucide-react";
 // import SelectPosition from "@/app/borrow/_components/position/selectPosition";
 import {
   getAllLPFactoryData,
@@ -348,13 +349,15 @@ export default function SwapPanel() {
 
         {/* Switch button */}
         <div className="flex justify-center">
-          <button
-            onClick={switchTokens}
-            className="bg-white p-2 rounded-full hover:bg-blue-100 border border-blue-300 transition-colors z-10 cursor-pointer shadow-sm"
-            aria-label="Switch tokens"
-          >
-            <ArrowDownIcon className="h-5 w-5 text-blue-600" />
-          </button>
+          <div className="group">
+            <button
+              onClick={switchTokens}
+              className="bg-white p-2 rounded-full hover:bg-blue-50 border border-blue-300 z-10 transform transition-transform duration-300 group-hover:rotate-18 cursor-pointer shadow-sm"
+              aria-label="Switch tokens"
+            >
+              <ArrowDownUp className="h-5 w- text-blue-700  transform transition-transform duration-300 group-hover:rotate-162" />
+            </button>
+          </div>
         </div>
 
         {/* To Token */}
