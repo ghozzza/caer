@@ -37,7 +37,8 @@ interface IPosition {
     function costSwapToken(address _token, uint256 _amount) external;
     function listingTradingPosition(address _token, uint256 _price, string memory _name) external;
     function buyTradingPosition(uint256 _price, address _buyer) external;
-    function swapTokenByPositionV2(address _tokenIn, address _tokenOut, uint256 _amountIn, uint256 _minAmountOut) external;
+    function swapTokenByPositionV2(address _tokenIn, address _tokenOut, uint256 _amountIn, uint256 _minAmountOut)
+        external;
 }
 
 contract LendingPoolFactoryTest is Test {
@@ -320,14 +321,14 @@ contract LendingPoolFactoryTest is Test {
         // console.log("position usdc balance", lendingPool.getTokenBalancesByPosition(address(usdc), 0)); // 39502.736731
         console.log("-----");
 
-        lendingPool.repayWithSelectedToken(45e6, address(weth));
+        lendingPool.repayWithSelectedToken(45e6, 0, address(weth));
         console.log("----- repay with weth");
         console.log("lending pool collaterals", lendingPool.userCollaterals(bob));
         // console.log("position usdc balance", lendingPool.getTokenBalancesByPosition(address(usdc), 0)); // 39552.236731 harusnya berkurang
         console.log("total borrow shares", lendingPool.totalBorrowShares());
         console.log("-----");
 
-        lendingPool.repayWithSelectedToken(45e6, address(usdc));
+        lendingPool.repayWithSelectedToken(45e6, 0, address(usdc));
         console.log("----- repay with usdc");
         // console.log("position usdc balance", lendingPool.getTokenBalancesByPosition(address(usdc), 0)); // 39552.236731 harusnya berkurang
         console.log("total borrow shares", lendingPool.totalBorrowShares());
@@ -363,10 +364,14 @@ contract LendingPoolFactoryTest is Test {
     function test_part5_repay() public {
         vm.startPrank(ghoza);
         // lendingPool.createPosition();
-        
+
         // --------- supply collateral
         IERC20(address(wethBaseMain)).approve(address(lendingPool), 1e18);
         lendingPool.supplyCollateral(1e18);
+
+        // --------- supply liquidity
+        IERC20(address(usdcBaseMain)).approve(address(lendingPool), 1000e6);
+        lendingPool.supplyLiquidity(1000e6);
 
         // --------- check balance
         console.log("ghoza balance weth", IERC20(address(wethBaseMain)).balanceOf(ghoza));
@@ -385,21 +390,47 @@ contract LendingPoolFactoryTest is Test {
         );
 
         // ------------------------------------------------------------------------------------------
-
         // swap v2
         // approve weth
         address addressPosition = lendingPool.addressPositions(ghoza);
-        IERC20(address(wethBaseMain)).approve(addressPosition, 1e18);
-        // lendingPool.swapTokenByPositionV2(address(wethBaseMain), address(usdcBaseMain), 1e18, 1000);
+        console.log("--------------------------------");
+        console.log("position balance weth before swap", IERC20(address(wethBaseMain)).balanceOf(addressPosition));
+        console.log("position balance usdc before swap", IERC20(address(usdcBaseMain)).balanceOf(addressPosition));
+
         IPosition(addressPosition).swapTokenByPositionV2(address(wethBaseMain), address(usdcBaseMain), 1e18, 1000);
+        
+        console.log("--------------------------------");
+        console.log("position balance weth after swap", IERC20(address(wethBaseMain)).balanceOf(addressPosition));
+        console.log("position balance usdc after swap", IERC20(address(usdcBaseMain)).balanceOf(addressPosition));
+        console.log("--------------------------------");
 
-        // check balance address position
-        console.log("ghoza balance weth position", IERC20(address(wethBaseMain)).balanceOf(lendingPool.addressPositions(ghoza)));
-        console.log("ghoza balance usdc position", IERC20(address(usdcBaseMain)).balanceOf(lendingPool.addressPositions(ghoza)));
+        //check balance
+        console.log("ghoza balance weth before withdraw collateral", IERC20(address(wethBaseMain)).balanceOf(ghoza));//108.000000000000000000
+        console.log("positionbalance weth before withdraw collateral", IERC20(address(wethBaseMain)).balanceOf(addressPosition));
+        console.log("--------------------------------");
+
+        //withdraw collateral
+        lendingPool.withdrawCollateral(1e18);
+
+        //check balance
+        console.log("ghoza balance weth after withdraw collateral", IERC20(address(wethBaseMain)).balanceOf(ghoza));//109.000000000000000000
+        console.log("positionbalance weth after withdraw collateral", IERC20(address(wethBaseMain)).balanceOf(addressPosition));
+        console.log("--------------------------------");
+        
+        console.log("ghoza balance usdc before borrow", IERC20(address(usdcBaseMain)).balanceOf(ghoza));
+        console.log("--------------------------------");
+        lendingPool.borrowDebt(700e6, false);
+        console.log("ghoza balance usdc after borrow", IERC20(address(usdcBaseMain)).balanceOf(ghoza));
+        console.log("--------------------------------");
+
+        // repay with selected token
+        console.log("position balance usdc before repay", IERC20(address(usdcBaseMain)).balanceOf(addressPosition));
+        console.log("--------------------------------");
+        lendingPool.repayWithSelectedToken(500e6, 0, address(usdcBaseMain));
+        console.log("position balance usdc after repay", IERC20(address(usdcBaseMain)).balanceOf(addressPosition));
+        console.log("--------------------------------");
+
         vm.stopPrank();
-
-
-
     }
 
     function test_withdraw_withshares() public {
@@ -493,7 +524,7 @@ contract LendingPoolFactoryTest is Test {
             "Bob usdc position", IPosition(lendingPool.addressPositions(bob)).getTokenOwnerBalances(address(usdc))
         );
         console.log("----------------------------------------------------------------");
-        lendingPool.repayWithSelectedToken(100e6, address(usdc));
+        lendingPool.repayWithSelectedToken(100e6, 0, address(usdc));
 
         console.log("----------------------------------------------------------------");
         console.log("Bob weth", lendingPool.userCollaterals(bob));
@@ -519,7 +550,7 @@ contract LendingPoolFactoryTest is Test {
 
         vm.warp(block.timestamp + 365 days);
 
-        lendingPool.repayWithSelectedToken(100e6, address(usdc));
+        lendingPool.repayWithSelectedToken(100e6, 0, address(usdc));
         console.log("----------------------------------------------------------------");
         console.log("Bob weth", lendingPool.userCollaterals(bob));
         console.log("Bob borrow shares", lendingPool.userBorrowShares(bob));
@@ -600,44 +631,6 @@ contract LendingPoolFactoryTest is Test {
         // vm.expectRevert(LendingPool.PositionUnavailable.selector);
         lendingPool.swapTokenByPosition(address(wbtc), address(weth), 1e18);
         assertEq(lendingPool.userCollaterals(bob), 9e18);
-        vm.stopPrank();
-    }
-
-    function test_swapTokenByPositionV2() public {
-        // Setup: Create position and supply some tokens
-        vm.startPrank(ghoza);
-        
-        // Create position
-        lendingPool.createPosition();
-        address positionAddress = lendingPool.addressPositions(ghoza);
-        
-        // Supply some collateral
-        uint256 collateralAmount = 1 ether;
-        IERC20(address(wethBaseMain)).approve(address(lendingPool), collateralAmount);
-        lendingPool.supplyCollateral(collateralAmount);
-        
-        // Setup tokens for swap
-        address tokenIn = address(wethBaseMain);  // WETH
-        address tokenOut = address(usdcBaseMain);     // USDC
-        uint256 swapAmount = 0.5 ether;              // Amount to swap
-        
-        // Mint some USDC to the position for testing
-        IERC20(address(usdcBaseMain)).approve(positionAddress, 1000e6);   // 1000 USDC
-        
-        // Approve position to spend tokens
-        IERC20(address(wethBaseMain)).approve(positionAddress, swapAmount);
-        
-        // Execute swap
-        uint256 minAmountOut = 0; // For testing, we can set this to 0
-        // lendingPool.swapTokenByPositionV2(tokenIn, tokenOut, swapAmount, minAmountOut);
-        
-        // Verify balances after swap
-        // uint256 positionBalanceAfter = IERC20(address(usdcBaseMain)).balanceOf(positionAddress);
-        uint256 lendingPoolBalanceAfter = IERC20(address(wethBaseMain)).balanceOf(address(lendingPool));
-        
-        // Assert that tokens were transferred from position to lending pool
-        assertEq(lendingPoolBalanceAfter, swapAmount, "Lending pool should receive the swap amount");
-        
         vm.stopPrank();
     }
 }

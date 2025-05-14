@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {LendingPool} from "./LendingPool.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 
@@ -34,6 +33,7 @@ interface ISwapRouter {
         uint256 amountOutMinimum;
         uint160 sqrtPriceLimitX96;
     }
+
     function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 }
 
@@ -47,6 +47,7 @@ contract Position is ReentrancyGuard {
     error NotForSale();
     error ZeroAmount();
     error SameToken();
+    error NotForWithdraw();
 
     struct ListingDetail {
         bool isListing;
@@ -143,18 +144,16 @@ contract Position is ReentrancyGuard {
         return records;
     }
 
+    function withdrawCollateral(uint256 amount, address _user) public {
+        if (msg.sender != lpAddress) revert NotForWithdraw();
+        IERC20(collateralAssets).safeTransfer(_user, amount);
+    }
+
     function swapTokenByPositionV2(address _tokenIn, address _tokenOut, uint256 amountIn, uint256 minAmountOut)
         public
+        returns (uint256 amountOut)
     {
         if (amountIn == 0) revert ZeroAmount();
-        // if (_tokenIn != collateralToken && IPosition(addressPositions[msg.sender]).getTokenCounter(_tokenIn) == 0) {
-        //     revert TokenNotAvailable();
-        // }
-        // IERC20(_tokenIn).approve(addressPositions[msg.sender], amountIn);
-        IERC20(_tokenIn).approve(address(this), amountIn);
-        IERC20(_tokenIn).safeTransferFrom(address(this), lpAddress, amountIn);
-
-        // IERC20(_tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: _tokenIn,
             tokenOut: _tokenOut, // mau ditukar ke apa
@@ -165,14 +164,21 @@ contract Position is ReentrancyGuard {
             sqrtPriceLimitX96: 0 //
         });
         IERC20(_tokenIn).approve(router, amountIn); // approve kepada uniswap
-        ISwapRouter(router).exactInputSingle(params);
+        amountOut = ISwapRouter(router).exactInputSingle(params);
+
+        return amountOut;
     }
 
-    // function repayWithSelectedTokenV2(uint256 shares, address _token) public {
-    //     if (shares == 0) revert ZeroAmount();
-    //     if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
-    //     if (IPosition(addressPositions[msg.sender]).getTokenCounter(_token) == 0 && _token != collateralToken) {
-    //         revert TokenNotAvailable();
-    //     }
-    // }
+    function repayWithSelectedToken(uint256 amount, uint256 minAmountOut, address _token) public {
+        if (msg.sender != lpAddress) revert NotForWithdraw();
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+        if(_token != borrowAssets) {
+            uint256 amountOut = swapTokenByPositionV2(_token, borrowAssets, balance, minAmountOut);
+            IERC20(_token).approve(lpAddress, amount);
+            IERC20(borrowAssets).safeTransfer(lpAddress, amount);
+            if (amountOut - amount != 0) swapTokenByPositionV2(borrowAssets, _token, (amountOut - amount), 0);
+        } else {
+            IERC20(borrowAssets).safeTransfer(lpAddress, amount);
+        }
+    }
 }

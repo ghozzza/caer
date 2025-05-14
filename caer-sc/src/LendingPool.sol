@@ -30,6 +30,11 @@ interface IPosition {
     function costSwapToken(address _token, uint256 _amount) external;
     function listingTradingPosition(address _token, uint256 _price, string memory _name) external;
     function buyTradingPosition(uint256 _price, address _buyer) external;
+    function withdrawCollateral(uint256 amount, address _user) external;
+    function swapTokenByPositionV2(address _tokenIn, address _tokenOut, uint256 amountIn, uint256 minAmountOut)
+        external
+        returns (uint256 amountOut);
+    function repayWithSelectedToken(uint256 amount, uint256 minAmountOut, address _token) external;
 }
 
 interface IFactory {
@@ -47,6 +52,7 @@ interface ISwapRouter {
         uint256 amountOutMinimum;
         uint160 sqrtPriceLimitX96;
     }
+
     function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 }
 
@@ -275,15 +281,14 @@ contract LendingPool is ReentrancyGuard {
      *
      * @param amount The amount of collateral tokens to withdraw.
      */
-    function withdrawCollateral(uint256 amount) public nonReentrant {
+    function withdrawCollateral(uint256 amount) public positionRequired nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (amount > userCollaterals[msg.sender]) revert InsufficientCollateral();
 
         _accrueInterest();
 
         userCollaterals[msg.sender] -= amount;
-
-        IERC20(collateralToken).safeTransfer(msg.sender, amount);
+        IPosition(addressPositions[msg.sender]).withdrawCollateral(amount, msg.sender);
 
         emit WithdrawCollateral(msg.sender, amount);
     }
@@ -370,42 +375,51 @@ contract LendingPool is ReentrancyGuard {
      * @param shares The number of borrow shares the user wants to repay.
      * @param _token The address of the token the user wants to use for repayment.
      */
-    function repayWithSelectedToken(uint256 shares, address _token) public nonReentrant {
+    function repayWithSelectedToken(uint256 shares, uint256 minAmountOut, address _token) public nonReentrant {
         if (shares == 0) revert ZeroAmount();
         if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
-        if (IPosition(addressPositions[msg.sender]).getTokenCounter(_token) == 0 && _token != collateralToken) {
-            revert TokenNotAvailable();
-        }
+        // if (IPosition(addressPositions[msg.sender]).getTokenCounter(_token) == 0 && _token != collateralToken) {
+        //     revert TokenNotAvailable();
+        // }
 
         _accrueInterest();
-        uint256 amountOut;
+
+        // uint256 amountOut;
+        // uint256 borrowAmount = ((shares * totalBorrowAssets) / totalBorrowShares);
+        // uint256 tempBalance = _token == collateralToken
+        //     ? userCollaterals[msg.sender]
+        //     : IERC20(_token).balanceOf(addressPositions[msg.sender]);
+        // amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(tempBalance, _token, borrowToken);
+        // if (_token == collateralToken) {
+        //     userCollaterals[msg.sender] = 0;
+        // }
+
+        // userBorrowShares[msg.sender] -= shares;
+        // totalBorrowShares -= shares;
+        // totalBorrowAssets -= borrowAmount;
+        // amountOut -= borrowAmount;
+
+        // /**
+        //  * @dev After repayment, converts any excess borrowToken back to the original token type.
+        //  */
+        // amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountOut, borrowToken, _token);
+        // if (_token == collateralToken) {
+        //     userCollaterals[msg.sender] += amountOut;
+        //     TokenSwap(collateralToken).burn(address(this), tempBalance - userCollaterals[msg.sender]);
+        // } else {
+        //     IPosition(addressPositions[msg.sender]).costSwapToken(_token, borrowAmount);
+        //     TokenSwap(_token).burn(
+        //         addressPositions[msg.sender], tempBalance - IERC20(_token).balanceOf(addressPositions[msg.sender])
+        //     );
+        // }
         uint256 borrowAmount = ((shares * totalBorrowAssets) / totalBorrowShares);
-        uint256 tempBalance = _token == collateralToken
-            ? userCollaterals[msg.sender]
-            : IERC20(_token).balanceOf(addressPositions[msg.sender]);
-        amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(tempBalance, _token, borrowToken);
-        if (_token == collateralToken) {
-            userCollaterals[msg.sender] = 0;
-        }
 
         userBorrowShares[msg.sender] -= shares;
         totalBorrowShares -= shares;
         totalBorrowAssets -= borrowAmount;
-        amountOut -= borrowAmount;
 
-        /**
-         * @dev After repayment, converts any excess borrowToken back to the original token type.
-         */
-        amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountOut, borrowToken, _token);
-        if (_token == collateralToken) {
-            userCollaterals[msg.sender] += amountOut;
-            TokenSwap(collateralToken).burn(address(this), tempBalance - userCollaterals[msg.sender]);
-        } else {
-            IPosition(addressPositions[msg.sender]).costSwapToken(_token, borrowAmount);
-            TokenSwap(_token).burn(
-                addressPositions[msg.sender], tempBalance - IERC20(_token).balanceOf(addressPositions[msg.sender])
-            );
-        }
+        IPosition(addressPositions[msg.sender]).repayWithSelectedToken(borrowAmount, minAmountOut, _token);
+
         emit RepayWithCollateralByPosition(msg.sender, borrowAmount, shares);
     }
 
@@ -442,31 +456,16 @@ contract LendingPool is ReentrancyGuard {
         if (_tokenFrom != collateralToken && IPosition(addressPositions[msg.sender]).getTokenCounter(_tokenFrom) == 0) {
             revert TokenNotAvailable();
         }
-
-        // if (_tokenFrom == collateralToken) {
-        //     TokenSwap(_tokenFrom).burn(address(this), amountIn);
-        //     userCollaterals[msg.sender] -= amountIn;
-        // } else {
-        //     uint256 balances = IERC20(_tokenFrom).balanceOf(addressPositions[msg.sender]);
-        //     if (balances < amountIn) {
-        //         revert InsufficientToken();
-        //     } else {
-        //         IPosition(addressPositions[msg.sender]).costSwapToken(_tokenFrom, amountIn);
-        //         TokenSwap(_tokenFrom).burn(addressPositions[msg.sender], amountIn);
-        //     }
-        // }
-
-        // amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountIn, _tokenFrom, _tokenTo);
-
-        // if (_tokenTo == collateralToken) {
-        //     // Mint collateral token and send it to the lending pool.
-        //     TokenSwap(_tokenTo).mint(address(this), amountOut);
-        //     userCollaterals[msg.sender] += amountOut;
-        // } else {
-        //     // Mint token and send it to the user's position.
-        //     TokenSwap(_tokenTo).mint(addressPositions[msg.sender], amountOut);
-        //     IPosition(addressPositions[msg.sender]).swapToken(_tokenTo, amountOut);
-        // }
+        _accrueInterest();
+        if (_tokenFrom == collateralToken) {
+            userCollaterals[msg.sender] -= amountIn;
+            amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPositionV2(_tokenFrom, _tokenTo, amountIn, 0);
+        } else if (_tokenTo == collateralToken) {
+            amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPositionV2(_tokenFrom, _tokenTo, amountIn, 0);
+            userCollaterals[msg.sender] += amountOut;
+        } else {
+            amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPositionV2(_tokenFrom, _tokenTo, amountIn, 0);
+        }
 
         emit SwapByPosition(msg.sender, collateralToken, _tokenTo, amountIn, amountOut);
     }
@@ -515,20 +514,20 @@ contract LendingPool is ReentrancyGuard {
  *
  */
 
- /**
-  * !SECTION
-  * 1. deploy factory (bisa lewat mainnet) (-$1)
-  * 2. deploy lending pool (via web)
-  * 3. deploy position (via web)
-  * 4. user swap from eth to weth
-  * 5. user swap from eth to usdc
-  * 6. user supply collateral
-  * 7. user borrow
-  * 8. user repay
-  * 9. user swap token
-  * 10. user crosschain borrow
-  *
-  * !SECTION tenderly
-  * 1. di FE bisa ganti rpc url nya tenderly - supaya block height nya bisa diganti
-  * 2. wajib tenderly baru, wallet baru untuk demo apps
-  */
+/**
+ * !SECTION
+ * 1. deploy factory (bisa lewat mainnet) (-$1)
+ * 2. deploy lending pool (via web)
+ * 3. deploy position (via web)
+ * 4. user swap from eth to weth
+ * 5. user swap from eth to usdc
+ * 6. user supply collateral
+ * 7. user borrow
+ * 8. user repay
+ * 9. user swap token
+ * 10. user crosschain borrow
+ *
+ * !SECTION tenderly
+ * 1. di FE bisa ganti rpc url nya tenderly - supaya block height nya bisa diganti
+ * 2. wajib tenderly baru, wallet baru untuk demo apps
+ */
