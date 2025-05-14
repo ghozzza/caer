@@ -62,10 +62,7 @@ contract LendingPool is ReentrancyGuard {
     error InsufficientCollateral();
     error InsufficientLiquidity();
     error InsufficientShares();
-    error InsufficientToken();
-    error InvalidOracle();
     error LTVExceedMaxAmount();
-    error PositionNotCreated();
     error PositionUnavailable();
     error PositionAlreadyCreated();
     error TokenNotAvailable();
@@ -80,7 +77,6 @@ contract LendingPool is ReentrancyGuard {
     event RepayWithCollateralByPosition(address user, uint256 amount, uint256 shares);
     event SwapByPosition(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
     event CreatePosition(address user, address positionAddress);
-    event ListingTrading(address user, address positionAddress, address token, uint256 price, string name);
 
     Position public position;
 
@@ -97,17 +93,14 @@ contract LendingPool is ReentrancyGuard {
     address public collateralToken;
     address public borrowToken;
     address public factory;
-    // address public router = address(0x492E6456D9528771018DeB9E87ef7750EF184104);
-    // address public router = address(0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4);
+
     address public router = address(0x2626664c2603336E57B271c5C0b26F421741e481);
 
     uint256 public lastAccrued;
-
     uint256 public ltv;
 
     modifier positionRequired() {
         if (addressPositions[msg.sender] == address(0)) {
-            // revert PositionNotCreated();
             createPosition();
         }
         _;
@@ -116,17 +109,19 @@ contract LendingPool is ReentrancyGuard {
     /**
      * @dev Contract constructor to initialize the lending and borrowing system.
      *
-     * - Sets the collateral and borrow token addresses.
-     * - Initializes `lastAccrued` with the current block timestamp for interest calculations.
-     * - Validates that the provided oracle address is not zero; otherwise, reverts with `InvalidOracle()`.
-     * - Sets the oracle contract address for price fetching.
-     * - Ensures the Loan-to-Value (LTV) ratio does not exceed the maximum limit of `1e18`; otherwise, reverts with `LTVExceedMaxAmount()`.
-     * - Stores the validated LTV value.
+     * - Sets the collateral token address that users can deposit as collateral
+     * - Sets the borrow token address that users can borrow from the pool
+     * - Sets the factory contract address for creating new positions
+     * - Initializes lastAccrued timestamp for interest calculations
+     * - Validates and sets the Loan-to-Value (LTV) ratio which determines maximum borrowing capacity
      *
-     * @param _collateralToken The address of the token used as collateral.
-     * @param _borrowToken The address of the token that can be borrowed.
-     * @param _factory The address of the factory contract.
-     * @param _ltv The Loan-to-Value ratio (must not exceed `1e18`).
+     * Requirements:
+     * - LTV must not exceed 1e18 (100%)
+     *
+     * @param _collateralToken Address of the token that can be used as collateral
+     * @param _borrowToken Address of the token that can be borrowed
+     * @param _factory Address of the factory contract for creating positions
+     * @param _ltv The Loan-to-Value ratio in basis points (1e18 = 100%)
      */
     constructor(address _collateralToken, address _borrowToken, address _factory, uint256 _ltv) {
         collateralToken = _collateralToken;
@@ -138,6 +133,28 @@ contract LendingPool is ReentrancyGuard {
         ltv = _ltv;
     }
 
+    /**
+     * @dev Creates a new Position contract for the caller.
+     *
+     * Each user can have one Position contract that manages their collateral and borrowed assets.
+     * The Position contract enables users to:
+     * - Hold collateral tokens
+     * - Manage borrowed tokens
+     * - Execute token swaps
+     * - Handle repayments
+     *
+     * Requirements:
+     * - Caller must not already have a Position contract created
+     *
+     * The function:
+     * - Checks if caller already has a Position
+     * - Deploys new Position contract with required parameters
+     * - Maps the Position address to the caller
+     * - Emits CreatePosition event
+     *
+     * @notice Emits a CreatePosition event with the caller's address and new Position address
+     * @notice Can only be called once per address
+     */
     function createPosition() public {
         if (addressPositions[msg.sender] != address(0)) revert PositionAlreadyCreated();
         position = new Position(collateralToken, borrowToken, address(this), factory);
@@ -146,19 +163,27 @@ contract LendingPool is ReentrancyGuard {
     }
 
     /**
-     * @dev Allows users to supply liquidity to the protocol.
-     * The supplied tokens increase the total available assets,
-     * which other users can borrow.
+     * @dev Allows users to supply liquidity to the lending pool by depositing borrow tokens.
      *
-     * - The function prevents zero-amount supply.
-     * - It accrues interest before processing new deposits.
-     * - If it's the first deposit, the shares are equal to the amount supplied.
-     * - Otherwise, it calculates shares proportionally based on total supply.
-     * - Updates the user's share balance and the protocol's total supply.
-     * - Transfers the tokens from the user to the contract securely.
-     * - Emits a `SupplyLiquidity` event with details of the deposit.
+     * When users supply liquidity:
+     * - They receive shares proportional to their deposit amount
+     * - The shares represent their ownership % of the total liquidity pool
+     * - Other users can borrow against this supplied liquidity
+     * - Suppliers earn interest from borrowers' payments
      *
-     * @param amount The amount of tokens to supply.
+     * The share calculation works as follows:
+     * - First deposit: shares = deposit amount (1:1)
+     * - Subsequent deposits: shares = (deposit * total shares) / total assets
+     * This ensures fair distribution of shares based on the current pool state.
+     *
+     * Security measures:
+     * - Nonreentrant guard prevents reentrancy attacks
+     * - Zero amount checks prevent empty deposits
+     * - Interest accrual before deposit for accurate share calculation
+     * - Safe transfer from user to contract
+     *
+     * @param amount The amount of borrow tokens to supply as liquidity
+     * @notice Emits SupplyLiquidity event with deposit details
      */
     function supplyLiquidity(uint256 amount) public nonReentrant {
         if (amount == 0) revert ZeroAmount();
@@ -186,14 +211,20 @@ contract LendingPool is ReentrancyGuard {
      *
      * - Prevents zero-amount withdrawals.
      * - Ensures the user has enough shares to withdraw.
-     * - Accrues interest before processing the withdrawal.
-     * - Calculates the amount of tokens the user receives based on their shares.
-     * - Updates the user's share balance and the protocol's total supply.
-     * - Ensures the protocol maintains sufficient liquidity for outstanding borrows.
-     * - Transfers the tokens securely to the user.
-     * - Emits a `Withdraw` event with details of the transaction.
+     * - Accrues interest before withdrawal to ensure accurate share value calculation
+     * - Converts user's shares to the equivalent token amount based on current pool ratios
+     * - Reduces user's share balance and protocol's total supply metrics
+     * - Verifies protocol maintains minimum required liquidity after withdrawal
+     * - Safely transfers withdrawn tokens to user's wallet
+     * - Emits a `Withdraw` event logging the withdrawal details
      *
-     * @param shares The number of supply shares the user wants to withdraw.
+     * Security considerations:
+     * - Nonreentrant modifier prevents reentrancy attacks
+     * - Checks for zero amount and insufficient shares
+     * - Validates sufficient protocol liquidity remains
+     * - Uses safe transfer for token movements
+     *
+     * @param shares The number of supply shares to redeem for underlying tokens
      */
     function withdraw(uint256 shares) external nonReentrant {
         if (shares == 0) revert ZeroAmount();
@@ -249,15 +280,27 @@ contract LendingPool is ReentrancyGuard {
     }
 
     /**
-     * @dev Allows users to supply collateral for their position.
+     * @dev Allows users to supply collateral tokens to their position in the lending pool.
      *
-     * - Prevents zero-amount collateral deposits.
-     * - Accrues interest before processing the deposit to ensure up-to-date calculations.
-     * - Increases the user's collateral balance.
-     * - Transfers the specified collateral amount securely from the user to the contract.
-     * - Emits a `SupplyCollateral` event to log the deposit.
+     * Requirements:
+     * - User must have a position created (checked by positionRequired modifier)
+     * - Amount must be greater than 0
+     * - User must have approved the lending pool to spend their collateral tokens
      *
-     * @param amount The amount of collateral tokens to supply.
+     * Effects:
+     * - Updates interest accrual before processing the deposit
+     * - Increases user's collateral balance by the supplied amount
+     * - Transfers collateral tokens from user to their position contract
+     * - Emits a SupplyCollateral event
+     *
+     * Security:
+     * - Uses nonReentrant modifier to prevent reentrancy attacks
+     * - Uses safeTransferFrom for secure token transfers
+     * - Validates amount is non-zero
+     *
+     * @param amount The amount of collateral tokens to supply
+     * @custom:throws ZeroAmount if amount is 0
+     * @custom:emits SupplyCollateral when collateral is successfully supplied
      */
     function supplyCollateral(uint256 amount) public positionRequired nonReentrant {
         if (amount == 0) revert ZeroAmount();
@@ -269,17 +312,28 @@ contract LendingPool is ReentrancyGuard {
     }
 
     /**
-     * @dev Allows users to withdraw their supplied collateral.
+     * @dev Allows users to withdraw their supplied collateral from their position.
      *
-     * - Prevents zero-amount withdrawals.
-     * - Ensures the user has enough collateral to withdraw the requested amount.
-     * - Accrues interest before processing the withdrawal to keep calculations updated.
-     * - Reduces the user's collateral balance accordingly.
-     * - Calls `_isHealthy` to verify the user's position remains solvent after withdrawal.
-     * - Transfers the specified collateral amount securely to the user.
-     * - Emits a `WithdrawCollateral` event to log the transaction.
+     * Requirements:
+     * - User must have a position created (checked by positionRequired modifier)
+     * - Amount must be greater than 0
+     * - User must have sufficient collateral balance to withdraw the requested amount
      *
-     * @param amount The amount of collateral tokens to withdraw.
+     * Effects:
+     * - Updates interest accrual before processing the withdrawal
+     * - Decreases user's collateral balance by the withdrawn amount
+     * - Transfers collateral tokens from position contract back to user
+     * - Emits a WithdrawCollateral event
+     *
+     * Security:
+     * - Uses nonReentrant modifier to prevent reentrancy attacks
+     * - Validates amount is non-zero
+     * - Checks for sufficient collateral balance
+     *
+     * @param amount The amount of collateral tokens to withdraw
+     * @custom:throws ZeroAmount if amount is 0
+     * @custom:throws InsufficientCollateral if user has insufficient collateral balance
+     * @custom:emits WithdrawCollateral when collateral is successfully withdrawn
      */
     function withdrawCollateral(uint256 amount) public positionRequired nonReentrant {
         if (amount == 0) revert ZeroAmount();
@@ -292,21 +346,32 @@ contract LendingPool is ReentrancyGuard {
 
         emit WithdrawCollateral(msg.sender, amount);
     }
+
     /**
      * @dev Allows users to borrow assets using their supplied collateral.
      *
-     * - Accrues interest before processing the borrow request.
-     * - Calculates the borrow shares based on the existing borrow-to-share ratio.
-     * - If this is the first borrow, the shares are equal to the borrowed amount.
-     * - Updates the user's borrow share balance and the protocol's total borrow shares.
-     * - Ensures the user's position remains healthy after borrowing.
-     * - Prevents borrowing if total borrowed assets exceed total supplied assets.
-     * - Transfers the borrowed tokens securely to the user.
-     * - Emits a `BorrowDebt` event to log the transaction.
+     * Requirements:
+     * - User must have sufficient collateral to support the borrow
+     * - Total borrowed assets must not exceed total supplied assets
+     * - Amount must be greater than 0
      *
-     * @param amount The amount of tokens the user wants to borrow.
+     * Effects:
+     * - Updates interest accrual before processing the borrow
+     * - Calculates borrow shares based on current borrow-to-share ratio
+     * - For first borrow, shares equal borrowed amount
+     * - Increases user's borrow shares and protocol's total borrow shares/assets
+     * - Transfers borrowed tokens to user or solver contract for crosschain
+     *
+     * Security:
+     * - Uses nonReentrant modifier to prevent reentrancy attacks
+     * - Validates sufficient protocol liquidity
+     * - Safely transfers tokens using safeTransfer
+     *
+     * @param amount The amount of tokens to borrow
+     * @param _crosschain Whether this is a crosschain borrow
+     * @custom:throws InsufficientLiquidity if protocol lacks liquidity
+     * @custom:emits BorrowDebt when borrow is successful
      */
-
     function borrowDebt(uint256 amount, bool _crosschain) public nonReentrant {
         _accrueInterest();
         uint256 shares = 0;
@@ -333,16 +398,27 @@ contract LendingPool is ReentrancyGuard {
     }
 
     /**
-     * @dev Allows users to repay their borrowed assets using their position.
+     * @dev Allows users to repay their borrowed assets by burning borrow shares.
      *
-     * - Prevents zero-amount repayments.
-     * - Accrues interest before processing the repayment to ensure accurate calculations.
-     * - Determines the corresponding borrow amount based on the user's borrow shares.
-     * - Reduces the user's borrow shares and updates the protocol's total borrowed assets.
-     * - Transfers the repayment amount securely from the user to the contract.
-     * - Emits a `RepayDebt` event to log the transaction.
+     * Requirements:
+     * - Shares amount must be greater than 0
+     * - User must have sufficient borrow shares to repay
+     * - User must have approved the contract to spend the repayment amount
      *
-     * @param shares The number of borrow shares the user wants to repay.
+     * Effects:
+     * - Updates interest accrual before processing repayment
+     * - Calculates repayment amount based on current share-to-borrow ratio
+     * - Reduces user's borrow shares and protocol's total borrow shares/assets
+     * - Transfers repayment tokens from user to protocol
+     *
+     * Security:
+     * - Uses nonReentrant modifier to prevent reentrancy attacks
+     * - Safely transfers tokens using safeTransferFrom
+     * - Validates non-zero shares amount
+     *
+     * @param shares The number of borrow shares to repay
+     * @custom:throws ZeroAmount if shares is 0
+     * @custom:emits RepayDebt when repayment is successful
      */
     function repayDebt(uint256 shares) public nonReentrant {
         if (shares == 0) revert ZeroAmount();
@@ -362,56 +438,35 @@ contract LendingPool is ReentrancyGuard {
     /**
      * @dev Allows users to repay their borrowed assets using a selected token from their position.
      *
-     * - Prevents zero-amount repayments.
-     * - Ensures the specified position is valid before proceeding.
-     * - Accrues interest before processing the repayment.
-     * - Determines the equivalent amount of the selected token required to cover the borrow amount.
-     * - Supports repayment using either the collateral token or another token from the user's position.
-     * - Updates the user's borrow shares and total borrowed assets.
-     * - Converts any excess token amount back to the appropriate collateral or position token.
-     * - Calls `costSwapToken` on the position contract to handle token swaps if a non-collateral token is used.
-     * - Emits a `RepayWithCollateralByPosition` event to log the transaction.
+     * Requirements:
+     * - Shares amount must be greater than 0
+     * - User must have a valid position
+     * - User must have sufficient tokens in their position to repay
      *
-     * @param shares The number of borrow shares the user wants to repay.
-     * @param _token The address of the token the user wants to use for repayment.
+     * Effects:
+     * - Updates interest accrual before processing repayment
+     * - Calculates repayment amount based on current share-to-borrow ratio
+     * - Reduces user's borrow shares and protocol's total borrow shares/assets
+     * - Swaps selected token to borrow token if needed via position contract
+     * - Updates user's collateral balance if repaying with collateral token
+     *
+     * Security:
+     * - Uses nonReentrant modifier to prevent reentrancy attacks
+     * - Validates non-zero shares and position existence
+     * - Enforces minimum output amount for token swaps
+     *
+     * @param shares The number of borrow shares to repay
+     * @param minAmountOut The minimum amount of borrow token to receive from swap
+     * @param _token The address of the token to use for repayment
+     * @custom:throws ZeroAmount if shares is 0
+     * @custom:throws PositionUnavailable if user has no position
+     * @custom:emits RepayWithCollateralByPosition when repayment is successful
      */
     function repayWithSelectedToken(uint256 shares, uint256 minAmountOut, address _token) public nonReentrant {
         if (shares == 0) revert ZeroAmount();
         if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
-        // if (IPosition(addressPositions[msg.sender]).getTokenCounter(_token) == 0 && _token != collateralToken) {
-        //     revert TokenNotAvailable();
-        // }
 
         _accrueInterest();
-
-        // uint256 amountOut;
-        // uint256 borrowAmount = ((shares * totalBorrowAssets) / totalBorrowShares);
-        // uint256 tempBalance = _token == collateralToken
-        //     ? userCollaterals[msg.sender]
-        //     : IERC20(_token).balanceOf(addressPositions[msg.sender]);
-        // amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(tempBalance, _token, borrowToken);
-        // if (_token == collateralToken) {
-        //     userCollaterals[msg.sender] = 0;
-        // }
-
-        // userBorrowShares[msg.sender] -= shares;
-        // totalBorrowShares -= shares;
-        // totalBorrowAssets -= borrowAmount;
-        // amountOut -= borrowAmount;
-
-        // /**
-        //  * @dev After repayment, converts any excess borrowToken back to the original token type.
-        //  */
-        // amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountOut, borrowToken, _token);
-        // if (_token == collateralToken) {
-        //     userCollaterals[msg.sender] += amountOut;
-        //     TokenSwap(collateralToken).burn(address(this), tempBalance - userCollaterals[msg.sender]);
-        // } else {
-        //     IPosition(addressPositions[msg.sender]).costSwapToken(_token, borrowAmount);
-        //     TokenSwap(_token).burn(
-        //         addressPositions[msg.sender], tempBalance - IERC20(_token).balanceOf(addressPositions[msg.sender])
-        //     );
-        // }
         uint256 borrowAmount = ((shares * totalBorrowAssets) / totalBorrowShares);
 
         userBorrowShares[msg.sender] -= shares;
@@ -419,32 +474,46 @@ contract LendingPool is ReentrancyGuard {
         totalBorrowAssets -= borrowAmount;
 
         IPosition(addressPositions[msg.sender]).repayWithSelectedToken(borrowAmount, minAmountOut, _token);
+        if (_token == collateralToken) {
+            userCollaterals[msg.sender] = IERC20(collateralToken).balanceOf(addressPositions[msg.sender]);
+        }
 
         emit RepayWithCollateralByPosition(msg.sender, borrowAmount, shares);
     }
 
     /**
-     * @dev Swaps one token for another within a user's position.
+     * @dev Swaps tokens within a user's position using Uniswap V3.
      *
-     * - Ensures the input amount is greater than zero.
-     * - Checks that the specified position is valid.
-     * - Validates whether the token being swapped from is available in the position.
-     * - Handles swaps from collateral and non-collateral tokens differently:
-     *     - If swapping from collateral, transfers the token from the lending pool.
-     *     - If swapping from a non-collateral token, verifies token balances and performs necessary conversions.
-     * - Calls `costSwapToken` on the position contract if a position token swap is needed.
-     * - Calculates the output token amount using `tokenCalculator`.
-     * - Mints the swapped token:
-     *     - If swapped into collateral, the minted amount is sent to the lending pool.
-     *     - Otherwise, the minted token is sent to the user's position.
-     * - Updates the user's collateral balance if the output token is the collateral token.
-     * - Calls `swapToken` on the position contract to finalize the swap if applicable.
-     * - Emits a `SwapByPosition` event to log the transaction.
+     * Requirements:
+     * - User must have a valid position
+     * - Input amount must be greater than 0
+     * - If swapping from a non-collateral token, user must have sufficient balance
      *
-     * @param _tokenTo The address of the token the user wants to receive.
-     * @param _tokenFrom The address of the token the user is swapping.
-     * @param amountIn The amount of `_tokenFrom` the user wants to swap.
-     * @return amountOut The amount of `_tokenTo` received from the swap.
+     * Effects:
+     * - Updates interest accrual before processing swap
+     * - If swapping from collateral token:
+     *   - Deducts amount from user's collateral balance
+     *   - Executes swap via position contract
+     * - If swapping to collateral token:
+     *   - Executes swap via position contract
+     *   - Adds received amount to user's collateral balance
+     * - For other token swaps:
+     *   - Simply executes swap via position contract
+     *
+     * Security:
+     * - Uses positionRequired modifier to validate position existence
+     * - Validates non-zero input amount
+     * - Checks token availability in position
+     * - Updates interest before swap to ensure accurate accounting
+     *
+     * @param _tokenTo The address of the token to receive
+     * @param _tokenFrom The address of the token to swap from
+     * @param amountIn The amount of _tokenFrom to swap
+     * @return amountOut The amount of _tokenTo received from the swap
+     * @custom:throws ZeroAmount if amountIn is 0
+     * @custom:throws PositionUnavailable if user has no position
+     * @custom:throws TokenNotAvailable if _tokenFrom is not available in position
+     * @custom:emits SwapByPosition when swap is successful
      */
     function swapTokenByPosition(address _tokenTo, address _tokenFrom, uint256 amountIn)
         public
@@ -470,14 +539,6 @@ contract LendingPool is ReentrancyGuard {
         emit SwapByPosition(msg.sender, collateralToken, _tokenTo, amountIn, amountOut);
     }
 }
-
-// 1. Collateral -> LP
-
-// 2. Collateral -> Position
-
-// 3. Position -> coins
-
-// 4. LP -> Position`
 
 /**
  * !SECTION

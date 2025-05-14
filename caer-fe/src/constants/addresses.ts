@@ -1,6 +1,6 @@
 import { Address } from "viem";
 
-export const chain_id: number = 50002;
+export const chain_id: number = 11155420;
 // export const chain_id: number = 11155420;
 
 let temp_mockWeth
@@ -19,20 +19,20 @@ let temp_position
 
 // Pharos
 /****************************************************************************** */
-if (chain_id === 50002) {
-temp_mockWeth = "0x18858A62e46DCb501F1c69893ee0f7F2323581a5" as Address;
-temp_mockWbtc = "0xa0624E61a525Ba2A71B793413a89F9a624646081" as Address;
-temp_mockUsdc = "0x42260072BbfaD1b50AD01C8aAdeA5dE345f2E752" as Address;
-temp_mockUsdt = "0x6399a0cbEcB277CaCA35A907B3BA3A8079C0bE7b" as Address;
-temp_mockPepe = "0x4a363F2dE88567623Ff351584Eb9d8B71CD1fEb8" as Address;
-temp_mockBnvda = "0x33E4Ca17132C90a062a692F062C94Ef3d4D727bA" as Address;
-temp_mockSaapl = "0xfb776096EbDfFEf3C4FAb6076a4950445Ae33f8f" as Address;
-temp_mockPaxg = "0x1EFE2c1EcDf8511538d2aDc20Bae9417b8b6f359" as Address;
-temp_priceFeed = "0x671f33611ca94095fD4f06d539b0F2c13e70F362" as Address;
-temp_factory = "0xF64b9a1bbD331eB5e3Fa5c80fe9417E1A3F96F12" as Address;
-temp_lendingPool = "0x9F19f49DA9D24382892a78D8d966441DCc4ee89b" as Address;
-temp_lendingPoolSequencer = "0xC5711CccD5f420ED4356d4d19a8c9E31572f09f2" as Address;
-temp_position = "0x72e06B77BEE9E2093f831B9494cD1e32Ae0Ad1dd" as Address;
+if (chain_id === 11155420) {
+temp_mockWeth = "0x7e2A41bE54531b1e862b2F6A1A476A8E13a03082" as Address;
+temp_mockWbtc = "0x53241438332F16dB835Ace4244Ade8C07178735a" as Address;
+temp_mockUsdc = "0xFABE77179B6F9b8A2f9afe3C4b358F2C9A218c63" as Address;
+temp_mockUsdt = "0x8ea9fD8F3ae0e1D332CeA723654684f789787749" as Address;
+temp_mockPepe = "0xe87cDFe6832aa45958c06A62716c6Fb6Fdd200E7" as Address;
+temp_mockBnvda = "0xbC44a2B9c5B1a9daB8158242112841ea0c3a49C8" as Address;
+temp_mockSaapl = "0x3A4F0980915fFCf8831781820C2BD674eE1e1144" as Address;
+temp_mockPaxg = "0x8cE8CD7F4182A29F87f4c1A3d07C5dF6522aa22D" as Address;
+temp_priceFeed = "0x60CAD266bDD59ca75d3317E9dc4d6CC93859c488" as Address;
+temp_factory = "0x593c05Fd0D1bD354991c6E011a35d92c88A10825" as Address;
+temp_lendingPool = "0x77171fC580664700a29B81eae437797Ed88088F5" as Address;
+temp_lendingPoolSequencer = "0xc62809F1A4721aE9D88737907c17eE88CCE17E68" as Address;
+temp_position = "0xF979b2001616601A41d21Fb922E23Ac9d6870497" as Address;
 }
 /****************************************************************************** */
 else {
@@ -50,6 +50,7 @@ temp_lendingPool = "0x8370aFfe9a1c3A258A4E22B71A0c1F4D9b5715Eb" as Address;
 temp_lendingPoolSequencer = "0x2851D80C5AF11E4BFcA0522CCFa7d390acDe9Bc0" as Address;
 temp_position = "0x0521A7e762Fe11705B2ae853Bd93Ad5341e60Ce9" as Address;
 }
+
 
 export const mockWeth = temp_mockWeth;
 export const mockWbtc = temp_mockWbtc;

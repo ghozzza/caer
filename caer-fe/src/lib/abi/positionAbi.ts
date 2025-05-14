@@ -3,6 +3,8 @@ export const positionAbi = [
     inputs: [
       { internalType: "address", name: "_collateral", type: "address" },
       { internalType: "address", name: "_borrow", type: "address" },
+      { internalType: "address", name: "_lpAddress", type: "address" },
+      { internalType: "address", name: "_factory", type: "address" },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -10,14 +12,17 @@ export const positionAbi = [
   { inputs: [], name: "InsufficientBalance", type: "error" },
   { inputs: [], name: "InvalidPrice", type: "error" },
   { inputs: [], name: "NotForSale", type: "error" },
+  { inputs: [], name: "NotForWithdraw", type: "error" },
   { inputs: [], name: "ReentrancyGuardReentrantCall", type: "error" },
   {
     inputs: [{ internalType: "address", name: "token", type: "address" }],
     name: "SafeERC20FailedOperation",
     type: "error",
   },
+  { inputs: [], name: "SameToken", type: "error" },
   { inputs: [], name: "TokenNotFound", type: "error" },
   { inputs: [], name: "TradingAccountListed", type: "error" },
+  { inputs: [], name: "ZeroAmount", type: "error" },
   {
     anonymous: false,
     inputs: [
@@ -176,6 +181,13 @@ export const positionAbi = [
   },
   {
     inputs: [],
+    name: "factory",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getAllTokenOwnerAddress",
     outputs: [{ internalType: "address[]", name: "", type: "address[]" }],
     stateMutability: "view",
@@ -241,7 +253,32 @@ export const positionAbi = [
   },
   {
     inputs: [],
+    name: "lpAddress",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "owner",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "amount", type: "uint256" },
+      { internalType: "uint256", name: "minAmountOut", type: "uint256" },
+      { internalType: "address", name: "_token", type: "address" },
+    ],
+    name: "repayWithSelectedToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "router",
     outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "view",
     type: "function",
@@ -253,6 +290,18 @@ export const positionAbi = [
     ],
     name: "swapToken",
     outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "_tokenIn", type: "address" },
+      { internalType: "address", name: "_tokenOut", type: "address" },
+      { internalType: "uint256", name: "amountIn", type: "uint256" },
+      { internalType: "uint256", name: "minAmountOut", type: "uint256" },
+    ],
+    name: "swapTokenByPositionV2",
+    outputs: [{ internalType: "uint256", name: "amountOut", type: "uint256" }],
     stateMutability: "nonpayable",
     type: "function",
   },
@@ -275,6 +324,16 @@ export const positionAbi = [
     name: "tokenListsId",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "uint256", name: "amount", type: "uint256" },
+      { internalType: "address", name: "_user", type: "address" },
+    ],
+    name: "withdrawCollateral",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

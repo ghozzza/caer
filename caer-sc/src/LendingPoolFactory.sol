@@ -24,7 +24,7 @@ contract LendingPoolFactory {
 
     constructor(address _oracle) {
         oracle = _oracle;
-        solver = msg.sender;
+        solver = 0x44C444f33E25b382AD64C88f40E286966CeC0535;
     }
 
     function createLendingPool(address collateralToken, address borrowToken, uint256 LTV)

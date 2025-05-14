@@ -45,8 +45,8 @@ export const factoryAbi = [
   },
   {
     inputs: [
-      { internalType: "address", name: "LendingPoolToken1", type: "address" },
-      { internalType: "address", name: "LendingPoolToken2", type: "address" },
+      { internalType: "address", name: "collateralToken", type: "address" },
+      { internalType: "address", name: "borrowToken", type: "address" },
       { internalType: "uint256", name: "LTV", type: "uint256" },
     ],
     name: "createLendingPool",
@@ -57,6 +57,13 @@ export const factoryAbi = [
   {
     inputs: [{ internalType: "address", name: "_oracle", type: "address" }],
     name: "editOracle",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "_solver", type: "address" }],
+    name: "editSolver",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -83,6 +90,13 @@ export const factoryAbi = [
       { internalType: "address", name: "borrowToken", type: "address" },
       { internalType: "address", name: "lendingPoolAddress", type: "address" },
     ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "solver",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "view",
     type: "function",
   },
