@@ -122,7 +122,7 @@ export const RepaySection = ({
       writeContract({
         address: lpAddress as `0x${string}`,
         abi: poolAbi,
-        functionName: "repayByPosition",
+        functionName: "repayDebt",
         args: [BigInt(amount)],
       });
 

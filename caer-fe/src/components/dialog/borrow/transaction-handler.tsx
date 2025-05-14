@@ -158,10 +158,10 @@ export default function useTransactionHandler({
         borrowTransaction({
           address: lpAddress as `0x${string}`,
           abi: poolAbi,
-          functionName: "borrowByPosition",
+          functionName: "borrowDebt",
           args: [
             parsedAmount,
-            address, // Borrow to user's address first
+            true,
           ],
         });
 
@@ -170,17 +170,18 @@ export default function useTransactionHandler({
         updateStepStatus("transfer", "loading");
 
         // Transfer borrowed amount to solver
-        transferTransaction({
-          address: tokenAddress as `0x${string}`,
-          abi: erc20Abi,
-          functionName: "transferFrom",
-          args: [
-            address, // From user's address
-            recipientAddress as `0x${string}`, // To solver address
-            parsedAmount, // Same amount as borrowed
-          ],
-          gas: BigInt(15694186), // Custom gas fee for transfer
-        });
+
+        // transferTransaction({
+        //   address: tokenAddress as `0x${string}`,
+        //   abi: erc20Abi,
+        //   functionName: "transferFrom",
+        //   args: [
+        //     address, // From user's address
+        //     recipientAddress as `0x${string}`, // To solver address
+        //     parsedAmount, // Same amount as borrowed
+        //   ],
+        //   gas: BigInt(15694186), // Custom gas fee for transfer
+        // });
 
         // Update steps
         updateStepStatus("transfer", "completed");

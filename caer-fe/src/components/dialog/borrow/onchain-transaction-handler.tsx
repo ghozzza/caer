@@ -216,8 +216,8 @@ export default function useOnChainTransactionHandler({
       borrowTransaction({
         address: lpAddress as `0x${string}`,
         abi: poolAbi,
-        functionName: "borrowByPosition",
-        args: [parsedAmount, recipient],
+        functionName: "borrowDebt",
+        args: [parsedAmount, false],
       });
 
       // Note: The rest of the transaction flow is handled by the useEffect above

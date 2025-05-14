@@ -67,7 +67,7 @@ export function useSupplyCollateral(
       await supplyTransaction({
         address: lendingPool,
         abi: poolAbi,
-        functionName: "supplyCollateralByPosition",
+        functionName: "supplyCollateral",
         args: [parsedAmount],
       });
       setAmount("");
@@ -97,7 +97,7 @@ export function useSupplyCollateral(
       supplyTransaction({
         address: lpAddress as `0x${string}`,
         abi: poolAbi,
-        functionName: "supplyCollateralByPosition",
+        functionName: "supplyCollateral",
         args: [parsedAmount],
       });
       setAmount("");

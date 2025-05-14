@@ -74,7 +74,7 @@ export const useRepayLoan = ({ tokenAddress, arrayLocation, lpAddress }: UseRepa
         address: lendingPool,
         abi: poolAbi,
         functionName: "repayWithSelectedToken",
-        args: [amount, tokenAddress, arrayLocation],
+        args: [amount, 0, tokenAddress],
       });
 
       setValueAmount("");
@@ -108,7 +108,7 @@ export const useRepayLoan = ({ tokenAddress, arrayLocation, lpAddress }: UseRepa
         address: lpAddress,
         abi: poolAbi,
         functionName: "repayWithSelectedToken",
-        args: [amount, tokenAddress, arrayLocation],
+        args: [amount, 0, tokenAddress],
       });
 
       setValueAmount("");

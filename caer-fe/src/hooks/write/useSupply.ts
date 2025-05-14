@@ -58,7 +58,7 @@ export const useSupply = (lpAddress?: string, borrowToken?: string) => {
       await supplyTransaction({
         abi: poolAbi,
         address: lendingPool,
-        functionName: "supply",
+        functionName: "supplyLiquidity",
         args: [supplyAmountBigInt],
       });
 
@@ -95,7 +95,7 @@ export const useSupply = (lpAddress?: string, borrowToken?: string) => {
       await supplyTransaction({
         abi: poolAbi,
         address: lpAddress as `0x${string}`,
-        functionName: "supply",
+        functionName: "supplyLiquidity",
         args: [supplyAmountBigInt],
       });
       console.log("🚀 Supply transaction sent!");

@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import { getAllLPFactoryData } from "@/actions/GetLPFactory";
 import DialogCreatePool from "./DialogCreatePool";
 import RowTable from "./RowTable";
+import { PlusCircle, ArrowRight } from "lucide-react";
 
 const LendingData = () => {
   const { isConnected } = useAccount();
@@ -53,75 +54,6 @@ const LendingData = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* <tr className="border-b border-[#9EC6F3] hover:bg-[#1016BC]/5 duration-300">
-                    <td className="px-4 text-left">
-                      <div className="flex items-center justify-center space-x-1">
-                        <div>
-                          <Image
-                            src={
-                              TOKEN_OPTIONS.find(
-                                (token) => token?.name === "USDC"
-                              )?.logo ?? "/placeholder.svg"
-                            }
-                            alt="USDC"
-                            width={100}
-                            height={100}
-                            className="w-7 h-7 rounded-full"
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-700">$USDC</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-gray-500">
-                      <div>
-                        <div className="font-medium">
-                          <p>
-                            {realTotalSupplyAssets
-                              ? realTotalSupplyAssets.toLocaleString("en-US")
-                              : "0.00"}{" "}
-                            $USDC
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="p-4">
-                      <div className="flex items-center space-x-1 text-gray-400 gap-3">
-                        <div>
-                          <Image
-                            src={
-                              TOKEN_OPTIONS.find(
-                                (token) => token?.name === "WETH"
-                              )?.logo ?? "/placeholder.svg"
-                            }
-                            alt="USDC"
-                            width={100}
-                            height={100}
-                            className="w-7 h-7 rounded-full"
-                          />
-                        </div>
-                        <div>$WETH</div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-left">
-                      <div className="font-medium text-green-500">5.62%</div>
-                    </td>
-                    <td className="p-4 text-center flex justify-center">
-                      <div className="flex items-center gap-2">
-                        <div>
-                          <DialogSupply
-                            lpAddress={lendingPool}
-                            borrowToken={mockUsdc}
-                          />
-                        </div>
-                        <div>
-                          <DialogWithdraw />
-                        </div>
-                      </div>
-                    </td>
-                  </tr> */}
                   {lpData.length > 0 ? (
                     lpData.map(
                       (item) =>
@@ -136,11 +68,16 @@ const LendingData = () => {
                     )
                   ) : (
                     <tr>
-                      <td colSpan={5} className="p-4">
-                        <div className="animate-pulse flex flex-col gap-4 duration-1000">
-                          <div className="h-10 bg-slate-200 rounded"></div>
-                          <div className="h-10 bg-slate-200 rounded"></div>
-                          <div className="h-10 bg-slate-200 rounded"></div>
+                      <td colSpan={5} className="p-4 text-center">
+                        <div className="text-[#1016BC] py-8">
+                          <div className="flex flex-col items-center gap-4">
+                            <PlusCircle className="w-12 h-12 text-[#1016BC] opacity-80" />
+                            <p className="text-lg font-medium">There is no lending pool here</p>
+                            <div className="flex items-center gap-2 text-sm text-[#1016BC] opacity-80">
+                              <p>Please create a pool to get started</p>
+                              <ArrowRight className="w-4 h-4" />
+                            </div>
+                          </div>
                         </div>
                       </td>
                     </tr>

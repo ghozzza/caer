@@ -16,6 +16,7 @@ const PoolList = () => {
     borrowAddress: string;
   } | null>(null);
   const [lpData, setLpData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleRowClick = (pool: {
     collateralToken: string;
@@ -32,11 +33,45 @@ const PoolList = () => {
 
   useEffect(() => {
     const fetchLpData = async () => {
+      setIsLoading(true);
       const data = await getAllLPFactoryData();
       setLpData(data);
+      setIsLoading(false);
     };
     fetchLpData();
   }, []);
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-full py-10">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      );
+    }
+
+    if (lpData.length === 0) {
+      return (
+        <div className="flex justify-center items-center h-full py-10">
+          <p className="text-gray-500">No data available</p>
+        </div>
+      );
+    }
+
+    return lpData.map((pool) => (
+      <RowPool
+        key={pool.id}
+        collateralToken={pool.collateralToken}
+        borrowToken={pool.borrowToken}
+        ltv={pool.ltv}
+        lpAddress={pool.lpAddress}
+        rate={pool.rate}
+        handleRowClick={handleRowClick}
+        borrowAddress={pool.borrowAddress}
+      />
+    ));
+  };
+
   return (
     <div className="px-6 pb-6">
       <div className="rounded-xl border border-gray-200 overflow-hidden">
@@ -51,24 +86,7 @@ const PoolList = () => {
         </div>
 
         <div className="divide-y divide-gray-100">
-          {lpData.length > 0 ? (
-            lpData.map((pool) => (
-              <RowPool
-                key={pool.id}
-                collateralToken={pool.collateralToken}
-                borrowToken={pool.borrowToken}
-                ltv={pool.ltv}
-                lpAddress={pool.lpAddress}
-                rate={pool.rate}
-                handleRowClick={handleRowClick}
-                borrowAddress={pool.borrowAddress}
-              />
-            ))
-          ) : (
-            <div className="flex justify-center items-center h-full py-10">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          )}
+          {renderContent()}
         </div>
       </div>
 

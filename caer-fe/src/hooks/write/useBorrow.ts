@@ -31,8 +31,8 @@ export function useBorrow() {
       await borrowTransaction({
         address: lendingPool,
         abi: poolAbi,
-        functionName: "borrowByPosition",
-        args: [parsedAmount, address],
+        functionName: "borrowDebt",
+        args: [parsedAmount, false],
       });
 
       setAmount("");

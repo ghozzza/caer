@@ -97,8 +97,8 @@ export const RepayDialog = () => {
       writeContract({
         address: lendingPool,
         abi: poolAbi,
-        functionName: "repayByPosition",
-        args: [amount],
+        functionName: "repayDebt",
+        args: [BigInt(amount)],
       });
 
       setUsdcAmount("0");

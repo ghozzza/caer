@@ -77,8 +77,7 @@ export const useSwapToken = () => {
         args: [
           toToken.address,
           fromToken.address,
-          BigInt(amountIn),
-          arrayLocation,
+          BigInt(amountIn)
         ], // Position index 0
       });
 

@@ -397,8 +397,8 @@ contract LendingPoolFactoryTest is Test {
         console.log("position balance weth before swap", IERC20(address(wethBaseMain)).balanceOf(addressPosition));
         console.log("position balance usdc before swap", IERC20(address(usdcBaseMain)).balanceOf(addressPosition));
 
-        IPosition(addressPosition).swapTokenByPositionV2(address(wethBaseMain), address(usdcBaseMain), 1e18, 1000);
-        
+        // IPosition(addressPosition).swapTokenByPositionV2(address(wethBaseMain), address(usdcBaseMain), 1e18, 1000);
+        lendingPool.swapTokenByPosition(address(usdcBaseMain), address(wethBaseMain), 1e18);
         console.log("--------------------------------");
         console.log("position balance weth after swap", IERC20(address(wethBaseMain)).balanceOf(addressPosition));
         console.log("position balance usdc after swap", IERC20(address(usdcBaseMain)).balanceOf(addressPosition));

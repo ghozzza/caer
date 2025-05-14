@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 import { X } from "lucide-react";
@@ -12,15 +12,16 @@ interface MobileMenuProps {
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   return (
-    <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
+    <div className={`md:hidden ${isOpen ? "block" : "hidden"}`}>
       <div
         className="fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
         role="presentation"
       />
       <div
-        className={`fixed top-0 right-0 h-full w-[85%] max-w-[400px] bg-white dark:bg-[#0d0d21] shadow-lg transform transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
+        className={`fixed top-0 right-0 h-full w-[85%] max-w-[400px] bg-white dark:bg-[#0d0d21] shadow-lg transform transition-transform duration-300 ease-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
         role="dialog"
         aria-modal="true"
         aria-label="Mobile menu"
@@ -58,11 +59,13 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
             </span>
           </NavLink>
 
-          <NavLink href="/faucets" onClick={onClose}>
-            <span className="flex items-center px-6 py-3 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5">
-              Faucets
-            </span>
-          </NavLink>
+          <div className="hidden">
+            <NavLink href="/faucets" onClick={onClose}>
+              <span className="flex items-center px-6 py-3 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5">
+                Faucets
+              </span>
+            </NavLink>
+          </div>
 
           <div className="px-6 pt-6 mt-4 border-t border-gray-200 dark:border-white/10">
             <div className="w-full">

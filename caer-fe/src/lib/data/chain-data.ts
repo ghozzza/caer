@@ -55,3 +55,21 @@ export const optimismSepolia = defineChain({
   iconUrl: "/pharos-logo.jpg"
 });
 
+export const baseMainnet = defineChain({
+  id: 8453,
+  name: "Base",
+  nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    
+    default: { http: ["https://virtual.base.rpc.tenderly.co/78cea8f4-da62-4444-b5f6-01ebb02fb27c"] },
+  },
+  blockExplorers: {
+    default: {
+      name: "Blockscout",
+      url: "https://basescan.org/",
+    },
+  },
+  testnet: false,
+  iconBackground: "#ffff",
+  iconUrl: "/base-logo.png"
+})

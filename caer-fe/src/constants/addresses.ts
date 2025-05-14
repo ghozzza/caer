@@ -1,7 +1,7 @@
 import { Address } from "viem";
 
-export const chain_id: number = 11155420;
-// export const chain_id: number = 11155420;
+export const chain_id: number = 8453;
+// export const chain_id: number = 8453;
 
 let temp_mockWeth
 let temp_mockWbtc
@@ -19,10 +19,10 @@ let temp_position
 
 // Pharos
 /****************************************************************************** */
-if (chain_id === 11155420) {
-temp_mockWeth = "0x7e2A41bE54531b1e862b2F6A1A476A8E13a03082" as Address;
+if (chain_id === 8453) {
+temp_mockWeth = "0x4200000000000000000000000000000000000006" as Address;
+temp_mockUsdc = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as Address;
 temp_mockWbtc = "0x53241438332F16dB835Ace4244Ade8C07178735a" as Address;
-temp_mockUsdc = "0xFABE77179B6F9b8A2f9afe3C4b358F2C9A218c63" as Address;
 temp_mockUsdt = "0x8ea9fD8F3ae0e1D332CeA723654684f789787749" as Address;
 temp_mockPepe = "0xe87cDFe6832aa45958c06A62716c6Fb6Fdd200E7" as Address;
 temp_mockBnvda = "0xbC44a2B9c5B1a9daB8158242112841ea0c3a49C8" as Address;

@@ -36,18 +36,18 @@ export const createPosition = async (
       address: lpAddress as `0x${string}`,
       abi: poolAbi,
       functionName: "addressPositions",
-      args: [owner, positionIndex],
+      args: [owner],
     });
   } catch (error) {
     console.error("Error creating position:", error);
   }
 
-  if (!positionAddress) {
-    return {
-      success: false,
-      message: "Loading...",
-    };
-  }
+  // if (!positionAddress) {
+  //   return {
+  //     success: false,
+  //     message: "Loading...",
+  //   };
+  // }
 
   const position = await prisma.position.create({
     data: {
