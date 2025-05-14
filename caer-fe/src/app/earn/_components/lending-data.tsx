@@ -88,7 +88,7 @@ const LendingData = () => {
           </CardContent>
         </div>
       </main>
-      <div className="mt-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="mt-8 max-w-7xl mx-auto grid-cols-1 md:grid-cols-2 gap-6 hidden">
         <Card className="bg-[#F0F2FF] backdrop-blur-sm border border-[#9EC6F3] p-5 rounded-xl">
           <h3 className="text-lg font-medium text-[#1016BC] mb-4">
             Market Overview
