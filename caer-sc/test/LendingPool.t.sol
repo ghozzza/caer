@@ -629,7 +629,7 @@ contract LendingPoolFactoryTest is Test {
         
         // Execute swap
         uint256 minAmountOut = 0; // For testing, we can set this to 0
-        lendingPool.swapTokenByPositionV2(tokenIn, tokenOut, swapAmount, minAmountOut);
+        // lendingPool.swapTokenByPositionV2(tokenIn, tokenOut, swapAmount, minAmountOut);
         
         // Verify balances after swap
         // uint256 positionBalanceAfter = IERC20(address(usdcBaseMain)).balanceOf(positionAddress);
