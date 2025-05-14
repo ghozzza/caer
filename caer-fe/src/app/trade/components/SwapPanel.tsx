@@ -9,7 +9,8 @@ import { usePositionBalance } from "@/hooks/useTokenBalance";
 import { useSwapToken } from "@/hooks/useSwapToken";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
-import SelectPosition from "@/app/borrow/_components/position/selectPosition";
+import {MoveRight} from "lucide-react"
+// import SelectPosition from "@/app/borrow/_components/position/selectPosition";
 import {
   getAllLPFactoryData,
   getSelectedCollateralTokenByLPAddress,
@@ -229,7 +230,7 @@ export default function SwapPanel() {
   return (
     <div className="max-w-md mx-auto w-full px-4 py-2">
       <div className="flex flex-row gap-4 mb-5">
-        <div className="w-full max-w-1/2">
+        <div className="w-full ">
           <Select onValueChange={(value) => setLpAddressSelected(value)}>
             <SelectTrigger className="truncate w-full bg-white text-blue-800 border border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm cursor-pointer">
               <SelectValue placeholder="Select LP Address" />
@@ -244,28 +245,33 @@ export default function SwapPanel() {
                     <SelectItem
                       key={lp.id}
                       value={lp.lpAddress}
-                      className="truncate cursor-pointer px-3 pr-8 py-2 text-sm text-blue-800 hover:bg-blue-50 transition-colors"
+                      className="w-full py-2 justify-center text-center mx-auto text-md text-blue-800 hover:bg-blue-50 transition-colors"
                     >
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={tokenLogo(lp.collateralToken) ?? ""}
-                          alt={tokenName(lp.collateralToken) ?? ""}
-                          className="w-5 h-5 rounded-full"
-                          width={20}
-                          height={20}
-                        />
-                        <span>{tokenName(lp.collateralToken)}</span>
-                        <span>-</span>
-                        <Image
-                          src={tokenLogo(lp.borrowToken) ?? ""}
-                          alt={tokenName(lp.borrowToken) ?? ""}
-                          className="w-5 h-5 rounded-full"
-                          width={20}
-                          height={20}
-                        />
-                        <span>{tokenName(lp.borrowToken)}</span>
+                      <div className="w-full flex flex-row gap-12 justify-center text-center mx-auto">
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={tokenLogo(lp.collateralToken) ?? ""}
+                            alt={tokenName(lp.collateralToken) ?? ""}
+                            className="w-5 h-5 rounded-full "
+                            width={20}
+                            height={20}
+                          />
+                          <span>{tokenName(lp.collateralToken)}</span>
+                        </div>
+                        <MoveRight className="h-5 w-5 items-center my-auto text-blue-950" />
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src={tokenLogo(lp.borrowToken) ?? ""}
+                            alt={tokenName(lp.borrowToken) ?? ""}
+                            className="w-5 h-5 rounded-full"
+                            width={20}
+                            height={20}
+                          />
+                          <span>{tokenName(lp.borrowToken)}</span>
+                        </div>
                       </div>
                     </SelectItem>
+
                   ))
                 ) : (
                   <div className="text-blue-600 px-3 py-2 text-sm">
@@ -276,7 +282,7 @@ export default function SwapPanel() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-full max-w-1/2">
+        {/* <div className="w-full max-w-1/2">
           <SelectPosition
             positionAddress={positionAddress}
             positionArray={positionsArray}
@@ -286,9 +292,9 @@ export default function SwapPanel() {
             setPositionsArray={setPositionsArray}
             setPositionIndex={setPositionIndex}
           />
-        </div>
+        </div> */}
       </div>
-  
+
       <div className="space-y-4 w-full">
         {/* From Token */}
         <div className="bg-white border border-blue-300 rounded-xl p-4 w-full shadow-sm hover:shadow-md transition-shadow">
@@ -303,9 +309,9 @@ export default function SwapPanel() {
               Balance:{" "}
               {fromToken.name === tokenName(selectedCollateralToken)
                 ? formatUnits(
-                    BigInt(dynamicUserCollateral?.toString() ?? "0"),
-                    fromToken.decimals
-                  )
+                  BigInt(dynamicUserCollateral?.toString() ?? "0"),
+                  fromToken.decimals
+                )
                 : fromTokenBalance}{" "}
               {fromToken.name}
             </span>
@@ -326,7 +332,7 @@ export default function SwapPanel() {
               onChange={(e) =>
                 setFromToken(
                   TOKEN_OPTIONS.find((t) => t.address === e.target.value) ||
-                    TOKEN_OPTIONS[0]
+                  TOKEN_OPTIONS[0]
                 )
               }
               aria-label="Select token to swap from"
@@ -339,7 +345,7 @@ export default function SwapPanel() {
             </select>
           </div>
         </div>
-  
+
         {/* Switch button */}
         <div className="flex justify-center">
           <button
@@ -350,7 +356,7 @@ export default function SwapPanel() {
             <ArrowDownIcon className="h-5 w-5 text-blue-600" />
           </button>
         </div>
-  
+
         {/* To Token */}
         <div className="bg-white border border-blue-300 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between mb-2">
@@ -361,9 +367,9 @@ export default function SwapPanel() {
               Balance:{" "}
               {toToken.name === tokenName(selectedCollateralToken)
                 ? formatUnits(
-                    BigInt(dynamicUserCollateral?.toString() ?? "0"),
-                    toToken.decimals
-                  )
+                  BigInt(dynamicUserCollateral?.toString() ?? "0"),
+                  toToken.decimals
+                )
                 : toTokenBalance}{" "}
               {toToken.name}
             </span>
@@ -384,7 +390,7 @@ export default function SwapPanel() {
               onChange={(e) =>
                 setToToken(
                   TOKEN_OPTIONS.find((t) => t.address === e.target.value) ||
-                    TOKEN_OPTIONS[1]
+                  TOKEN_OPTIONS[1]
                 )
               }
               aria-label="Select token to receive"
@@ -397,7 +403,7 @@ export default function SwapPanel() {
             </select>
           </div>
         </div>
-  
+
         {/* Swap Rate */}
         <div className="bg-white border border-blue-300 rounded-xl p-3 text-sm text-blue-700 shadow-sm">
           <div className="flex justify-between">
@@ -409,7 +415,7 @@ export default function SwapPanel() {
             </span>
           </div>
         </div>
-  
+
         {/* Slippage Setting */}
         <div className="bg-white border border-blue-300 rounded-xl p-3 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -420,11 +426,10 @@ export default function SwapPanel() {
               {["0.5", "1", "2", "3"].map((value) => (
                 <button
                   key={value}
-                  className={`px-3 py-1 rounded text-sm ${
-                    slippage === value
-                      ? "bg-blue-600 text-white"
-                      : "bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
-                  }`}
+                  className={`px-3 py-1 rounded text-sm ${slippage === value
+                    ? "bg-blue-600 text-white"
+                    : "bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
+                    }`}
                   onClick={() => setSlippage(value)}
                 >
                   {value}%
@@ -433,14 +438,14 @@ export default function SwapPanel() {
             </div>
           </div>
         </div>
-  
+
         {/* Error Message */}
         {error && (
           <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
             {error}
           </div>
         )}
-  
+
         {/* Swap Button */}
         <button
           onClick={handleSwap}
@@ -452,16 +457,15 @@ export default function SwapPanel() {
             positionAddress === undefined ||
             arrayLocation === -1
           }
-          className={`w-full py-3.5 rounded-xl font-bold transition-colors ${
-            isLoading ||
+          className={`w-full py-3.5 rounded-xl font-bold transition-colors ${isLoading ||
             !fromAmount ||
             !toAmount ||
             !address ||
             positionAddress === undefined ||
             arrayLocation === -1
-              ? "bg-blue-400 text-white cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
-          }`}
+            ? "bg-blue-400 text-white cursor-not-allowed"
+            : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
+            }`}
         >
           {getButtonText()}
         </button>
