@@ -7,3 +7,9 @@
 [submodule "caer-sc/lib/universal-router"]
 	path = caer-sc/lib/universal-router
 	url = https://github.com/uniswap/universal-router
+[submodule "caer-sc/lib/v3-core"]
+	path = caer-sc/lib/v3-core
+	url = https://github.com/uniswap/v3-core
+[submodule "caer-sc/lib/v2-core"]
+	path = caer-sc/lib/v2-core
+	url = https://github.com/uniswap/v2-core
