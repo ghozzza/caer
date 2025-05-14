@@ -1,29 +1,24 @@
+"use client";
+
 import React, { useState } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import SupplyCollateralSection from "./SupplyCollateralSection";
-import BorrowSection from "./BorrowSection";
-import WithdrawCollateralSection from "./WithdrawCollateralSection";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
-import { Slash } from "lucide-react";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { RepaySection } from "./RepaySection";
+import { ArrowBigRight, ChevronDown } from "lucide-react";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import { useAccount } from "wagmi";
-import { Button } from "@/components/ui/button";
+import SupplyCollateralSection from "./SupplyCollateralSection";
+import WithdrawCollateralSection from "./WithdrawCollateralSection";
+import BorrowSection from "./BorrowSection";
+import { RepaySection } from "./RepaySection";
 import ButtonConnectWallet from "@/components/navbar/button-connect-wallet";
 
 interface PoolDialogProps {
@@ -50,9 +45,7 @@ const PoolDialog = ({
   borrowAddress,
 }: PoolDialogProps) => {
   const { address } = useAccount();
-  const [activeTab, setActiveTab] = useState<
-    "supply" | "withdraw" | "borrow" | "repay"
-  >("supply");
+  const [tab, setTab] = useState("supply");
   const { refetchAll } = useReadLendingData(
     undefined,
     undefined,
@@ -60,234 +53,138 @@ const PoolDialog = ({
   );
 
   const getTokenLogo = (name: string) => {
-    const token = TOKEN_OPTIONS.find((token) => token.name === name);
-    return token?.logo;
+    return (
+      TOKEN_OPTIONS.find((token) => token.name === name)?.logo ??
+      "/placeholder.png"
+    );
   };
-  const activeNameSupply = () => {
-    if (activeTab === "supply") return "Supply Collateral";
-    if (activeTab === "withdraw") return "Withdraw Collateral";
-    return "Supply Collateral";
+
+  const handleSuccess = () => {
+    onClose();
+    refetchAll();
   };
-  const activeNameBorrow = () => {
-    if (activeTab === "borrow") return "Borrow Debt";
-    if (activeTab === "repay") return "Repay Loan";
-    return "Borrow Debt";
+
+  const tabLabelMap: Record<string, string> = {
+    supply: "Supply Collateral",
+    withdraw: "Withdraw Collateral",
+    borrow: "Borrow Debt",
+    repay: "Repay Loan",
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-gradient-to-b from-white to-slate-50 border-0 shadow-xl rounded-xl backdrop-blur-md">
-        <DialogTitle className="text-2xl font-bold text-center">
-          <div className="flex items-center justify-center gap-1">
-            <div className="flex items-center gap-2">
-              <Image
-                src={getTokenLogo(collateralToken) ?? "/placeholder.png"}
-                alt={collateralToken}
-                width={24}
-                height={24}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+        >
+          <DialogTitle className="text-2xl font-bold text-center">
+            <div className="flex items-center justify-center gap-2">
+              <TokenLabel
+                token={collateralToken}
+                logo={getTokenLogo(collateralToken)}
               />
-              <span className="text-lg font-bold">{collateralToken}</span>
+              <ArrowBigRight className="mx-1" />
+              <TokenLabel token={loanToken} logo={getTokenLogo(loanToken)} />
             </div>
-            <div className="flex items-center gap-2">
-              <Slash />
-            </div>
-            <div className="flex items-center gap-2">
-              <Image
-                src={getTokenLogo(loanToken) ?? "/placeholder.png"}
-                alt={loanToken}
-                width={24}
-                height={24}
-              />
-              <span className="text-lg font-bold">{loanToken}</span>
-            </div>
-          </div>
-        </DialogTitle>
-        <DialogDescription className="text-center text-sm text-gray-500 hidden">
-          {ltv}
-        </DialogDescription>
-        {address ? (
-          <div className="grid gap-4 py-4">
-            <div className="flex border-b cursor-pointer">
-              <NavigationMenu
-                className={cn(
-                  activeTab === "supply" || activeTab === "withdraw"
-                    ? "border-b-2 border-blue-600 text-blue-600"
-                    : "text-gray-600"
-                )}
-              >
-                <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="cursor-pointer">
-                      {activeNameSupply()}
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul
-                        className={cn(
-                          "px-0 py-0 text-sm font-medium transition-colors flex justify-center items-center flex-col w-[400px] gap-1 p-0 md:w-[500px] lg:w-[160px]"
-                        )}
-                      >
-                        <ListItem
-                          onClick={() => setActiveTab("supply")}
-                          className="cursor-pointer"
-                        >
-                          Supply Collateral
-                        </ListItem>
-                        <ListItem
-                          onClick={() => setActiveTab("withdraw")}
-                          className="cursor-pointer"
-                        >
-                          Withdraw Collateral
-                        </ListItem>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
-              <NavigationMenu
-                className={cn(
-                  activeTab === "borrow" || activeTab === "repay"
-                    ? "border-b-2 border-blue-600 text-blue-600"
-                    : "text-gray-600"
-                )}
-              >
-                <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="cursor-pointer">
-                      {activeNameBorrow()}
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul
-                        className={cn(
-                          "px-0 py-0 text-sm font-medium transition-colors flex justify-center items-center flex-col w-[400px] gap-1 p-0 md:w-[500px] lg:w-[160px]"
-                        )}
-                      >
-                        <ListItem
-                          onClick={() => setActiveTab("borrow")}
-                          className="cursor-pointer"
-                        >
-                          Borrow Debt
-                        </ListItem>
-                        <ListItem
-                          onClick={() => setActiveTab("repay")}
-                          className="cursor-pointer"
-                        >
-                          Repay Loan
-                        </ListItem>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
-            </div>
+          </DialogTitle>
 
-            <div className="relative overflow-hidden">
-              <div
-                className={cn(
-                  "transition-opacity duration-300 ease-in-out",
-                  activeTab === "supply"
-                    ? "opacity-100 max-h-[1000px]"
-                    : "opacity-0 max-h-0 hidden"
-                )}
-              >
-                <SupplyCollateralSection
-                  collateralToken={collateralToken}
-                  lpAddress={lpAddress}
-                  onSuccess={() => {
-                    onClose();
-                    refetchAll();
-                  }}
-                />
-              </div>
-              <div
-                className={cn(
-                  "transition-opacity duration-300 ease-in-out",
-                  activeTab === "withdraw"
-                    ? "opacity-100 max-h-[1000px]"
-                    : "opacity-0 max-h-0 hidden"
-                )}
-              >
-                <WithdrawCollateralSection
-                  collateralToken={collateralToken}
-                  lpAddress={lpAddress}
-                  onSuccess={() => {
-                    onClose();
-                    refetchAll();
-                  }}
-                />
-              </div>
-              <div
-                className={cn(
-                  "transition-opacity duration-300 ease-in-out",
-                  activeTab === "borrow"
-                    ? "opacity-100 max-h-[1000px]"
-                    : "opacity-0 max-h-0 hidden"
-                )}
-              >
-                <BorrowSection
-                  collateralToken={collateralToken}
-                  loanToken={loanToken}
-                  lpAddress={lpAddress}
-                  onTransactionSuccess={() => onClose()}
-                />
-              </div>
-              <div
-                className={cn(
-                  "transition-opacity duration-300 ease-in-out",
-                  activeTab === "repay"
-                    ? "opacity-100 max-h-[1000px]"
-                    : "opacity-0 max-h-0 hidden"
-                )}
-              >
-                <RepaySection
-                  lpAddress={lpAddress}
-                  borrowToken={loanToken}
-                  onSuccess={() => {
-                    onClose();
-                    refetchAll();
-                  }}
-                />
+          {address ? (
+            <div className="mt-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between cursor-pointer"
+                  >
+                    {tabLabelMap[tab]}
+                    <ChevronDown />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                {/* Animated Dropdown */}
+                <AnimatePresence>
+                  <DropdownMenuContent asChild className="w-100 mt-1">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    >
+                      {Object.entries(tabLabelMap).map(([key, label]) => (
+                        <DropdownMenuItem
+                          className="cursor-pointer hover:bg-green-100"
+                          key={key}
+                          onClick={() => setTab(key)}
+                        >
+                          {label}
+                        </DropdownMenuItem>
+                      ))}
+                    </motion.div>
+                  </DropdownMenuContent>
+                </AnimatePresence>
+              </DropdownMenu>
+
+              <div className="mt-4">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={tab}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2, delay: 0.2 }}
+                  >
+                    {tab === "supply" && (
+                      <SupplyCollateralSection
+                        collateralToken={collateralToken}
+                        lpAddress={lpAddress}
+                        onSuccess={handleSuccess}
+                      />
+                    )}
+                    {tab === "withdraw" && (
+                      <WithdrawCollateralSection
+                        collateralToken={collateralToken}
+                        lpAddress={lpAddress}
+                        onSuccess={handleSuccess}
+                      />
+                    )}
+                    {tab === "borrow" && (
+                      <BorrowSection
+                        collateralToken={collateralToken}
+                        loanToken={loanToken}
+                        lpAddress={lpAddress}
+                        onTransactionSuccess={onClose}
+                      />
+                    )}
+                    {tab === "repay" && (
+                      <RepaySection
+                        lpAddress={lpAddress}
+                        borrowToken={loanToken}
+                        onSuccess={handleSuccess}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
-          </div>
-        ) : (
-          <div
-            className="flex justify-center items-center h-full py-10"
-            onClick={() => onClose()}
-            role="button"
-            tabIndex={0}
-            onKeyDown={() => onClose()}
-          >
-            <ButtonConnectWallet />
-          </div>
-        )}
+          ) : (
+            <div className="flex justify-center items-center h-full py-10">
+              <ButtonConnectWallet />
+            </div>
+          )}
+        </motion.div>
       </DialogContent>
     </Dialog>
   );
 };
 
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-ListItem.displayName = "ListItem";
+const TokenLabel = ({ token, logo }: { token: string; logo: string }) => (
+  <div className="flex items-center gap-2">
+    <Image src={logo} alt={token} width={24} height={24} />
+    <span className="text-lg font-bold">{token}</span>
+  </div>
+);
+
 export default PoolDialog;

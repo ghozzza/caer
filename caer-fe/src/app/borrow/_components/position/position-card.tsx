@@ -228,7 +228,7 @@ const PositionCard = () => {
   return (
     <Card className="bg-white border shadow-sm overflow-hidden">
       <CardHeader className="pb-2 border-b py-2">
-        <div className="flex items-center justify-between">
+        <div className="flex bg items-center justify-between">
           <CollateralSection
             lpAddress={lpAddress as string}
             setLpAddress={setLpAddress}

@@ -228,18 +228,15 @@ export default function SwapPanel() {
 
   return (
     <div className="max-w-md mx-auto w-full px-4 py-2">
-      <h2 className="text-2xl font-bold text-center text-[#07094d] mb-6">
-        Swap Token
-      </h2>
       <div className="flex flex-row gap-4 mb-5">
         <div className="w-full max-w-1/2">
           <Select onValueChange={(value) => setLpAddressSelected(value)}>
-            <SelectTrigger className="truncate w-full bg-white text-gray-800 border border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-emerald-200 rounded-lg shadow-sm cursor-pointer">
+            <SelectTrigger className="truncate w-full bg-white text-blue-800 border border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm cursor-pointer">
               <SelectValue placeholder="Select LP Address" />
             </SelectTrigger>
-            <SelectContent className="truncate bg-white border border-gray-300 rounded-lg shadow-md">
+            <SelectContent className="truncate bg-white border border-blue-300 rounded-lg shadow-md">
               <SelectGroup>
-                <SelectLabel className="truncate text-gray-700 font-semibold px-3 pt-2">
+                <SelectLabel className="truncate text-blue-700 font-semibold px-3 pt-2">
                   Pool Address
                 </SelectLabel>
                 {address ? (
@@ -247,7 +244,7 @@ export default function SwapPanel() {
                     <SelectItem
                       key={lp.id}
                       value={lp.lpAddress}
-                      className="truncate cursor-pointer px-3 pr-8 py-2 text-sm text-gray-800 hover:bg-emerald-50 transition-colors"
+                      className="truncate cursor-pointer px-3 pr-8 py-2 text-sm text-blue-800 hover:bg-blue-50 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <Image
@@ -271,7 +268,7 @@ export default function SwapPanel() {
                     </SelectItem>
                   ))
                 ) : (
-                  <div className="text-gray-600 px-3 py-2 text-sm">
+                  <div className="text-blue-600 px-3 py-2 text-sm">
                     No LP Address found
                   </div>
                 )}
@@ -291,18 +288,18 @@ export default function SwapPanel() {
           />
         </div>
       </div>
-
+  
       <div className="space-y-4 w-full">
         {/* From Token */}
-        <div className="bg-white border border-[#01ECBE]/30 rounded-xl p-4 w-full shadow-sm">
+        <div className="bg-white border border-blue-300 rounded-xl p-4 w-full shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between mb-5">
             <label
               htmlFor="fromAmount"
-              className="text-[#07094d]/80 font-medium"
+              className="text-blue-800 font-medium"
             >
               From
             </label>
-            <span className="text-[#07094d]/80 text-sm truncate">
+            <span className="text-blue-700 text-sm truncate">
               Balance:{" "}
               {fromToken.name === tokenName(selectedCollateralToken)
                 ? formatUnits(
@@ -317,14 +314,14 @@ export default function SwapPanel() {
             <input
               id="fromAmount"
               type="number"
-              className="w-full bg-transparent text-[#07094d] text-xl focus:outline-none p-2 border-b border-[#01ECBE]/30"
+              className="w-full bg-transparent text-blue-900 text-xl focus:outline-none p-2 border-b border-blue-200"
               placeholder="0.0"
               value={fromAmount}
               onChange={(e) => setFromAmount(e.target.value)}
               aria-label="Amount to swap"
             />
             <select
-              className="bg-[#141beb]/10 text-[#07094d] py-2 px-3 rounded-lg border border-[#141beb]/20"
+              className="bg-blue-50 text-blue-800 py-2 px-3 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors"
               value={fromToken.address}
               onChange={(e) =>
                 setFromToken(
@@ -342,26 +339,25 @@ export default function SwapPanel() {
             </select>
           </div>
         </div>
-
+  
         {/* Switch button */}
         <div className="flex justify-center">
           <button
             onClick={switchTokens}
-            className="bg-white p-2 rounded-full hover:bg-[#01ECBE]/20 border border-[#01ECBE]/30 transition-colors z-10 cursor-pointer"
+            className="bg-white p-2 rounded-full hover:bg-blue-100 border border-blue-300 transition-colors z-10 cursor-pointer shadow-sm"
             aria-label="Switch tokens"
           >
-            <ArrowDownIcon className="h-5 w-5 text-[#141beb]" />
+            <ArrowDownIcon className="h-5 w-5 text-blue-600" />
           </button>
         </div>
-
+  
         {/* To Token */}
-        <div className="bg-white border border-[#01ECBE]/30 rounded-xl p-4 shadow-sm">
+        <div className="bg-white border border-blue-300 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between mb-2">
-            <label htmlFor="toAmount" className="text-[#07094d]/80 font-medium">
+            <label htmlFor="toAmount" className="text-blue-800 font-medium">
               To
             </label>
-            <span className="text-[#07094d]/80 text-sm truncate">
-              {/* Balance: {toTokenBalance} {toToken.name} */}
+            <span className="text-blue-700 text-sm truncate">
               Balance:{" "}
               {toToken.name === tokenName(selectedCollateralToken)
                 ? formatUnits(
@@ -376,14 +372,14 @@ export default function SwapPanel() {
             <input
               id="toAmount"
               type="number"
-              className="w-full bg-transparent text-[#07094d] text-xl focus:outline-none p-2 border-b border-[#01ECBE]/30"
+              className="w-full bg-transparent text-blue-900 text-xl focus:outline-none p-2 border-b border-blue-200"
               placeholder="0.0"
               value={toAmount}
               readOnly
               aria-label="Amount to receive"
             />
             <select
-              className="bg-[#141beb]/10 text-[#07094d] py-2 px-3 rounded-lg border border-[#141beb]/20"
+              className="bg-blue-50 text-blue-800 py-2 px-3 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors"
               value={toToken.address}
               onChange={(e) =>
                 setToToken(
@@ -401,9 +397,9 @@ export default function SwapPanel() {
             </select>
           </div>
         </div>
-
+  
         {/* Swap Rate */}
-        <div className="bg-white border border-[#01ECBE]/30 rounded-xl p-3 text-sm text-[#07094d]/80 shadow-sm">
+        <div className="bg-white border border-blue-300 rounded-xl p-3 text-sm text-blue-700 shadow-sm">
           <div className="flex justify-between">
             <span>Exchange Rate:</span>
             <span className="truncate">
@@ -413,11 +409,11 @@ export default function SwapPanel() {
             </span>
           </div>
         </div>
-
+  
         {/* Slippage Setting */}
-        <div className="bg-white border border-[#01ECBE]/30 rounded-xl p-3 shadow-sm">
+        <div className="bg-white border border-blue-300 rounded-xl p-3 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <span className="text-[#07094d]/80 font-medium">
+            <span className="text-blue-800 font-medium">
               Slippage Tolerance
             </span>
             <div className="flex flex-wrap gap-1">
@@ -426,8 +422,8 @@ export default function SwapPanel() {
                   key={value}
                   className={`px-3 py-1 rounded text-sm ${
                     slippage === value
-                      ? "bg-[#141beb] text-white"
-                      : "bg-[#141beb]/10 text-[#07094d] hover:bg-[#141beb]/20 cursor-pointer"
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
                   }`}
                   onClick={() => setSlippage(value)}
                 >
@@ -437,14 +433,14 @@ export default function SwapPanel() {
             </div>
           </div>
         </div>
-
+  
         {/* Error Message */}
         {error && (
-          <div className="text-red-500 text-sm bg-red-100 p-3 rounded-lg border border-red-200">
+          <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
             {error}
           </div>
         )}
-
+  
         {/* Swap Button */}
         <button
           onClick={handleSwap}
@@ -463,8 +459,8 @@ export default function SwapPanel() {
             !address ||
             positionAddress === undefined ||
             arrayLocation === -1
-              ? "bg-[#141beb]/30 text-white cursor-not-allowed"
-              : "bg-[#141beb] text-white hover:bg-[#141beb]/90 cursor-pointer shadow-md hover:shadow-lg "
+              ? "bg-blue-400 text-white cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
           }`}
         >
           {getButtonText()}
