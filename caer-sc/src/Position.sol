@@ -10,16 +10,31 @@ interface TokenSwap {
     function mint(address _to, uint256 _amount) external;
     function burn(address _spender, uint256 _amount) external;
 }
+
 interface IFactory {
     function solver() external view returns (address);
     function oracle() external view returns (address);
 }
+
 interface IOracle {
     function tokenCalculator(uint256 _amount, address _tokenFrom, address _tokenTo) external view returns (uint256);
     function getPrice(address _collateral, address _borrow) external view returns (uint256);
     function getPriceTrade(address _tokenFrom, address _tokenTo) external view returns (uint256, uint256);
     function getQuoteDecimal(address _token) external view returns (uint256);
     function priceCollateral(address _token) external view returns (uint256);
+}
+
+interface ISwapRouter {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 sqrtPriceLimitX96;
+    }
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
 }
 
 contract Position is ReentrancyGuard {
@@ -45,6 +60,7 @@ contract Position is ReentrancyGuard {
     address public owner;
     address public lpAddress;
     address public factory;
+    address public router = address(0x2626664c2603336E57B271c5C0b26F421741e481);
 
     uint256 public counter;
 
@@ -126,4 +142,37 @@ contract Position is ReentrancyGuard {
         }
         return records;
     }
+
+    function swapTokenByPositionV2(address _tokenIn, address _tokenOut, uint256 amountIn, uint256 minAmountOut)
+        public
+    {
+        if (amountIn == 0) revert ZeroAmount();
+        // if (_tokenIn != collateralToken && IPosition(addressPositions[msg.sender]).getTokenCounter(_tokenIn) == 0) {
+        //     revert TokenNotAvailable();
+        // }
+        // IERC20(_tokenIn).approve(addressPositions[msg.sender], amountIn);
+        IERC20(_tokenIn).approve(address(this), amountIn);
+        IERC20(_tokenIn).safeTransferFrom(address(this), lpAddress, amountIn);
+
+        // IERC20(_tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: _tokenIn,
+            tokenOut: _tokenOut, // mau ditukar ke apa
+            fee: 3000, // setiap money changer ngasih berapa, fleksibel ga sih(?) sama dengan 0,3%
+            recipient: address(this), // siapa yang mau ditukar
+            amountIn: amountIn, // jumlah yang mau ditukar
+            amountOutMinimum: minAmountOut, // masukin 1000 usdc, maunya dapet minimal sekian btc, kalo tidak mencapai itu, batal. wajib ada kalo ke auditor, tujuannya supaya tidak ada manipulasi harga. slipage
+            sqrtPriceLimitX96: 0 //
+        });
+        IERC20(_tokenIn).approve(router, amountIn); // approve kepada uniswap
+        ISwapRouter(router).exactInputSingle(params);
+    }
+
+    // function repayWithSelectedTokenV2(uint256 shares, address _token) public {
+    //     if (shares == 0) revert ZeroAmount();
+    //     if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
+    //     if (IPosition(addressPositions[msg.sender]).getTokenCounter(_token) == 0 && _token != collateralToken) {
+    //         revert TokenNotAvailable();
+    //     }
+    // }
 }

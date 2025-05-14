@@ -37,6 +37,19 @@ interface IFactory {
     function oracle() external view returns (address);
 }
 
+interface ISwapRouter {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 sqrtPriceLimitX96;
+    }
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+}
+
 contract LendingPool is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -78,6 +91,9 @@ contract LendingPool is ReentrancyGuard {
     address public collateralToken;
     address public borrowToken;
     address public factory;
+    // address public router = address(0x492E6456D9528771018DeB9E87ef7750EF184104);
+    // address public router = address(0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4);
+    address public router = address(0x2626664c2603336E57B271c5C0b26F421741e481);
 
     uint256 public lastAccrued;
 
@@ -85,7 +101,8 @@ contract LendingPool is ReentrancyGuard {
 
     modifier positionRequired() {
         if (addressPositions[msg.sender] == address(0)) {
-            revert PositionNotCreated();
+            // revert PositionNotCreated();
+            createPosition();
         }
         _;
     }
@@ -236,11 +253,11 @@ contract LendingPool is ReentrancyGuard {
      *
      * @param amount The amount of collateral tokens to supply.
      */
-    function supplyCollateral(uint256 amount) public nonReentrant {
+    function supplyCollateral(uint256 amount) public positionRequired nonReentrant {
         if (amount == 0) revert ZeroAmount();
         accrueInterest();
         userCollaterals[msg.sender] += amount;
-        IERC20(collateralToken).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(collateralToken).safeTransferFrom(msg.sender, addressPositions[msg.sender], amount);
 
         emit SupplyCollateral(msg.sender, amount);
     }
@@ -426,31 +443,92 @@ contract LendingPool is ReentrancyGuard {
             revert TokenNotAvailable();
         }
 
-        if (_tokenFrom == collateralToken) {
-            TokenSwap(_tokenFrom).burn(address(this), amountIn);
-            userCollaterals[msg.sender] -= amountIn;
-        } else {
-            uint256 balances = IERC20(_tokenFrom).balanceOf(addressPositions[msg.sender]);
-            if (balances < amountIn) {
-                revert InsufficientToken();
-            } else {
-                IPosition(addressPositions[msg.sender]).costSwapToken(_tokenFrom, amountIn);
-                TokenSwap(_tokenFrom).burn(addressPositions[msg.sender], amountIn);
-            }
-        }
+        // if (_tokenFrom == collateralToken) {
+        //     TokenSwap(_tokenFrom).burn(address(this), amountIn);
+        //     userCollaterals[msg.sender] -= amountIn;
+        // } else {
+        //     uint256 balances = IERC20(_tokenFrom).balanceOf(addressPositions[msg.sender]);
+        //     if (balances < amountIn) {
+        //         revert InsufficientToken();
+        //     } else {
+        //         IPosition(addressPositions[msg.sender]).costSwapToken(_tokenFrom, amountIn);
+        //         TokenSwap(_tokenFrom).burn(addressPositions[msg.sender], amountIn);
+        //     }
+        // }
 
-        amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountIn, _tokenFrom, _tokenTo);
+        // amountOut = IOracle(IFactory(factory).oracle()).tokenCalculator(amountIn, _tokenFrom, _tokenTo);
 
-        if (_tokenTo == collateralToken) {
-            // Mint collateral token and send it to the lending pool.
-            TokenSwap(_tokenTo).mint(address(this), amountOut);
-            userCollaterals[msg.sender] += amountOut;
-        } else {
-            // Mint token and send it to the user's position.
-            TokenSwap(_tokenTo).mint(addressPositions[msg.sender], amountOut);
-            IPosition(addressPositions[msg.sender]).swapToken(_tokenTo, amountOut);
-        }
+        // if (_tokenTo == collateralToken) {
+        //     // Mint collateral token and send it to the lending pool.
+        //     TokenSwap(_tokenTo).mint(address(this), amountOut);
+        //     userCollaterals[msg.sender] += amountOut;
+        // } else {
+        //     // Mint token and send it to the user's position.
+        //     TokenSwap(_tokenTo).mint(addressPositions[msg.sender], amountOut);
+        //     IPosition(addressPositions[msg.sender]).swapToken(_tokenTo, amountOut);
+        // }
 
         emit SwapByPosition(msg.sender, collateralToken, _tokenTo, amountIn, amountOut);
     }
 }
+
+// 1. Collateral -> LP
+
+// 2. Collateral -> Position
+
+// 3. Position -> coins
+
+// 4. LP -> Position`
+
+/**
+ * !SECTION
+ * Chain Pharos -> pengen di bridge ke base
+ *
+ * Create Ledingpool (WETH - USDC) - (Collateral - Borrow)
+ *
+ * User B Ngesupply Liquidity (1jt USDC)
+ * tujuan supplyLiquidity => supaya user lain bisa hutang
+ * user B dapat yield dari user lain yang hutang
+ *
+ *
+ * User A Supply Collateral 10 WETH
+ * User A punya jaminan 10 WETH di LP
+ *
+ * User A borrow 5 USDC
+ * Ambil 5 USDC dari LP
+ *
+ * (Crosschain)
+ * User A borrow 5 USDC (dari Pharos)
+ * LP mencatat hutang User A, tapi duitnya di transfer ke Solver.
+ * Solver listen ada transaksi masuk. (Pharos)
+ *
+ * Solver Action buat transfer ke user A (Base)
+ *
+ * Solver
+ * (Pharos 100 USDC - Base 100 USDC)
+ * User A 5 USDC -> pharos => base
+ * Solver (Pharos 100 + 5 (User A) USDC ======= Base 100 - 5 (User A) USDC) -> 1% fee
+ *
+ *
+ *
+ *
+ *
+ */
+
+ /**
+  * !SECTION
+  * 1. deploy factory (bisa lewat mainnet) (-$1)
+  * 2. deploy lending pool (via web)
+  * 3. deploy position (via web)
+  * 4. user swap from eth to weth
+  * 5. user swap from eth to usdc
+  * 6. user supply collateral
+  * 7. user borrow
+  * 8. user repay
+  * 9. user swap token
+  * 10. user crosschain borrow
+  *
+  * !SECTION tenderly
+  * 1. di FE bisa ganti rpc url nya tenderly - supaya block height nya bisa diganti
+  * 2. wajib tenderly baru, wallet baru untuk demo apps
+  */
