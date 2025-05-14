@@ -9,7 +9,7 @@ contract LendingPoolFactoryScript is Script {
     address public oracle = 0x13B026C3c5589C046F193FFa66427389fa2dbD22;
 
     function setUp() public {
-        vm.createSelectFork(vm.rpcUrl("op_sepolia"));
+        vm.createSelectFork(vm.rpcUrl("base_mainnet")); // check rpc url in foundry.toml
     }
 
     function run() public {
