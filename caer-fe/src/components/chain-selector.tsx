@@ -20,17 +20,17 @@ export default function ChainSelector({
       ? [
           {
             id: 50002,
-            name: "Pharos Devnet",
+            name: "Base",
             type: "Testnet",
-            logoUrl: "/pharos-logo.jpg",
+            logoUrl: "/base-logo.jpg",
           },
         ]
       : [
           {
             id: 50002,
-            name: "Pharos Devnet",
+            name: "Base",
             type: "Testnet",
-            logoUrl: "/pharos-logo.jpg",
+            logoUrl: "/base-logo.jpg",
           },
           {
             id: 421614,
@@ -64,7 +64,7 @@ export default function ChainSelector({
           <div className="flex items-center">
             <span className="font-medium">Sort</span>
             <Button variant="ghost" className="ml-2 text-sm cursor-pointer">
-              Routes From Pharos Devnet <ChevronDown className="h-4 w-4 ml-1" />
+              Routes From Base <ChevronDown className="h-4 w-4 ml-1" />
             </Button>
           </div>
           <div className="flex items-center">
@@ -103,13 +103,13 @@ export default function ChainSelector({
               </div>
 
               <div className="text-right">
-                {chain.name === "Pharos Devnet" ? (
+                {chain.name === "Base" ? (
                   <p className="text-gray-600">0 route</p>
                 ) : (
                   <p className="text-gray-600">1 route</p>
                 )}
                 <p className="text-sm text-gray-500">
-                  Routes from Pharos Devnet
+                  Routes from Base
                 </p>
               </div>
             </button>

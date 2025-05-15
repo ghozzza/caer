@@ -408,7 +408,7 @@ export default function SwapPanel() {
         </div>
 
         {/* Swap Rate */}
-        <div className="bg-white border border-blue-300 rounded-xl p-3 text-sm text-blue-700 shadow-sm">
+        {/* <div className="bg-white border border-blue-300 rounded-xl p-3 text-sm text-blue-700 shadow-sm">
           <div className="flex justify-between">
             <span>Exchange Rate:</span>
             <span className="truncate">
@@ -417,7 +417,7 @@ export default function SwapPanel() {
                 : "Loading..."}
             </span>
           </div>
-        </div>
+        </div> */}
 
         {/* Slippage Setting */}
         <div className="bg-white border border-blue-300 rounded-xl p-3 shadow-sm">
@@ -458,7 +458,7 @@ export default function SwapPanel() {
             !address ||
             positionAddress === undefined ||
             arrayLocation === -1
-            ? "bg-blue-400 text-white cursor-not-allowed"
+            ? "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
             : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
             }`}
         >

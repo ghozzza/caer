@@ -25,15 +25,15 @@ const BorrowSection = ({
 }: BorrowSectionProps) => {
   const [fromChain, setFromChain] = useState<Chain>({
     id: 50002,
-    name: "Pharos Devnet",
+    name: "Base",
     type: "Testnet",
-    logoUrl: "/pharos-logo.jpg",
+    logoUrl: "/base-logo.jpg",
   });
   const [toChain, setToChain] = useState<Chain>({
     id: 50002,
-    name: "Pharos Devnet",
+    name: "Base",
     type: "Testnet",
-    logoUrl: "/pharos-logo.jpg",
+    logoUrl: "/base-logo.jpg",
   });
   const [amount, setAmount] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
@@ -129,7 +129,7 @@ const BorrowSection = ({
         {isOnChainTransaction && (
           <div className="p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-600">
-              <strong>On-chain Transaction:</strong> Borrowing directly on Pharos
+              <strong>On-chain Transaction:</strong> Borrowing directly on Base
               Chain using your position.
             </p>
           </div>
