@@ -229,8 +229,8 @@ export default function SwapPanel() {
   };
 
   return (
-    <div className="max-w-md mx-auto w-full px-4 py-2">
-      <div className="flex flex-row gap-4 mb-5">
+    <div className="max-w-md mx-auto w-full px-2 py-2">
+      <div className="flex flex-row gap-2 mb-5">
         <div className="w-full max-w-[50%]"> 
           <Select onValueChange={(value) => setLpAddressSelected(value)}>
             <SelectTrigger className="truncate w-full bg-white text-blue-800 border border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm cursor-pointer">
@@ -253,9 +253,9 @@ export default function SwapPanel() {
                           <Image
                             src={tokenLogo(lp.collateralToken) ?? ""}
                             alt={tokenName(lp.collateralToken) ?? ""}
-                            className="w-5 h-5 rounded-full"
-                            width={20}
-                            height={20}
+                            className="w-5 h-5 rounded-full text"
+                            width={10}
+                            height={10}
                           />
                           <span className="truncate">{tokenName(lp.collateralToken)}</span>
                         </div>
@@ -265,8 +265,8 @@ export default function SwapPanel() {
                             src={tokenLogo(lp.borrowToken) ?? ""}
                             alt={tokenName(lp.borrowToken) ?? ""}
                             className="w-5 h-5 rounded-full"
-                            width={20}
-                            height={20}
+                            width={10}
+                            height={10}
                           />
                           <span className="truncate">{tokenName(lp.borrowToken)}</span>
                         </div>
