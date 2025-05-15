@@ -231,14 +231,14 @@ export default function SwapPanel() {
   return (
     <div className="max-w-md mx-auto w-full px-4 py-2">
       <div className="flex flex-row gap-4 mb-5">
-        <div className="w-full ">
+        <div className="w-full max-w-[50%]"> 
           <Select onValueChange={(value) => setLpAddressSelected(value)}>
             <SelectTrigger className="truncate w-full bg-white text-blue-800 border border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm cursor-pointer">
               <SelectValue placeholder="Select LP Address" />
             </SelectTrigger>
-            <SelectContent className="truncate bg-white border border-blue-300 rounded-lg shadow-md">
+            <SelectContent className="bg-white border border-blue-300 rounded-lg shadow-md max-w-[100%]">
               <SelectGroup>
-                <SelectLabel className="truncate text-blue-700 font-semibold px-3 pt-2">
+                <SelectLabel className="text-blue-700 font-semibold px-3 pt-2 text-md ">
                   Pool Address
                 </SelectLabel>
                 {address ? (
@@ -246,21 +246,21 @@ export default function SwapPanel() {
                     <SelectItem
                       key={lp.id}
                       value={lp.lpAddress}
-                      className="w-full py-2 justify-center text-center mx-auto text-md text-blue-800 hover:bg-blue-50 transition-colors"
+                      className="py-2 px-0 text-sm text-blue-800 hover:bg-blue-50 transition-colors"
                     >
-                      <div className="w-full flex flex-row gap-12 justify-center text-center mx-auto">
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-row gap-2 items-center justify-between">
+                        <div className="flex items-center gap-2 truncate">
                           <Image
                             src={tokenLogo(lp.collateralToken) ?? ""}
                             alt={tokenName(lp.collateralToken) ?? ""}
-                            className="w-5 h-5 rounded-full "
+                            className="w-5 h-5 rounded-full"
                             width={20}
                             height={20}
                           />
-                          <span>{tokenName(lp.collateralToken)}</span>
+                          <span className="truncate">{tokenName(lp.collateralToken)}</span>
                         </div>
-                        <MoveRight className="h-5 w-5 items-center my-auto text-blue-950" />
-                        <div className="flex items-center gap-2">
+                        <MoveRight className="h-4 w-4 text-blue-950" />
+                        <div className="flex items-center gap-2 truncate">
                           <Image
                             src={tokenLogo(lp.borrowToken) ?? ""}
                             alt={tokenName(lp.borrowToken) ?? ""}
@@ -268,11 +268,10 @@ export default function SwapPanel() {
                             width={20}
                             height={20}
                           />
-                          <span>{tokenName(lp.borrowToken)}</span>
+                          <span className="truncate">{tokenName(lp.borrowToken)}</span>
                         </div>
                       </div>
                     </SelectItem>
-
                   ))
                 ) : (
                   <div className="text-blue-600 px-3 py-2 text-sm">
@@ -283,7 +282,8 @@ export default function SwapPanel() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-full max-w-1/2">
+
+        <div className="w-full max-w-[50%]">
           <SelectPosition
             positionAddress={positionAddress}
             positionArray={positionsArray}
@@ -293,7 +293,7 @@ export default function SwapPanel() {
             setPositionsArray={setPositionsArray}
             setPositionIndex={setPositionIndex}
           />
-        </div> 
+        </div>
       </div>
 
       <div className="space-y-4 w-full">
