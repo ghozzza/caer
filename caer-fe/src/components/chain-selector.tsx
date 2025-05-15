@@ -22,7 +22,7 @@ export default function ChainSelector({
             id: 50002,
             name: "Base",
             type: "Testnet",
-            logoUrl: "/base-logo.jpg",
+            logoUrl: "/base-logo.png",
           },
         ]
       : [
@@ -30,7 +30,7 @@ export default function ChainSelector({
             id: 50002,
             name: "Base",
             type: "Testnet",
-            logoUrl: "/base-logo.jpg",
+            logoUrl: "/base-logo.png",
           },
           {
             id: 421614,

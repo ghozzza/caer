@@ -81,9 +81,7 @@ export const useSwapToken = () => {
         ], // Position index 0
       });
 
-      toast.success(
-        `Swap successful: ${fromAmount} ${fromToken.name} to ${toAmount} ${toToken.name}`
-      );
+    
 
       if (onSuccess) {
         onSuccess();
