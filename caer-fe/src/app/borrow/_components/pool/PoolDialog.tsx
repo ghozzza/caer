@@ -139,6 +139,7 @@ const PoolDialog = ({
                     {tab === "supply" && (
                       <SupplyCollateralSection
                         collateralToken={collateralToken}
+                        borrowToken={loanToken}
                         lpAddress={lpAddress}
                         onSuccess={handleSuccess}
                       />

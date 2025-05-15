@@ -8,15 +8,19 @@ import { Loader2, Shield } from "lucide-react";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
 import { useSupplyCollateral } from "@/hooks/useSupplyCollateral";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { createPosition } from "@/actions/CreatePosition";
+import { useAccount } from "wagmi";
 
 interface SupplyCollateralSectionProps {
   collateralToken: string;
+  borrowToken: string;
   lpAddress: string;
   onSuccess?: () => void;
 }
 
 const SupplyCollateralSection = ({
   collateralToken,
+  borrowToken,
   lpAddress,
   onSuccess,
 }: SupplyCollateralSectionProps) => {
@@ -33,9 +37,12 @@ const SupplyCollateralSection = ({
     Number(tokenDecimals)
   );
 
+  const { address } = useAccount();
+
   useEffect(() => {
     if (isSuccess && onSuccess) {
       onSuccess();
+      createPosition(collateralToken, borrowToken, "0", lpAddress, address as `0x${string}`);
     }
   }, [isSuccess, onSuccess]);
 
