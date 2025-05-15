@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { positionAbi } from "@/lib/abi/positionAbi";
 import Link from "next/link";
-import type { Address } from "viem";
+import { erc20Abi, type Address } from "viem";
 import { useReadContract } from "wagmi";
 import { RepaySelectedToken } from "./repay-selected-token";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 import { ArrowRightLeft } from "lucide-react";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import Image from "next/image";
+import { mockUsdc } from "@/constants/addresses";
 
 interface PositionTokenProps {
   name: string | undefined;
@@ -33,10 +34,10 @@ const PositionToken = ({
   );
 
   const { data: tokenBalanceUSDC } = useReadContract({
-    address: addressPosition as Address,
-    abi: positionAbi,
-    functionName: "tokenBalances",
-    args: [address],
+    address: mockUsdc,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [addressPosition as Address],
   });
 
   const convertRealAmount = (amount: bigint | undefined, decimal: number) => {

@@ -47,9 +47,9 @@ const SelectPosition = ({
         value={positionAddress}
         onValueChange={(value) => setPositionAddress(value)}
       >
-        {/* <SelectTrigger className="w-full bg-white text-gray-800 border border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-emerald-200 rounded-lg shadow-sm cursor-pointer">
+         <SelectTrigger className="w-full bg-white text-gray-800 border border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-emerald-200 rounded-lg shadow-sm cursor-pointer">
           <SelectValue placeholder="Select a position address" />
-        </SelectTrigger> */}
+        </SelectTrigger> 
         <SelectContent className="bg-white border border-gray-300 rounded-lg shadow-md">
           <SelectGroup>
             <SelectLabel className="text-gray-700 font-semibold px-3 pt-2">

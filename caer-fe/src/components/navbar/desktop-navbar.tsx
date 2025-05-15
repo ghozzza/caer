@@ -7,13 +7,13 @@ const DesktopNavigation: React.FC = () => {
   return (
     <div className="hidden md:flex items-center space-x-6">
       <NavLink href="/earn">
-        <span>Earn</span>
+        <span>Add LP</span>
       </NavLink>
       <NavLink href="/borrow">
         <span>Borrow</span>
       </NavLink>
       <NavLink href="/trade">
-        <span>Trade</span>
+        <span>Swap</span>
       </NavLink>
       <div className="hidden">
         <NavLink href="/faucets">

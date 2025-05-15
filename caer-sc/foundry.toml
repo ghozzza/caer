@@ -10,6 +10,6 @@ arb_sepolia = "https://sepolia-rollup.arbitrum.io/rpc"
 cachain_sepolia = "http://44.213.128.45:8547/"
 educhain = "https://rpc.open-campus-codex.gelato.digital"
 pharos_devnet= "https://devnet.dplabs-internal.com"
-base_mainnet=""
+base_mainnet="https://virtual.base.rpc.tenderly.co/71ea1327-e33a-421d-8589-c203b22456d4"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

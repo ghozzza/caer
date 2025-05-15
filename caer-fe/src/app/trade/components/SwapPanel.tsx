@@ -11,7 +11,7 @@ import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import { MoveRight } from "lucide-react"
 import { ArrowDownUp } from "lucide-react";
-// import SelectPosition from "@/app/borrow/_components/position/selectPosition";
+import SelectPosition from "@/app/borrow/_components/position/selectPosition";
 import {
   getAllLPFactoryData,
   getSelectedCollateralTokenByLPAddress,
@@ -283,7 +283,7 @@ export default function SwapPanel() {
             </SelectContent>
           </Select>
         </div>
-        {/* <div className="w-full max-w-1/2">
+        <div className="w-full max-w-1/2">
           <SelectPosition
             positionAddress={positionAddress}
             positionArray={positionsArray}
@@ -293,7 +293,7 @@ export default function SwapPanel() {
             setPositionsArray={setPositionsArray}
             setPositionIndex={setPositionIndex}
           />
-        </div> */}
+        </div> 
       </div>
 
       <div className="space-y-4 w-full">
@@ -452,14 +452,6 @@ export default function SwapPanel() {
         {/* Swap Button */}
         <button
           onClick={handleSwap}
-          disabled={
-            isLoading ||
-            !fromAmount ||
-            !toAmount ||
-            !address ||
-            positionAddress === undefined ||
-            arrayLocation === -1
-          }
           className={`w-full py-3.5 rounded-xl font-bold transition-colors ${isLoading ||
             !fromAmount ||
             !toAmount ||
