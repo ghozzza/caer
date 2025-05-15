@@ -41,6 +41,10 @@ interface IPosition {
         external;
 }
 
+interface ILP {
+    function addressPositions(address _user) external view returns (address);
+}
+
 contract LendingPoolFactoryTest is Test {
     LendingPoolFactory public lendingPoolFactory;
     LendingPool public lendingPool;
@@ -83,7 +87,7 @@ contract LendingPoolFactoryTest is Test {
         // vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/npJ88wr-vv5oxDKlp0mQYSfVXfN2nKif", 21843948);
         // vm.createSelectFork("https://sepolia.base.org", 25684416);
 
-        vm.createSelectFork("https://virtual.base.rpc.tenderly.co/78cea8f4-da62-4444-b5f6-01ebb02fb27c");
+        vm.createSelectFork("https://virtual.base.rpc.tenderly.co/71ea1327-e33a-421d-8589-c203b22456d4");
 
         lendingPoolFactory = new LendingPoolFactory(address(oracle));
         // lendingPool = new LendingPool(address(weth), address(usdc), address(lendingPoolFactory), 7e17);
@@ -430,6 +434,15 @@ contract LendingPoolFactoryTest is Test {
         console.log("position balance usdc after repay", IERC20(address(usdcBaseMain)).balanceOf(addressPosition));
         console.log("--------------------------------");
 
+        vm.stopPrank();
+    }
+
+    function test_check_position() public {
+        address axel = 0x83C6Ed288fFC63512a2b2c3832727df51C21D8B5;
+        address lp = 0x97936e6dfD76e20c380078f8d484431660313C10;
+        vm.startPrank(axel);
+        // check address position
+        console.log("axel position", ILP(lp).addressPositions(axel));
         vm.stopPrank();
     }
 
