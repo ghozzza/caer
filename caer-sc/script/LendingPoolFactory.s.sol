@@ -13,7 +13,7 @@ contract LendingPoolFactoryScript is Script {
     }
 
     function run() public {
-        uint256 privateKey = vm.envUint("DEPLOYER_WALLET_PRIVATE_KEY");
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
         lendingPoolFactory = new LendingPoolFactory(oracle);
