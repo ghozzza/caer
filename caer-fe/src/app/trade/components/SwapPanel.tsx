@@ -238,7 +238,7 @@ export default function SwapPanel() {
             </SelectTrigger>
             <SelectContent className="bg-white border border-blue-300 rounded-lg shadow-md max-w-[100%]">
               <SelectGroup>
-                <SelectLabel className="text-blue-700 font-semibold px-3 pt-2 text-md ">
+                <SelectLabel className="text-blue-700 font-semibold px-3 pt-2 ">
                   Pool Address
                 </SelectLabel>
                 {address ? (
