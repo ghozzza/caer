@@ -153,6 +153,7 @@ contract Position is ReentrancyGuard {
         public
         returns (uint256 amountOut)
     {
+        if (msg.sender != lpAddress) revert NotForWithdraw();
         if (amountIn == 0) revert ZeroAmount();
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: _tokenIn,
@@ -169,10 +170,24 @@ contract Position is ReentrancyGuard {
         return amountOut;
     }
 
+    function swapTokenByPosition(address _tokenIn, address _tokenOut, uint256 amountIn) public returns (uint256 amountOut) {
+        uint256 balances = IERC20(_tokenIn).balanceOf(address(this));
+        if (msg.sender != lpAddress) revert NotForWithdraw();
+        if (amountIn == 0) revert ZeroAmount();
+        if (balances < amountIn) revert InsufficientBalance();
+        
+        address oracle = IFactory(factory).oracle();
+        amountOut = IOracle(oracle).tokenCalculator(amountIn, _tokenIn, _tokenOut);
+        if(_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
+        TokenSwap(_tokenIn).burn(address(this), amountIn);
+        TokenSwap(_tokenOut).mint(address(this), amountOut);
+        swapToken(_tokenOut, amountOut);
+    }
+
     function repayWithSelectedToken(uint256 amount, uint256 minAmountOut, address _token) public {
         if (msg.sender != lpAddress) revert NotForWithdraw();
         uint256 balance = IERC20(_token).balanceOf(address(this));
-        if(_token != borrowAssets) {
+        if (_token != borrowAssets) {
             uint256 amountOut = swapTokenByPositionV2(_token, borrowAssets, balance, minAmountOut);
             IERC20(_token).approve(lpAddress, amount);
             IERC20(borrowAssets).safeTransfer(lpAddress, amount);

@@ -37,7 +37,7 @@ interface IPosition {
     function costSwapToken(address _token, uint256 _amount) external;
     function listingTradingPosition(address _token, uint256 _price, string memory _name) external;
     function buyTradingPosition(uint256 _price, address _buyer) external;
-    function swapTokenByPositionV2(address _tokenIn, address _tokenOut, uint256 _amountIn, uint256 _minAmountOut)
+    function swapTokenByPosition(address _tokenIn, address _tokenOut, uint256 _amountIn, uint256 _minAmountOut)
         external;
 }
 
