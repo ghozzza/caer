@@ -2,7 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
-import {MockWETH} from "../src/MockWETH.sol";
+import {MockWETH} from "../src/mocks/MockWETH.sol";
 
 contract MockWETHScript is Script {
     MockWETH public mockWETH;

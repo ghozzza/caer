@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 
@@ -21,6 +22,15 @@ interface IOracle {
     function getPriceTrade(address _tokenFrom, address _tokenTo) external view returns (uint256, uint256);
     function getQuoteDecimal(address _token) external view returns (uint256);
     function priceCollateral(address _token) external view returns (uint256);
+}
+
+interface IChainLink {
+    function latestRoundData()
+        external
+        view
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+
+    function decimals() external view returns (uint8);
 }
 
 interface ISwapRouter {
@@ -48,6 +58,8 @@ contract Position is ReentrancyGuard {
     error ZeroAmount();
     error SameToken();
     error NotForWithdraw();
+    error QuotePriceZero();
+    error BasePriceZero();
 
     struct ListingDetail {
         bool isListing;
@@ -149,51 +161,53 @@ contract Position is ReentrancyGuard {
         IERC20(collateralAssets).safeTransfer(_user, amount);
     }
 
-    function swapTokenByPositionV2(address _tokenIn, address _tokenOut, uint256 amountIn, uint256 minAmountOut)
-        public
-        returns (uint256 amountOut)
-    {
-        if (msg.sender != lpAddress) revert NotForWithdraw();
-        if (amountIn == 0) revert ZeroAmount();
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
-            tokenIn: _tokenIn,
-            tokenOut: _tokenOut, // mau ditukar ke apa
-            fee: 3000, // setiap money changer ngasih berapa, fleksibel ga sih(?) sama dengan 0,3%
-            recipient: address(this), // siapa yang mau ditukar
-            amountIn: amountIn, // jumlah yang mau ditukar
-            amountOutMinimum: minAmountOut, // masukin 1000 usdc, maunya dapet minimal sekian btc, kalo tidak mencapai itu, batal. wajib ada kalo ke auditor, tujuannya supaya tidak ada manipulasi harga. slipage
-            sqrtPriceLimitX96: 0 //
-        });
-        IERC20(_tokenIn).approve(router, amountIn); // approve kepada uniswap
-        amountOut = ISwapRouter(router).exactInputSingle(params);
-
-        return amountOut;
-    }
-
-    function swapTokenByPosition(address _tokenIn, address _tokenOut, uint256 amountIn) public returns (uint256 amountOut) {
+    function swapTokenByPosition(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 amountIn,
+        address _tokenInPrice,
+        address _tokenOutPrice
+    ) public returns (uint256 amountOut) {
         uint256 balances = IERC20(_tokenIn).balanceOf(address(this));
         if (msg.sender != lpAddress) revert NotForWithdraw();
         if (amountIn == 0) revert ZeroAmount();
         if (balances < amountIn) revert InsufficientBalance();
-        
-        address oracle = IFactory(factory).oracle();
-        amountOut = IOracle(oracle).tokenCalculator(amountIn, _tokenIn, _tokenOut);
-        if(_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
+
+        amountOut = tokenCalculator(_tokenIn, _tokenOut, amountIn, _tokenInPrice, _tokenOutPrice);
+        if (_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
         TokenSwap(_tokenIn).burn(address(this), amountIn);
         TokenSwap(_tokenOut).mint(address(this), amountOut);
         swapToken(_tokenOut, amountOut);
     }
-
-    function repayWithSelectedToken(uint256 amount, uint256 minAmountOut, address _token) public {
+    // 100 usdc, weth, harga weth, harga usdc
+    function repayWithSelectedToken(uint256 amount, address _token, address _tokenInPrice, address _tokenOutPrice) public {
         if (msg.sender != lpAddress) revert NotForWithdraw();
         uint256 balance = IERC20(_token).balanceOf(address(this));
         if (_token != borrowAssets) {
-            uint256 amountOut = swapTokenByPositionV2(_token, borrowAssets, balance, minAmountOut);
+            uint256 amountOut = swapTokenByPosition(_token, borrowAssets, balance, _tokenInPrice, _tokenOutPrice);
             IERC20(_token).approve(lpAddress, amount);
             IERC20(borrowAssets).safeTransfer(lpAddress, amount);
-            if (amountOut - amount != 0) swapTokenByPositionV2(borrowAssets, _token, (amountOut - amount), 0);
+            if (amountOut - amount != 0) swapTokenByPosition(borrowAssets, _token, (amountOut - amount), _tokenOutPrice, _tokenInPrice);
         } else {
             IERC20(borrowAssets).safeTransfer(lpAddress, amount);
         }
+    }
+
+    function tokenCalculator(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amountIn,
+        address _tokenInPrice,
+        address _tokenOutPrice
+    ) public view returns (uint256) {
+        uint256 tokenInDecimal = IERC20Metadata(_tokenIn).decimals();
+        uint256 tokenOutDecimal = IERC20Metadata(_tokenOut).decimals();
+        (, int256 quotePrice,,,) = IChainLink(_tokenInPrice).latestRoundData();
+        (, int256 basePrice,,,) = IChainLink(_tokenOutPrice).latestRoundData();
+
+        uint256 amountOut =
+            (_amountIn * ((uint256(quotePrice) * (10 ** tokenOutDecimal)) / uint256(basePrice))) / 10 ** tokenInDecimal;
+
+        return amountOut;
     }
 }

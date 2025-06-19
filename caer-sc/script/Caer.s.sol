@@ -3,14 +3,14 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 
-import {MockWETH} from "../src/MockWETH.sol";
-import {MockWBTC} from "../src/MockWBTC.sol";
-import {MockUSDC} from "../src/MockUSDC.sol";
-import {MockPEPE} from "../src/MockPEPE.sol";
-import {MockUSDT} from "../src/MockUSDT.sol";
-import {MockBNVDA} from "../src/MockBNVDA.sol";
-import {MockSAAPL} from "../src/MockSAAPL.sol";
-import {MockPAXG} from "../src/MockPAXG.sol";
+import {MockWETH} from "../src/mocks/MockWETH.sol";
+import {MockWBTC} from "../src/mocks/MockWBTC.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
+import {MockPEPE} from "../src/mocks/MockPEPE.sol";
+import {MockUSDT} from "../src/mocks/MockUSDT.sol";
+import {MockBNVDA} from "../src/mocks/MockBNVDA.sol";
+import {MockSAAPL} from "../src/mocks/MockSAAPL.sol";
+import {MockPAXG} from "../src/mocks/MockPAXG.sol";
 
 import {PriceFeed} from "../src/PriceFeed.sol";
 
