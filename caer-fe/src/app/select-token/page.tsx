@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Search, Wallet } from "lucide-react";
 
-// Types
 type Token = {
   name: string;
   symbol: string;
@@ -28,6 +27,11 @@ type Chain = {
   name: string;
   logo: string;
   color: string;
+  contracts: {
+    lendingPool: string;
+    factory: string;
+    blockExplorer: string;
+  };
 };
 
 // Mock data
@@ -35,50 +39,90 @@ const chains: Chain[] = [
   {
     id: 1,
     name: "Ethereum",
-    logo: "/placeholder.svg?height=40&width=40",
+    logo: "/chain/arbitrum.png",
     color: "bg-blue-600",
+    contracts: {
+      lendingPool: "0xEtlPoolETH",
+      factory: "0xFactoryETH",
+      blockExplorer: "https://etherscan.io",
+    },
   },
   {
     id: 56,
     name: "BSC",
-    logo: "/placeholder.svg?height=40&width=40",
+    logo: "/chain/bsc.png",
     color: "bg-yellow-500",
+    contracts: {
+      lendingPool: "0xEtlPoolBSC",
+      factory: "0xFactoryBSC",
+      blockExplorer: "https://bscscan.com",
+    },
   },
   {
     id: 137,
     name: "Polygon",
     logo: "/placeholder.svg?height=40&width=40",
     color: "bg-purple-600",
+    contracts: {
+      lendingPool: "0xEtlPoolPolygon",
+      factory: "0xFactoryPolygon",
+      blockExplorer: "https://polygonscan.com",
+    },
   },
   {
     id: 43114,
     name: "Avalanche",
     logo: "/placeholder.svg?height=40&width=40",
     color: "bg-red-500",
+    contracts: {
+      lendingPool: "0xEtlPoolAvalanche",
+      factory: "0xFactoryAvalanche",
+      blockExplorer: "https://snowtrace.io",
+    },
   },
   {
     id: 250,
     name: "Fantom",
     logo: "/placeholder.svg?height=40&width=40",
     color: "bg-blue-400",
+    contracts: {
+      lendingPool: "0xEtlPoolFantom",
+      factory: "0xFactoryFantom",
+      blockExplorer: "https://ftmscan.com",
+    },
   },
   {
     id: 10,
     name: "Optimism",
-    logo: "/placeholder.svg?height=40&width=40",
+    logo: "/chain/optimism.png",
     color: "bg-red-600",
+    contracts: {
+      lendingPool: "0xEtlPoolOptimism",
+      factory: "0xFactoryOptimism",
+      blockExplorer: "https://optimistic.etherscan.io",
+    },
   },
   {
     id: 42161,
     name: "Arbitrum",
-    logo: "/placeholder.svg?height=40&width=40",
+    logo: "/chain/arbitrum.png",
     color: "bg-blue-500",
+    contracts: {
+      lendingPool: "0xEtlPoolArbitrum",
+      factory: "0xFactoryArbitrum",
+      blockExplorer: "https://arbiscan.io",
+    },
   },
   {
     id: 8453,
     name: "Base",
     logo: "/placeholder.svg?height=40&width=40",
     color: "bg-blue-700",
+    contracts: {
+      lendingPool: "0xEtlPoolBase",
+      factory: "0xFactoryBase",
+      blockExplorer: "https://basescan.org",
+    },
   },
 ];
 
@@ -94,20 +138,20 @@ const tokens: Token[] = [
     name: "WETH",
     symbol: "WETH",
     address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    logo: "/placeholder.svg?height=40&width=40",
+    logo: "/weth.png",
     chainIds: [1, 10, 42161, 8453, 137],
   },
   {
     name: "USDT",
     symbol: "USDT",
     address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    logo: "/placeholder.svg?height=40&width=40",
+    logo: "/usdt.png",
     chainIds: [1, 56, 137, 43114, 10, 42161],
   },
   {
     name: "USD Coin",
     symbol: "USDC",
-    address: "0xA0b86a33E6441b8C4505B8C4505B8C4505B8C4505",
+    address: "usdc.png",
     logo: "/placeholder.svg?height=40&width=40",
     chainIds: [1, 10, 42161, 8453, 137, 43114],
   },
@@ -122,7 +166,7 @@ const tokens: Token[] = [
     name: "WBTC",
     symbol: "WBTC",
     address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-    logo: "/placeholder.svg?height=40&width=40",
+    logo: "/wbtc.png",
     chainIds: [1, 10, 42161, 137],
   },
 ];
@@ -199,8 +243,12 @@ export default function CrossChainBorrowing() {
                     height={32}
                     className="rounded-full"
                   />
-                  <div
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-900 ${selectedChain.color}`}
+                  <Image
+                    src={selectedChain.logo || "/placeholder.svg"}
+                    alt={selectedChain.name}
+                    width={18}
+                    height={18}
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full `}
                   />
                 </div>
                 <div className="text-left">
@@ -331,18 +379,8 @@ export default function CrossChainBorrowing() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 p-4">
+    <div className="min-h-screen mt-16">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Cross-Chain Borrowing
-          </h1>
-          <p className="text-gray-400">
-            Borrow assets across multiple blockchains using cross-chain
-            collateral
-          </p>
-        </div>
 
         {/* Borrowing Interface */}
         <Card className="bg-gray-900 border-gray-700">
@@ -384,7 +422,7 @@ export default function CrossChainBorrowing() {
               </div>
             </div>
 
-            {/* Add this section after the "Choose Asset to Borrow" div and before the Button */}
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Borrow Amount
@@ -403,12 +441,6 @@ export default function CrossChainBorrowing() {
                   </div>
                 )}
               </div>
-              {selectedBorrowToken && borrowAmount && (
-                <div className="text-sm text-gray-400 mt-1">
-                  ≈ ${(Number.parseFloat(borrowAmount) * 2000).toLocaleString()}{" "}
-                  {/* Mock price calculation */}
-                </div>
-              )}
             </div>
 
             <Button
@@ -427,4 +459,3 @@ export default function CrossChainBorrowing() {
     </div>
   );
 }
-// This code is a React component for a cross-chain borrowing interface.
