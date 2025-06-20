@@ -5,47 +5,11 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
-
-interface TokenSwap {
-    function mint(address _to, uint256 _amount) external;
-    function burn(address _spender, uint256 _amount) external;
-}
-
-interface IFactory {
-    function solver() external view returns (address);
-    function oracle() external view returns (address);
-}
-
-interface IOracle {
-    function tokenCalculator(uint256 _amount, address _tokenFrom, address _tokenTo) external view returns (uint256);
-    function getPrice(address _collateral, address _borrow) external view returns (uint256);
-    function getPriceTrade(address _tokenFrom, address _tokenTo) external view returns (uint256, uint256);
-    function getQuoteDecimal(address _token) external view returns (uint256);
-    function priceCollateral(address _token) external view returns (uint256);
-}
-
-interface IChainLink {
-    function latestRoundData()
-        external
-        view
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
-
-    function decimals() external view returns (uint8);
-}
-
-interface ISwapRouter {
-    struct ExactInputSingleParams {
-        address tokenIn;
-        address tokenOut;
-        uint24 fee;
-        address recipient;
-        uint256 amountIn;
-        uint256 amountOutMinimum;
-        uint160 sqrtPriceLimitX96;
-    }
-
-    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
-}
+import {ITokenSwap} from "./interface/ITokenSwap.sol";
+import {IChainLink} from "./interface/IChainLink.sol";
+import {IOracle} from "./interface/IOracle.sol";
+import {IFactory} from "./interface/IFactory.sol";
+import {ISwapRouter} from "./interface/ISwapRouter.sol"; // keknya gakepake
 
 contract Position is ReentrancyGuard {
     using SafeERC20 for IERC20; // fungsi dari IERC20 akan ketambahan SafeERC20
@@ -175,8 +139,8 @@ contract Position is ReentrancyGuard {
 
         amountOut = tokenCalculator(_tokenIn, _tokenOut, amountIn, _tokenInPrice, _tokenOutPrice);
         if (_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
-        TokenSwap(_tokenIn).burn(address(this), amountIn);
-        TokenSwap(_tokenOut).mint(address(this), amountOut);
+        ITokenSwap(_tokenIn).burn(address(this), amountIn);
+        ITokenSwap(_tokenOut).mint(address(this), amountOut);
         swapToken(_tokenOut, amountOut);
     }
     // 100 usdc, weth, harga weth, harga usdc

@@ -50,14 +50,14 @@ contract CaerScript is Script {
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
-        mockWETH = new MockWETH();
-        mockWBTC = new MockWBTC();
-        mockUSDC = new MockUSDC();
-        mockUSDT = new MockUSDT();
-        mockPEPE = new MockPEPE();
-        mockBNVDA = new MockBNVDA();
-        mockSAAPL = new MockSAAPL();
-        mockPAXG = new MockPAXG();
+        // mockWETH = new MockWETH();
+        // mockWBTC = new MockWBTC();
+        // mockUSDC = new MockUSDC();
+        // mockUSDT = new MockUSDT();
+        // mockPEPE = new MockPEPE();
+        // mockBNVDA = new MockBNVDA();
+        // mockSAAPL = new MockSAAPL();
+        // mockPAXG = new MockPAXG();
 
         priceFeed = new PriceFeed();
         lendingPoolFactory = new LendingPoolFactory(address(priceFeed));
