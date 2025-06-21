@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Search, Wallet } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 
 type Token = {
   name: string;
@@ -34,7 +34,6 @@ type Chain = {
   };
 };
 
-// Mock data
 const chains: Chain[] = [
   {
     id: 1,
@@ -172,14 +171,12 @@ const tokens: Token[] = [
 ];
 
 export default function CrossChainBorrowing() {
-  // Collateral state
   const [selectedCollateralChain, setSelectedCollateralChain] =
     useState<Chain | null>(null);
   const [selectedCollateralToken, setSelectedCollateralToken] =
     useState<Token | null>(null);
   const [isCollateralDialogOpen, setIsCollateralDialogOpen] = useState(false);
 
-  // Borrow state
   const [selectedBorrowChain, setSelectedBorrowChain] = useState<Chain | null>(
     null
   );
@@ -187,11 +184,7 @@ export default function CrossChainBorrowing() {
     null
   );
   const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false);
-
-  // Search state
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Add borrow amount state at the top with other states
   const [borrowAmount, setBorrowAmount] = useState("");
 
   const TokenChainSelector = ({
@@ -203,16 +196,7 @@ export default function CrossChainBorrowing() {
     isOpen,
     onOpenChange,
     title,
-  }: {
-    selectedChain: Chain | null;
-    selectedToken: Token | null;
-    onChainSelect: (chain: Chain) => void;
-    onTokenSelect: (token: Token) => void;
-    placeholder: string;
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    title: string;
-  }) => {
+  }: any) => {
     const [internalSelectedChain, setInternalSelectedChain] =
       useState<Chain | null>(selectedChain);
 
@@ -231,7 +215,7 @@ export default function CrossChainBorrowing() {
         <DialogTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-start gap-3 h-16 bg-gray-900 border-gray-700 hover:bg-gray-800 text-white"
+            className="w-full justify-start gap-3 h-16 bg-white border-gray-300 hover:bg-gray-100 text-black"
           >
             {selectedChain && selectedToken ? (
               <div className="flex items-center gap-3">
@@ -248,32 +232,29 @@ export default function CrossChainBorrowing() {
                     alt={selectedChain.name}
                     width={18}
                     height={18}
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full `}
+                    className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full"
                   />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-white">
-                    {selectedToken.symbol}
-                  </div>
-                  <div className="text-sm text-gray-400">
+                  <div className="font-semibold">{selectedToken.symbol}</div>
+                  <div className="text-sm text-gray-500">
                     {selectedChain.name}
                   </div>
                 </div>
               </div>
             ) : (
-              <span className="text-gray-400">{placeholder}</span>
+              <span className="text-gray-500">{placeholder}</span>
             )}
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-md bg-gray-900 border-gray-700 text-white p-0">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <DialogContent className="max-w-md bg-white border-gray-300 text-black p-0">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-1 hover:bg-gray-800"
+                className="p-1 hover:bg-gray-100"
                 onClick={() => onOpenChange(false)}
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -282,17 +263,8 @@ export default function CrossChainBorrowing() {
                 {title}
               </DialogTitle>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-gray-800 border-gray-600 hover:bg-gray-700"
-            >
-              <Wallet className="h-4 w-4 mr-2" />
-              Connect wallet
-            </Button>
           </div>
 
-          {/* Chain Selection */}
           <div className="p-4">
             <div className="grid grid-cols-5 gap-3 mb-4">
               {chains.map((chain) => (
@@ -300,8 +272,8 @@ export default function CrossChainBorrowing() {
                   key={chain.id}
                   className={`relative p-3 rounded-xl transition-all ${
                     internalSelectedChain?.id === chain.id
-                      ? "bg-blue-600 ring-2 ring-blue-400"
-                      : "bg-gray-800 hover:bg-gray-700"
+                      ? "bg-blue-100 ring-2 ring-blue-400"
+                      : "bg-gray-100 hover:bg-gray-200"
                   }`}
                   onClick={() => {
                     setInternalSelectedChain(chain);
@@ -315,18 +287,10 @@ export default function CrossChainBorrowing() {
                     height={32}
                     className="rounded-full mx-auto"
                   />
-                  {chains.indexOf(chain) >= 8 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-800 rounded-xl">
-                      <span className="text-sm font-medium">
-                        +{chains.length - 8}
-                      </span>
-                    </div>
-                  )}
                 </button>
               ))}
             </div>
 
-            {/* Search Bar */}
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
@@ -334,11 +298,10 @@ export default function CrossChainBorrowing() {
                 placeholder="Search by token name or address"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-gray-800 border-gray-600 text-white placeholder-gray-400 h-12"
+                className="pl-10 bg-white border-gray-300 text-black placeholder-gray-500 h-12"
               />
             </div>
 
-            {/* Token List */}
             <ScrollArea className="h-80">
               <div className="space-y-2">
                 {filteredTokens.map((token) => (
@@ -346,7 +309,7 @@ export default function CrossChainBorrowing() {
                     key={`${token.symbol}-${
                       internalSelectedChain?.id || "all"
                     }`}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors"
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors"
                     onClick={() => {
                       onTokenSelect(token);
                       if (internalSelectedChain) {
@@ -363,10 +326,8 @@ export default function CrossChainBorrowing() {
                       className="rounded-full"
                     />
                     <div className="text-left">
-                      <div className="font-semibold text-white">
-                        {token.symbol}
-                      </div>
-                      <div className="text-sm text-gray-400">{token.name}</div>
+                      <div className="font-semibold">{token.symbol}</div>
+                      <div className="text-sm text-gray-500">{token.name}</div>
                     </div>
                   </button>
                 ))}
@@ -379,18 +340,16 @@ export default function CrossChainBorrowing() {
   };
 
   return (
-    <div className="min-h-screen mt-16">
+    <div className="min-h-screen mt-16 ">
       <div className="max-w-2xl mx-auto">
-
-        {/* Borrowing Interface */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-white border-gray-300 shadow">
           <CardHeader>
-            <CardTitle className="text-white">Borrow Assets</CardTitle>
+            <CardTitle className="text-gray-800">Borrow Assets</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Choose Collateral
                 </label>
                 <TokenChainSelector
@@ -401,12 +360,12 @@ export default function CrossChainBorrowing() {
                   placeholder="Select collateral asset"
                   isOpen={isCollateralDialogOpen}
                   onOpenChange={setIsCollateralDialogOpen}
-                  title="Exchange from"
+                  title="Select Collateral"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Choose Asset to Borrow
                 </label>
                 <TokenChainSelector
@@ -417,14 +376,13 @@ export default function CrossChainBorrowing() {
                   placeholder="Select asset to borrow"
                   isOpen={isBorrowDialogOpen}
                   onOpenChange={setIsBorrowDialogOpen}
-                  title="Exchange from"
+                  title="Select Asset to Borrow"
                 />
               </div>
             </div>
 
-
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Borrow Amount
               </label>
               <div className="relative">
@@ -433,10 +391,10 @@ export default function CrossChainBorrowing() {
                   value={borrowAmount}
                   onChange={(e) => setBorrowAmount(e.target.value)}
                   placeholder="0.00"
-                  className="h-12 text-lg bg-gray-800 border-gray-600 text-white placeholder-gray-400 pr-20"
+                  className="h-12 text-lg bg-white border-gray-300 text-gray-800 placeholder-gray-500 pr-20"
                 />
                 {selectedBorrowToken && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600">
                     {selectedBorrowToken.symbol}
                   </div>
                 )}
@@ -444,7 +402,7 @@ export default function CrossChainBorrowing() {
             </div>
 
             <Button
-              className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
+              className="w-full h-12 text-lg bg-blue-500 hover:bg-blue-600 text-white"
               disabled={
                 !selectedCollateralToken ||
                 !selectedBorrowToken ||

@@ -8,7 +8,7 @@ import AmountInput from "@/components/dialog/borrow/amount-input";
 import RecipientInput from "@/components/dialog/borrow/recipient-input";
 import { Chain } from "@/types/type";
 import useOnChainTransactionHandler from "@/components/dialog/borrow/onchain-transaction-handler";
-import useTransactionHandler from "@/components/dialog/borrow/transaction-handler";
+import useTransactionHandler from "@/hooks/write/useBorrowCrossChain";
 
 interface BorrowSectionProps {
   onTransactionSuccess?: () => void;
