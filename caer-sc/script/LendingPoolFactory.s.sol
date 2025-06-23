@@ -16,7 +16,7 @@ contract LendingPoolFactoryScript is Script {
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
-        lendingPoolFactory = new LendingPoolFactory(oracle);
+        lendingPoolFactory = new LendingPoolFactory();
         vm.stopBroadcast();
     }
 }

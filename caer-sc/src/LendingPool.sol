@@ -5,10 +5,9 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {Position} from "./Position.sol";
-import {IChainLink} from "./interface/IChainLink.sol";
-import {IFactory} from "./interface/IFactory.sol";
-import {IPosition} from "./interface/IPosition.sol";
-import {IBasicTokenSender} from "./interface/IBasicTokenSender.sol";
+import {IFactory} from "./interfaces/IFactory.sol";
+import {IPosition} from "./interfaces/IPosition.sol";
+import {IBasicTokenSender} from "./interfaces/IBasicTokenSender.sol";
 import {Helper} from "./Helper.sol";
 
 contract LendingPool is ReentrancyGuard, Helper {
@@ -17,24 +16,21 @@ contract LendingPool is ReentrancyGuard, Helper {
     error InsufficientCollateral();
     error InsufficientLiquidity();
     error InsufficientShares();
-    error InsufficientToken();
     error LTVExceedMaxAmount();
-    error PositionUnavailable();
     error PositionAlreadyCreated();
     error TokenNotAvailable();
     error ZeroAmount();
 
     event SupplyLiquidity(address user, uint256 amount, uint256 shares);
-    event Withdraw(address user, uint256 amount, uint256 shares);
+    event WithdrawLiquidity(address user, uint256 amount, uint256 shares);
     event SupplyCollateral(address user, uint256 amount);
-    event WithdrawCollateral(address user, uint256 amount);
     event BorrowDebt(address user, uint256 amount, uint256 shares);
     event RepayDebt(address user, uint256 amount, uint256 shares);
     event RepayWithCollateralByPosition(address user, uint256 amount, uint256 shares);
-    event SwapByPosition(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
     event CreatePosition(address user, address positionAddress);
-
-    Position public position;
+    event BorrowDebtCrosschain(
+        address user, uint256 amount, uint256 shares, uint256 chainId, SupportedNetworks destination
+    );
 
     uint256 public totalSupplyAssets;
     uint256 public totalSupplyShares;
@@ -43,7 +39,6 @@ contract LendingPool is ReentrancyGuard, Helper {
 
     mapping(address => uint256) public userSupplyShares;
     mapping(address => uint256) public userBorrowShares;
-    mapping(address => uint256) public userCollaterals;
     mapping(address => address) public addressPositions;
 
     address public collateralToken;
@@ -95,11 +90,6 @@ contract LendingPool is ReentrancyGuard, Helper {
         ltv = _ltv;
     }
 
-    function getPrice(address _oracle) public view returns (uint256) {
-        (, int256 quotePrice,,,) = IChainLink(_oracle).latestRoundData();
-        return uint256(quotePrice);
-    }
-
     /**
      * @dev Creates a new Position contract for the caller.
      *
@@ -124,7 +114,7 @@ contract LendingPool is ReentrancyGuard, Helper {
      */
     function createPosition() public {
         if (addressPositions[msg.sender] != address(0)) revert PositionAlreadyCreated();
-        position = new Position(collateralToken, borrowToken, address(this), factory);
+        Position position = new Position(collateralToken, borrowToken, address(this), factory);
         addressPositions[msg.sender] = address(position);
         emit CreatePosition(msg.sender, address(position));
     }
@@ -211,15 +201,7 @@ contract LendingPool is ReentrancyGuard, Helper {
 
         IERC20(borrowToken).safeTransfer(msg.sender, amount);
 
-        emit Withdraw(msg.sender, amount, _shares);
-    }
-
-    /**
-     * @dev Public function to accrue interest on borrowed assets.
-     * Calls the internal `_accrueInterest` function to update interest calculations.
-     */
-    function accrueInterest() public {
-        _accrueInterest();
+        emit WithdrawLiquidity(msg.sender, amount, _shares);
     }
 
     /**
@@ -234,13 +216,9 @@ contract LendingPool is ReentrancyGuard, Helper {
      */
     function _accrueInterest() internal {
         uint256 borrowRate = 10;
-
         uint256 interestPerYear = (totalBorrowAssets * borrowRate) / 100;
-
         uint256 elapsedTime = block.timestamp - lastAccrued;
-
         uint256 interest = (interestPerYear * elapsedTime) / 365 days;
-
         totalSupplyAssets += interest;
         totalBorrowAssets += interest;
         lastAccrued = block.timestamp;
@@ -267,12 +245,10 @@ contract LendingPool is ReentrancyGuard, Helper {
      *
      * @param amount The amount of collateral tokens to supply
      * @custom:throws ZeroAmount if amount is 0
-     * @custom:emits SupplyCollateral when collateral is successfully supplied
      */
     function supplyCollateral(uint256 amount) public positionRequired nonReentrant {
         if (amount == 0) revert ZeroAmount();
-        accrueInterest();
-        userCollaterals[msg.sender] += amount;
+        _accrueInterest();
         IERC20(collateralToken).safeTransferFrom(msg.sender, addressPositions[msg.sender], amount);
 
         emit SupplyCollateral(msg.sender, amount);
@@ -290,7 +266,6 @@ contract LendingPool is ReentrancyGuard, Helper {
      * - Updates interest accrual before processing the withdrawal
      * - Decreases user's collateral balance by the withdrawn amount
      * - Transfers collateral tokens from position contract back to user
-     * - Emits a WithdrawCollateral event
      *
      * Security:
      * - Uses nonReentrant modifier to prevent reentrancy attacks
@@ -300,46 +275,27 @@ contract LendingPool is ReentrancyGuard, Helper {
      * @param amount The amount of collateral tokens to withdraw
      * @custom:throws ZeroAmount if amount is 0
      * @custom:throws InsufficientCollateral if user has insufficient collateral balance
-     * @custom:emits WithdrawCollateral when collateral is successfully withdrawn
      */
     function withdrawCollateral(uint256 amount) public positionRequired nonReentrant {
         if (amount == 0) revert ZeroAmount();
-        if (amount > userCollaterals[msg.sender]) revert InsufficientCollateral();
-
+        if (amount > IERC20(collateralToken).balanceOf(addressPositions[msg.sender])) revert InsufficientCollateral();
         _accrueInterest();
-
-        userCollaterals[msg.sender] -= amount;
         IPosition(addressPositions[msg.sender]).withdrawCollateral(amount, msg.sender);
-
-        emit WithdrawCollateral(msg.sender, amount);
     }
 
     /**
-     * @dev Allows users to borrow assets using their supplied collateral.
+     * @dev Allows users to borrow assets using their supplied collateral and send them to a different network.
      *
      * Requirements:
      * - User must have sufficient collateral to support the borrow
      * - Total borrowed assets must not exceed total supplied assets
-     * - Amount must be greater than 0
-     *
-     * Effects:
-     * - Updates interest accrual before processing the borrow
-     * - Calculates borrow shares based on current borrow-to-share ratio
-     * - For first borrow, shares equal borrowed amount
-     * - Increases user's borrow shares and protocol's total borrow shares/assets
-     * - Transfers borrowed tokens to user or solver contract for crosschain
-     *
-     * Security:
-     * - Uses nonReentrant modifier to prevent reentrancy attacks
-     * - Validates sufficient protocol liquidity
-     * - Safely transfers tokens using safeTransfer
-     *
      * @param amount The amount of tokens to borrow
-     * @param _crosschain Whether this is a crosschain borrow
+     * @param _chainId The chain id of the destination network
+     * @param destination The destination network for crosschain borrow, etc: 0,1,2,3
      * @custom:throws InsufficientLiquidity if protocol lacks liquidity
      * @custom:emits BorrowDebt when borrow is successful
      */
-    function borrowDebt(uint256 amount, bool _crosschain, SupportedNetworks destination) public nonReentrant {
+    function borrowDebt(uint256 amount, uint256 _chainId, SupportedNetworks destination) public nonReentrant {
         _accrueInterest();
         uint256 shares = 0;
         if (totalBorrowShares == 0) {
@@ -347,65 +303,22 @@ contract LendingPool is ReentrancyGuard, Helper {
         } else {
             shares = ((amount * totalBorrowShares) / totalBorrowAssets);
         }
-
         userBorrowShares[msg.sender] += shares;
         totalBorrowShares += shares;
         totalBorrowAssets += amount;
-
         if (totalBorrowAssets > totalSupplyAssets) {
             revert InsufficientLiquidity();
         }
-
-        // ini nanti pakai ccip
-        if (_crosschain) {
-            address basicTokenSenderETHSEPOLIA = 0xc0DF6331AdC789Cf6a4cbfAE1fc7750D941a4f7F;
+        if (block.chainid != _chainId) {
+            address basicTokenSenderAddress = IFactory(factory).basicTokenSender(_chainId);
             (,,, uint64 destinationChainId) = getConfigFromNetwork(destination);
             IBasicTokenSender.EVMTokenAmount[] memory tokenAmounts = new IBasicTokenSender.EVMTokenAmount[](1);
             tokenAmounts[0] = IBasicTokenSender.EVMTokenAmount(borrowToken, amount);
-            IBasicTokenSender(basicTokenSenderETHSEPOLIA).send(destinationChainId, msg.sender, tokenAmounts, amount);
+            IBasicTokenSender(basicTokenSenderAddress).send(destinationChainId, msg.sender, tokenAmounts, 1);
         } else {
             IERC20(borrowToken).safeTransfer(msg.sender, amount);
         }
-
-        emit BorrowDebt(msg.sender, amount, shares);
-    }
-
-    /**
-     * @dev Allows users to repay their borrowed assets by burning borrow shares.
-     *
-     * Requirements:
-     * - Shares amount must be greater than 0
-     * - User must have sufficient borrow shares to repay
-     * - User must have approved the contract to spend the repayment amount
-     *
-     * Effects:
-     * - Updates interest accrual before processing repayment
-     * - Calculates repayment amount based on current share-to-borrow ratio
-     * - Reduces user's borrow shares and protocol's total borrow shares/assets
-     * - Transfers repayment tokens from user to protocol
-     *
-     * Security:
-     * - Uses nonReentrant modifier to prevent reentrancy attacks
-     * - Safely transfers tokens using safeTransferFrom
-     * - Validates non-zero shares amount
-     *
-     * @param shares The number of borrow shares to repay
-     * @custom:throws ZeroAmount if shares is 0
-     * @custom:emits RepayDebt when repayment is successful
-     */
-    function repayDebt(uint256 shares) public nonReentrant {
-        if (shares == 0) revert ZeroAmount();
-
-        _accrueInterest();
-
-        uint256 borrowAmount = ((shares * totalBorrowAssets) / totalBorrowShares);
-        userBorrowShares[msg.sender] -= shares;
-        totalBorrowShares -= shares;
-        totalBorrowAssets -= borrowAmount;
-
-        IERC20(borrowToken).safeTransferFrom(msg.sender, address(this), borrowAmount);
-
-        emit RepayDebt(msg.sender, borrowAmount, shares);
+        emit BorrowDebtCrosschain(msg.sender, amount, shares, _chainId, destination);
     }
 
     /**
@@ -430,32 +343,29 @@ contract LendingPool is ReentrancyGuard, Helper {
      *
      * @param shares The number of borrow shares to repay
      * @param _token The address of the token to use for repayment
-     * @param _tokenInPrice The address of the token to use for repayment
-     * @param _tokenOutPrice The address of the token to use for repayment
-     * @param _token The address of the token to use for repayment
      * @custom:throws ZeroAmount if shares is 0
-     * @custom:throws PositionUnavailable if user has no position
      * @custom:emits RepayWithCollateralByPosition when repayment is successful
      */
-    function repayWithSelectedToken(uint256 shares, address _token, address _tokenInPrice, address _tokenOutPrice)
+    function repayWithSelectedToken(uint256 shares, address _token, bool _fromPosition)
         public
+        positionRequired
         nonReentrant
     {
         if (shares == 0) revert ZeroAmount();
-        if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
 
         _accrueInterest();
         uint256 borrowAmount = ((shares * totalBorrowAssets) / totalBorrowShares);
-
         userBorrowShares[msg.sender] -= shares;
         totalBorrowShares -= shares;
         totalBorrowAssets -= borrowAmount;
-
-        IPosition(addressPositions[msg.sender]).repayWithSelectedToken(
-            borrowAmount, _token, _tokenInPrice, _tokenOutPrice
-        );
-        if (_token == collateralToken) {
-            userCollaterals[msg.sender] = IERC20(collateralToken).balanceOf(addressPositions[msg.sender]);
+        if (_token == borrowToken && !_fromPosition) {
+            IERC20(borrowToken).safeTransferFrom(msg.sender, address(this), borrowAmount);
+        } else {
+            address _tokenInPrice = IFactory(factory).tokenDataStream(_token);
+            address _tokenOutPrice = IFactory(factory).tokenDataStream(borrowToken);
+            IPosition(addressPositions[msg.sender]).repayWithSelectedToken(
+                borrowAmount, _token, _tokenInPrice, _tokenOutPrice
+            );
         }
 
         emit RepayWithCollateralByPosition(msg.sender, borrowAmount, shares);
@@ -489,59 +399,23 @@ contract LendingPool is ReentrancyGuard, Helper {
      * @param _tokenTo The address of the token to receive
      * @param _tokenFrom The address of the token to swap from
      * @param amountIn The amount of _tokenFrom to swap
-     * @return amountOut The amount of _tokenTo received from the swap
      * @custom:throws ZeroAmount if amountIn is 0
-     * @custom:throws PositionUnavailable if user has no position
      * @custom:throws TokenNotAvailable if _tokenFrom is not available in position
-     * @custom:emits SwapByPosition when swap is successful
      */
-    function swapTokenByPosition(
-        address _tokenFrom,
-        address _tokenTo,
-        uint256 amountIn,
-        address _tokenFromPrice,
-        address _tokenToPrice
-    ) public positionRequired returns (uint256 amountOut) {
+    function swapTokenByPosition(address _tokenFrom, address _tokenTo, uint256 amountIn)
+        public
+        positionRequired
+        returns (uint256 amountOut)
+    {
         if (amountIn == 0) revert ZeroAmount();
-        if (addressPositions[msg.sender] == address(0)) revert PositionUnavailable();
         if (_tokenFrom != collateralToken && IPosition(addressPositions[msg.sender]).getTokenCounter(_tokenFrom) == 0) {
             revert TokenNotAvailable();
         }
         _accrueInterest();
-        if (_tokenFrom == collateralToken) {
-            userCollaterals[msg.sender] -= amountIn;
-            amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPosition(
-                _tokenFrom, _tokenTo, amountIn, _tokenFromPrice, _tokenToPrice
-            );
-        } else if (_tokenTo == collateralToken) {
-            amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPosition(
-                _tokenFrom, _tokenTo, amountIn, _tokenFromPrice, _tokenToPrice
-            );
-            userCollaterals[msg.sender] += amountOut;
-        } else {
-            amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPosition(
-                _tokenFrom, _tokenTo, amountIn, _tokenFromPrice, _tokenToPrice
-            );
-        }
-
-        emit SwapByPosition(msg.sender, collateralToken, _tokenTo, amountIn, amountOut);
+        address _tokenInPrice = IFactory(factory).tokenDataStream(_tokenFrom);
+        address _tokenOutPrice = IFactory(factory).tokenDataStream(_tokenTo);
+        amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPosition(
+            _tokenFrom, _tokenTo, amountIn, _tokenInPrice, _tokenOutPrice
+        );
     }
 }
-
-/**
- * !SECTION
- * 1. deploy factory (bisa lewat mainnet) (-$1)
- * 2. deploy lending pool (via web)
- * 3. deploy position (via web)
- * 4. user swap from eth to weth
- * 5. user swap from eth to usdc
- * 6. user supply collateral
- * 7. user borrow
- * 8. user repay
- * 9. user swap token
- * 10. user crosschain borrow
- *
- * !SECTION tenderly
- * 1. di FE bisa ganti rpc url nya tenderly - supaya block height nya bisa diganti
- * 2. wajib tenderly baru, wallet baru untuk demo apps
- */

@@ -19,6 +19,3 @@
 [submodule "caer-sc/lib/chainlink-ccip"]
 	path = caer-sc/lib/chainlink-ccip
 	url = https://github.com/smartcontractkit/chainlink-ccip
-[submodule "caer-sc/lib/chainlink"]
-	path = caer-sc/lib/chainlink
-	url = https://github.com/smartcontractkit/chainlink

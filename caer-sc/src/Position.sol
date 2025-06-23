@@ -5,39 +5,22 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
-import {ITokenSwap} from "./interface/ITokenSwap.sol";
-import {IChainLink} from "./interface/IChainLink.sol";
-import {IOracle} from "./interface/IOracle.sol";
-import {IFactory} from "./interface/IFactory.sol";
-import {ISwapRouter} from "./interface/ISwapRouter.sol"; // keknya gakepake
+import {ITokenSwap} from "./interfaces/ITokenSwap.sol";
+import {IChainLink} from "./interfaces/IChainLink.sol";
 
 contract Position is ReentrancyGuard {
     using SafeERC20 for IERC20; // fungsi dari IERC20 akan ketambahan SafeERC20
 
     error TokenNotFound();
     error InsufficientBalance();
-    error TradingAccountListed();
-    error InvalidPrice();
-    error NotForSale();
     error ZeroAmount();
-    error SameToken();
     error NotForWithdraw();
-    error QuotePriceZero();
-    error BasePriceZero();
-
-    struct ListingDetail {
-        bool isListing;
-        uint256 price;
-        string name;
-        address sellWithToken;
-    }
 
     address public collateralAssets;
     address public borrowAssets;
     address public owner;
     address public lpAddress;
     address public factory;
-    address public router = address(0x2626664c2603336E57B271c5C0b26F421741e481);
 
     uint256 public counter;
 
@@ -45,13 +28,11 @@ contract Position is ReentrancyGuard {
     mapping(address => uint256) public tokenListsId;
     mapping(address => uint256) public tokenBalances;
 
-    ListingDetail public listingDetail;
-
     event Liquidate(address user);
     event SwapToken(address user, address token, uint256 amount);
     event CostSwapToken(address user, address token, uint256 amount);
-    event ListingTradingPosition(address user, address token, uint256 price, string name);
-    event BuyTradingPosition(address user, address token, uint256 price, string name);
+    event SwapTokenByPosition(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
+    event WithdrawCollateral(address indexed user, uint256 amount);
 
     constructor(address _collateral, address _borrow, address _lpAddress, address _factory) {
         collateralAssets = _collateral;
@@ -81,21 +62,6 @@ contract Position is ReentrancyGuard {
         emit CostSwapToken(msg.sender, _token, _amount);
     }
 
-    function listingTradingPosition(address _token, uint256 _price, string memory _name) public {
-        if (listingDetail.isListing) revert TradingAccountListed();
-        listingDetail = ListingDetail(true, _price, _name, _token);
-        emit ListingTradingPosition(msg.sender, _token, _price, _name);
-    }
-
-    function buyTradingPosition(uint256 _price, address _buyer) public nonReentrant {
-        if (_price != listingDetail.price) revert InvalidPrice();
-        if (!listingDetail.isListing) revert NotForSale();
-        IERC20(listingDetail.sellWithToken).safeTransferFrom(_buyer, owner, _price);
-        owner = _buyer;
-        listingDetail = ListingDetail(false, 0, "", address(0));
-        emit BuyTradingPosition(_buyer, listingDetail.sellWithToken, _price, listingDetail.name);
-    }
-
     function getTokenOwnerLength() public view returns (uint256) {
         return counter;
     }
@@ -123,6 +89,7 @@ contract Position is ReentrancyGuard {
     function withdrawCollateral(uint256 amount, address _user) public {
         if (msg.sender != lpAddress) revert NotForWithdraw();
         IERC20(collateralAssets).safeTransfer(_user, amount);
+        emit WithdrawCollateral(_user, amount);
     }
 
     function swapTokenByPosition(
@@ -139,11 +106,12 @@ contract Position is ReentrancyGuard {
 
         amountOut = tokenCalculator(_tokenIn, _tokenOut, amountIn, _tokenInPrice, _tokenOutPrice);
         if (_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
-        ITokenSwap(_tokenIn).burn(address(this), amountIn);
-        ITokenSwap(_tokenOut).mint(address(this), amountOut);
+        ITokenSwap(_tokenIn).burn_mock(amountIn);
+        ITokenSwap(_tokenOut).mint_mock(address(this), amountOut);
         swapToken(_tokenOut, amountOut);
+        emit SwapTokenByPosition(msg.sender, _tokenIn, _tokenOut, amountIn, amountOut);
     }
-    // 100 usdc, weth, harga weth, harga usdc
+    
     function repayWithSelectedToken(uint256 amount, address _token, address _tokenInPrice, address _tokenOutPrice) public {
         if (msg.sender != lpAddress) revert NotForWithdraw();
         uint256 balance = IERC20(_token).balanceOf(address(this));
