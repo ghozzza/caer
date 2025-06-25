@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+interface ILendingPool {
+    enum SupportedNetworks {
+        ETHEREUM_SEPOLIA, // 0
+        AVALANCHE_FUJI, // 1
+        ARBITRUM_SEPOLIA, // 2
+        BASE_SEPOLIA // 6
+    }
+    function collateralToken() external view returns (address);
+    function borrowToken() external view returns (address);
+    function supplyCollateral(uint256 amount) external;
+    function supplyLiquidity(uint256 amount) external;
+    function borrowDebt(uint256 amount, uint256 _chainId, SupportedNetworks destination) external;
+}

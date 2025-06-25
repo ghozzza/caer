@@ -309,7 +309,7 @@ contract LendingPool is ReentrancyGuard, Helper {
         if (totalBorrowAssets > totalSupplyAssets) {
             revert InsufficientLiquidity();
         }
-        if (block.chainid != _chainId) {
+        if (destination != SupportedNetworks.AVALANCHE_FUJI) {
             address basicTokenSenderAddress = IFactory(factory).basicTokenSender(_chainId);
             (,,, uint64 destinationChainId) = getConfigFromNetwork(destination);
             IBasicTokenSender.EVMTokenAmount[] memory tokenAmounts = new IBasicTokenSender.EVMTokenAmount[](1);
