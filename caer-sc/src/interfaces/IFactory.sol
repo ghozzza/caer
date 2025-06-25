@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+interface IFactory {
+    function tokenDataStream(address _token) external view returns (address);
+    function basicTokenSender(uint256 _chainId) external view returns (address);
+    function owner() external view returns (address);
+}
