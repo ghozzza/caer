@@ -9,7 +9,7 @@ import {ILendingPool} from "../src/interfaces/ILendingPool.sol";
 
 contract LPSupplyLiquidityScript is Script, Helper {
     // --------- FILL THIS ----------
-    address public lpAddress = 0x5d863542d39F1A6937F212Efa1678E7609b71156;
+    address public lpAddress = 0x024F057D80a37416D4997f1Da2dA1Bf07cb9980E;
     address public yourWallet = 0x597c129eE29d761f4Add79aF124593Be5E0EB77e;
     uint256 public amount = 1_000;
     // ----------------------------
@@ -51,5 +51,5 @@ contract LPSupplyLiquidityScript is Script, Helper {
         vm.stopBroadcast();
     }
     // RUN
-    // forge script LPSupplyLiquidityScript -vvv --broadcast 
+    // forge script LPSupplyLiquidityScript -vvv --broadcast
 }

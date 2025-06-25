@@ -9,6 +9,7 @@ import {IFactory} from "./interfaces/IFactory.sol";
 import {IPosition} from "./interfaces/IPosition.sol";
 import {IBasicTokenSender} from "./interfaces/IBasicTokenSender.sol";
 import {Helper} from "./Helper.sol";
+import {Client} from "@chainlink-ccip/chains/evm/contracts/libraries/Client.sol";
 
 contract LendingPool is ReentrancyGuard, Helper {
     using SafeERC20 for IERC20;
@@ -311,10 +312,13 @@ contract LendingPool is ReentrancyGuard, Helper {
         }
         if (destination != SupportedNetworks.AVALANCHE_FUJI) {
             address basicTokenSenderAddress = IFactory(factory).basicTokenSender(_chainId);
+            IERC20(borrowToken).approve(basicTokenSenderAddress, amount);
             (,,, uint64 destinationChainId) = getConfigFromNetwork(destination);
-            IBasicTokenSender.EVMTokenAmount[] memory tokenAmounts = new IBasicTokenSender.EVMTokenAmount[](1);
-            tokenAmounts[0] = IBasicTokenSender.EVMTokenAmount(borrowToken, amount);
-            IBasicTokenSender(basicTokenSenderAddress).send(destinationChainId, msg.sender, tokenAmounts, 1);
+            Client.EVMTokenAmount[] memory tokens = new Client.EVMTokenAmount[](1);
+            tokens[0] = Client.EVMTokenAmount(borrowToken, amount);
+            IBasicTokenSender(basicTokenSenderAddress).send(
+                destinationChainId, msg.sender, tokens, IBasicTokenSender.PayFeesIn.LINK
+            );
         } else {
             IERC20(borrowToken).safeTransfer(msg.sender, amount);
         }

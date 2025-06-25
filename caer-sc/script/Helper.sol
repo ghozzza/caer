@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Script, console} from "forge-std/Script.sol";
-import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ITokenSwap} from "../src/interfaces/ITokenSwap.sol";
+import {Script} from "forge-std/Script.sol";
 
 contract Helper is Script {
     address public AVAX_USDC = 0xC014F158EbADce5a8e31f634c0eb062Ce8CDaeFe;

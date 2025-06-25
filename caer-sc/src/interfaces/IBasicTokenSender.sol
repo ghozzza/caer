@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {Client} from "@chainlink-ccip/chains/evm/contracts/libraries/Client.sol";
+
 interface IBasicTokenSender {
-    struct EVMTokenAmount {
-        address token; // token address on the local chain.
-        uint256 amount; // Amount of tokens.
+    enum PayFeesIn {
+        Native,
+        LINK
     }
 
     function send(
-        uint64 destinationChainId,
+        uint64 destinationChainSelector,
         address receiver,
-        EVMTokenAmount[] memory tokensToSendDetails,
-        uint256 amount
+        Client.EVMTokenAmount[] memory tokensToSendDetails,
+        PayFeesIn payFeesIn
     ) external;
 }
