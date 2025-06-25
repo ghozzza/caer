@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import PoolDialog from "./PoolDialog";
+import PoolDialog from "./pool-dialog";
 import { getAllLPFactoryData } from "@/actions/GetLPFactory";
-import RowPool from "./RowPool";
+import RowPool from "./row-pool";
 import { Loader2 } from "lucide-react";
 
 const PoolList = () => {

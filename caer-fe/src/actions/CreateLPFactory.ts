@@ -1,6 +1,6 @@
 "use server";
 import { chain_id, factory } from "@/constants/addresses";
-import { factoryAbi } from "@/lib/abi/factoryAbi";
+import { factoryAbi } from "@/lib/abis/factoryAbi";
 import { publicClient } from "@/lib/viem";
 import { PrismaClient } from "@prisma/client";
 

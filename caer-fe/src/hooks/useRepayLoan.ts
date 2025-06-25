@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useWriteContract, useReadContract, useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { useBorrowBalance } from "./useBorrowBalance";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { lendingPool, mockUsdc, priceFeed } from "@/constants/addresses";
-import { priceAbi } from "@/lib/abi/price-abi";
+import { priceAbi } from "@/lib/abis/price-abi";
 import { useReadLendingData } from "./read/useReadLendingData";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 

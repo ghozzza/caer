@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { positionAbi } from "@/lib/abi/positionAbi";
+import { positionAbi } from "@/lib/abis/positionAbi";
 import Link from "next/link";
 import { erc20Abi, type Address } from "viem";
 import { useReadContract } from "wagmi";

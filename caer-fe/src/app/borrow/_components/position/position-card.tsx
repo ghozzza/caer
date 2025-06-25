@@ -26,13 +26,13 @@ import type { Address } from "viem";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 import PositionToken from "./position-token";
 import { useAccount, useWriteContract } from "wagmi";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import SelectPosition from "./selectPosition";
 import {
   getAllLPFactoryData,
   getSelectedLPFactoryByAddress,
 } from "@/actions/GetLPFactory";
-import CollateralSection from "./CollateralSection";
+import CollateralSection from "./collateral-section";
 import { toast } from "sonner";
 import { createPosition } from "@/actions/CreatePosition";
 import { getPositionByOwnerAndLpAddress } from "@/actions/GetPosition";

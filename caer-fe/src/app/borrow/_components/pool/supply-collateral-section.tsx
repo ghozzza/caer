@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Loader2, Shield } from "lucide-react";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
+import { useBalance } from "@/hooks/useBalance";
 import { useSupplyCollateral } from "@/hooks/useSupplyCollateral";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 import { createPosition } from "@/actions/CreatePosition";
 import { useAccount } from "wagmi";
 
@@ -18,33 +20,47 @@ interface SupplyCollateralSectionProps {
   onSuccess?: () => void;
 }
 
+const CHAIN_ID = 43113;
+
 const SupplyCollateralSection = ({
   collateralToken,
   borrowToken,
   lpAddress,
   onSuccess,
 }: SupplyCollateralSectionProps) => {
-  const tokenAddress = TOKEN_OPTIONS.find(
-    (token) => token.name === collateralToken
-  )?.address;
-  const { amount, setAmount, isProcessing, dynamicHandleSupply, isSuccess } =
-    useSupplyCollateral(lpAddress, tokenAddress);
-  const tokenDecimals = TOKEN_OPTIONS.find(
-    (token) => token.address === tokenAddress
-  )?.decimals;
-  const tokenBalance = useTokenBalance(
-    tokenAddress as `0x${string}`,
-    Number(tokenDecimals)
+  const tokenInfo = tokens.find(
+    (token) => token.name === collateralToken && token.addresses[CHAIN_ID]
   );
 
+  const tokenAddress = tokenInfo?.addresses[CHAIN_ID] as `0x${string}`;
+  const tokenDecimals = tokenInfo?.decimals ?? 18;
+
+  const { amount, setAmount, isProcessing, dynamicHandleSupply, isSuccess } =
+    useSupplyCollateral(lpAddress, tokenAddress);
+
+  const tokenBalance = useBalance(tokenAddress, tokenDecimals);
   const { address } = useAccount();
 
   useEffect(() => {
-    if (isSuccess && onSuccess) {
+    if (isSuccess && onSuccess && tokenAddress) {
+      createPosition(
+        collateralToken,
+        borrowToken,
+        "0",
+        lpAddress,
+        address as `0x${string}`
+      );
       onSuccess();
-      createPosition(collateralToken, borrowToken, "0", lpAddress, address as `0x${string}`);
     }
   }, [isSuccess, onSuccess]);
+
+  if (!tokenInfo) {
+    return (
+      <div className="text-red-500 text-sm">
+        Token {collateralToken} is not supported on chain {CHAIN_ID}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -104,8 +120,8 @@ const SupplyCollateralSection = ({
           disabled={isProcessing || !amount}
           className={`w-full h-12 text-base font-medium rounded-lg duration-300 ${
             isProcessing
-              ? "bg-slate-200 text-slate-500 transition-colors"
-              : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg transition-colors duration-300 rounded-lg cursor-pointer"
+              ? "bg-slate-200 text-slate-500"
+              : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg"
           }`}
         >
           {isProcessing ? (

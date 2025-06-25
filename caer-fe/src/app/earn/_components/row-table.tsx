@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import DialogSupply from "./DialogSupply";
-import DialogWithdraw from "./DialogWithdraw";
+import DialogSupply from "./dialog-supply";
+import DialogWithdraw from "./dialog-withdraw";
 import Image from "next/image";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 import { readLendingData } from "@/hooks/read/useReadLendingData";

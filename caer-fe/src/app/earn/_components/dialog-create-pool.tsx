@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { useAccount, useReadContract, useWriteContract, useChainId } from 'wagmi';
 import { createLPFactory } from "@/actions/CreateLPFactory";
 import { factory } from "@/constants/addresses";
-import { factoryAbi } from "@/lib/abi/factoryAbi";
+import { factoryAbi } from "@/lib/abis/factoryAbi";
 import { getSelectedLPFactorybyColBor } from "@/actions/GetLPFactory";
 
 interface DialogCreatePoolProps {

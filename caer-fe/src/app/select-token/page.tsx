@@ -52,7 +52,7 @@ export default function CrossChainBorrowing() {
         token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         token.symbol.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesChain = internalSelectedChain
-        ? token.chainIds.includes(internalSelectedChain.id)
+      ? Object.keys(token.addresses).map(Number).includes(internalSelectedChain.id)
         : true;
       return matchesSearch && matchesChain;
     });

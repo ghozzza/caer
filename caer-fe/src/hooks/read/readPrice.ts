@@ -1,5 +1,5 @@
 import { priceFeed } from "@/constants/addresses";
-import { priceAbi } from "@/lib/abi/price-abi";
+import { priceAbi } from "@/lib/abis/price-abi";
 import { useReadContract } from "wagmi";
 
 export const usePriceBorrow = (address: any) => {

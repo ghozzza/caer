@@ -1,3 +1,5 @@
+import { Address } from "viem";
+
 interface SupplyDialogProps {
   poolId: number;
   token: string;
@@ -57,9 +59,11 @@ export interface Chain {
   name: string;
   logo: string;
   color: string;
+  destination: number;
   contracts: {
     lendingPool: string;
     factory: string;
+    position: string;
     blockExplorer: string;
   };
 }
@@ -67,10 +71,13 @@ export interface Chain {
 export interface Token {
   name: string;
   symbol: string;
-  address: string;
   logo: string;
-  chainIds: number[];
+  decimals: number;
+  addresses: {
+    [chainId: number]: Address;
+  };
 }
+
 
 
 

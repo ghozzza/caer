@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import React from "react";
-import FaucetsCardHeader from "./FaucetsCardHeader";
-import FaucetsCardForm from "./FaucetsCardForm";
+import FaucetsCardHeader from "./faucets-header";
+import FaucetsCardForm from "./faucets-form";
 
 const FaucetsCard = () => {
   return (

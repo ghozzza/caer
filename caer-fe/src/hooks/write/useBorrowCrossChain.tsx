@@ -8,7 +8,7 @@ import {
   type TransactionStep,
 } from "@/components/transaction-progress";
 import { toast } from "sonner";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { erc20Abi } from "viem";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 

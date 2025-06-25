@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
-import { mockErc20Abi } from "@/lib/abi/mockErc20Abi";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { lendingPool, mockWeth } from "@/constants/addresses";
 import { toast } from "sonner";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";

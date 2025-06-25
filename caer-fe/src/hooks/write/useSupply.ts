@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { poolAbi } from "@/lib/abi/poolAbi";
-import { mockErc20Abi } from "@/lib/abi/mockErc20Abi";
+import { poolAbi } from "@/lib/abis/poolAbi";
+import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 import { lendingPool, mockUsdc } from "@/constants/addresses";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 

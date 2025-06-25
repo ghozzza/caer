@@ -15,10 +15,10 @@ import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 import { ArrowBigRight, ChevronDown } from "lucide-react";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import { useAccount } from "wagmi";
-import SupplyCollateralSection from "./SupplyCollateralSection";
-import WithdrawCollateralSection from "./WithdrawCollateralSection";
-import BorrowSection from "./BorrowSection";
-import { RepaySection } from "./RepaySection";
+import SupplyCollateralSection from "./supply-collateral-section";
+import WithdrawCollateralSection from "./withdraw-collateral-section";
+import BorrowSection from "./borrow-section";
+import { RepaySection } from "./repay-section";
 import ButtonConnectWallet from "@/components/navbar/button-connect-wallet";
 
 interface PoolDialogProps {
