@@ -12,6 +12,8 @@ import {MockWAVAX} from "../src/mocks/MockWAVAX.sol";
 import {LendingPoolFactory} from "../src/LendingPoolFactory.sol";
 import {LendingPool} from "../src/LendingPool.sol";
 import {Position} from "../src/Position.sol";
+import {IsHealthy} from "../src/IsHealthy.sol";
+import {LendingPoolDeployer} from "../src/LendingPoolDeployer.sol";
 
 contract CaerScript is Script {
     MockWETH public mockWETH;
@@ -20,6 +22,8 @@ contract CaerScript is Script {
     MockUSDT public mockUSDT;
     MockWAVAX public mockWAVAX;
 
+    IsHealthy public isHealthy;
+    LendingPoolDeployer public lendingPoolDeployer;
     LendingPoolFactory public lendingPoolFactory;
     LendingPool public lendingPool;
     Position public position;
@@ -63,7 +67,9 @@ contract CaerScript is Script {
         mockUSDT = new MockUSDT();
 
         if (block.chainid == 43113) {
-            lendingPoolFactory = new LendingPoolFactory();
+            isHealthy = new IsHealthy();
+            lendingPoolDeployer = new LendingPoolDeployer();
+            lendingPoolFactory = new LendingPoolFactory(address(isHealthy), address(lendingPoolDeployer));
             lendingPool = new LendingPool(address(mockWETH), address(mockUSDC), address(lendingPoolFactory), 7e17);
             position =
                 new Position(address(mockWETH), address(mockUSDC), address(lendingPool), address(lendingPoolFactory));
@@ -92,4 +98,7 @@ contract CaerScript is Script {
             console.log("export const position = ", address(position));
         }
     }
+
+    // RUN
+    // forge script CaerScript -vvv --broadcast
 }

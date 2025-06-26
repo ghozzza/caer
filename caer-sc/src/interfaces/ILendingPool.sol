@@ -13,4 +13,7 @@ interface ILendingPool {
     function supplyCollateral(uint256 amount) external;
     function supplyLiquidity(uint256 amount) external;
     function borrowDebt(uint256 amount, uint256 _chainId, SupportedNetworks destination) external;
+    function repayWithSelectedToken(uint256 shares, address _token, bool _fromPosition) external;
+    function totalBorrowShares() external view returns (uint256);
+    function totalBorrowAssets() external view returns (uint256);
 }

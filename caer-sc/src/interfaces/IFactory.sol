@@ -5,4 +5,5 @@ interface IFactory {
     function tokenDataStream(address _token) external view returns (address);
     function basicTokenSender(uint256 _chainId) external view returns (address);
     function owner() external view returns (address);
+    function isHealthy() external view returns (address);
 }

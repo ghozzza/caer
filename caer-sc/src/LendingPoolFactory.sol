@@ -1,28 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {LendingPool} from "./LendingPool.sol";
+import {ILPDeployer} from "./interfaces/ILPDeployer.sol";
 
 contract LendingPoolFactory {
-    event LendingPoolCreated(address indexed collateralToken, address indexed borrowToken, address lendingPool, uint256 LTV);
+    event LendingPoolCreated(
+        address indexed collateralToken, address indexed borrowToken, address lendingPool, uint256 LTV
+    );
     event TokenDataStreamAdded(address indexed token, address indexed dataStream);
     event BasicTokenSenderAdded(uint256 indexed chainId, address indexed basicTokenSender);
 
-    struct Pools {
+    // solhint-disable-next-line gas-struct-packing
+    struct Pool {
         address collateralToken;
         address borrowToken;
         address lendingPoolAddress;
     }
 
     address public owner;
+    address public isHealthy;
+    address public lendingPoolDeployer;
     mapping(uint256 => address) public basicTokenSender;
     mapping(address => address) public tokenDataStream;
-    Pools[] public pools;
+    Pool[] public pools;
     uint256 public poolCount;
 
-
-    constructor() {
+    constructor(address _isHealthy, address _lendingPoolDeployer) {
         owner = msg.sender;
+        isHealthy = _isHealthy;
+        lendingPoolDeployer = _lendingPoolDeployer;
     }
 
     modifier onlyOwner() {
@@ -30,13 +36,10 @@ contract LendingPoolFactory {
         _;
     }
 
-    function createLendingPool(address collateralToken, address borrowToken, uint256 LTV)
-        public
-        returns (address)
-    {
-        LendingPool lendingPool = new LendingPool(collateralToken, borrowToken, address(this), LTV);
+    function createLendingPool(address collateralToken, address borrowToken, uint256 LTV) public returns (address) {
+        address lendingPool = ILPDeployer(lendingPoolDeployer).deployLendingPool(collateralToken, borrowToken, LTV);
 
-        pools.push(Pools(collateralToken, borrowToken, address(lendingPool)));
+        pools.push(Pool(collateralToken, borrowToken, address(lendingPool)));
         poolCount++;
         emit LendingPoolCreated(collateralToken, borrowToken, address(lendingPool), LTV);
         return address(lendingPool);

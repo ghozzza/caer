@@ -10,6 +10,7 @@ import {IPosition} from "./interfaces/IPosition.sol";
 import {IBasicTokenSender} from "./interfaces/IBasicTokenSender.sol";
 import {Helper} from "./Helper.sol";
 import {Client} from "@chainlink-ccip/chains/evm/contracts/libraries/Client.sol";
+// import {IIsHealthy} from "./interfaces/IIsHealthy.sol";
 
 contract LendingPool is ReentrancyGuard, Helper {
     using SafeERC20 for IERC20;
@@ -25,8 +26,6 @@ contract LendingPool is ReentrancyGuard, Helper {
     event SupplyLiquidity(address user, uint256 amount, uint256 shares);
     event WithdrawLiquidity(address user, uint256 amount, uint256 shares);
     event SupplyCollateral(address user, uint256 amount);
-    event BorrowDebt(address user, uint256 amount, uint256 shares);
-    event RepayDebt(address user, uint256 amount, uint256 shares);
     event RepayWithCollateralByPosition(address user, uint256 amount, uint256 shares);
     event CreatePosition(address user, address positionAddress);
     event BorrowDebtCrosschain(
@@ -307,6 +306,17 @@ contract LendingPool is ReentrancyGuard, Helper {
         userBorrowShares[msg.sender] += shares;
         totalBorrowShares += shares;
         totalBorrowAssets += amount;
+        // TODO: uncomment this when we have a way to get the price of the collateral token and position token
+        // IIsHealthy(IFactory(factory).isHealthy())._isHealthy(
+        //     collateralToken,
+        //     borrowToken,
+        //     factory,
+        //     ltv,
+        //     totalBorrowAssets,
+        //     totalBorrowShares,
+        //     userBorrowShares[msg.sender],
+        //     addressPositions[msg.sender]
+        // );
         if (totalBorrowAssets > totalSupplyAssets) {
             revert InsufficientLiquidity();
         }
@@ -365,18 +375,14 @@ contract LendingPool is ReentrancyGuard, Helper {
         if (_token == borrowToken && !_fromPosition) {
             IERC20(borrowToken).safeTransferFrom(msg.sender, address(this), borrowAmount);
         } else {
-            address _tokenInPrice = IFactory(factory).tokenDataStream(_token);
-            address _tokenOutPrice = IFactory(factory).tokenDataStream(borrowToken);
-            IPosition(addressPositions[msg.sender]).repayWithSelectedToken(
-                borrowAmount, _token, _tokenInPrice, _tokenOutPrice
-            );
+            IPosition(addressPositions[msg.sender]).repayWithSelectedToken(borrowAmount, _token);
         }
 
         emit RepayWithCollateralByPosition(msg.sender, borrowAmount, shares);
     }
 
     /**
-     * @dev Swaps tokens within a user's position using Uniswap V3.
+     * @dev Swaps tokens within a user's position
      *
      * Requirements:
      * - User must have a valid position
@@ -416,10 +422,6 @@ contract LendingPool is ReentrancyGuard, Helper {
             revert TokenNotAvailable();
         }
         _accrueInterest();
-        address _tokenInPrice = IFactory(factory).tokenDataStream(_tokenFrom);
-        address _tokenOutPrice = IFactory(factory).tokenDataStream(_tokenTo);
-        amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPosition(
-            _tokenFrom, _tokenTo, amountIn, _tokenInPrice, _tokenOutPrice
-        );
+        amountOut = IPosition(addressPositions[msg.sender]).swapTokenByPosition(_tokenFrom, _tokenTo, amountIn);
     }
 }

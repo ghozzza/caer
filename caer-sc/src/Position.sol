@@ -7,6 +7,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {ITokenSwap} from "./interfaces/ITokenSwap.sol";
 import {IChainLink} from "./interfaces/IChainLink.sol";
+import {IFactory} from "./interfaces/IFactory.sol";
 
 contract Position is ReentrancyGuard {
     using SafeERC20 for IERC20; // fungsi dari IERC20 akan ketambahan SafeERC20
@@ -42,10 +43,6 @@ contract Position is ReentrancyGuard {
         owner = msg.sender;
     }
 
-    function liquidate() public {
-        emit Liquidate(owner);
-    }
-
     function swapToken(address _token, uint256 _amount) public {
         if (tokenListsId[_token] == 0) {
             ++counter;
@@ -62,28 +59,8 @@ contract Position is ReentrancyGuard {
         emit CostSwapToken(msg.sender, _token, _amount);
     }
 
-    function getTokenOwnerLength() public view returns (uint256) {
-        return counter;
-    }
-
-    function getTokenOwnerAddress(uint256 _counter) public view returns (address) {
-        return tokenLists[_counter];
-    }
-
-    function getTokenOwnerBalances(address _token) public view returns (uint256) {
-        return tokenBalances[_token];
-    }
-
     function getTokenCounter(address _token) public view returns (uint256) {
         return tokenListsId[_token];
-    }
-
-    function getAllTokenOwnerAddress() public view returns (address[] memory) {
-        address[] memory records = new address[](counter);
-        for (uint256 i = 0; i < counter; i++) {
-            records[i] = tokenLists[i + 1];
-        }
-        return records;
     }
 
     function withdrawCollateral(uint256 amount, address _user) public {
@@ -92,17 +69,17 @@ contract Position is ReentrancyGuard {
         emit WithdrawCollateral(_user, amount);
     }
 
-    function swapTokenByPosition(
-        address _tokenIn,
-        address _tokenOut,
-        uint256 amountIn,
-        address _tokenInPrice,
-        address _tokenOutPrice
-    ) public returns (uint256 amountOut) {
+    function swapTokenByPosition(address _tokenIn, address _tokenOut, uint256 amountIn)
+        public
+        returns (uint256 amountOut)
+    {
         uint256 balances = IERC20(_tokenIn).balanceOf(address(this));
         if (msg.sender != lpAddress) revert NotForWithdraw();
         if (amountIn == 0) revert ZeroAmount();
         if (balances < amountIn) revert InsufficientBalance();
+
+        address _tokenInPrice = IFactory(factory).tokenDataStream(_tokenIn);
+        address _tokenOutPrice = IFactory(factory).tokenDataStream(_tokenOut);
 
         amountOut = tokenCalculator(_tokenIn, _tokenOut, amountIn, _tokenInPrice, _tokenOutPrice);
         if (_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
@@ -111,15 +88,15 @@ contract Position is ReentrancyGuard {
         swapToken(_tokenOut, amountOut);
         emit SwapTokenByPosition(msg.sender, _tokenIn, _tokenOut, amountIn, amountOut);
     }
-    
-    function repayWithSelectedToken(uint256 amount, address _token, address _tokenInPrice, address _tokenOutPrice) public {
+
+    function repayWithSelectedToken(uint256 amount, address _token) public {
         if (msg.sender != lpAddress) revert NotForWithdraw();
         uint256 balance = IERC20(_token).balanceOf(address(this));
         if (_token != borrowAssets) {
-            uint256 amountOut = swapTokenByPosition(_token, borrowAssets, balance, _tokenInPrice, _tokenOutPrice);
+            uint256 amountOut = swapTokenByPosition(_token, borrowAssets, balance);
             IERC20(_token).approve(lpAddress, amount);
             IERC20(borrowAssets).safeTransfer(lpAddress, amount);
-            if (amountOut - amount != 0) swapTokenByPosition(borrowAssets, _token, (amountOut - amount), _tokenOutPrice, _tokenInPrice);
+            if (amountOut - amount != 0) swapTokenByPosition(borrowAssets, _token, (amountOut - amount));
         } else {
             IERC20(borrowAssets).safeTransfer(lpAddress, amount);
         }
