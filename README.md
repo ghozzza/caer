@@ -11,49 +11,53 @@
 
 ### Introduction to Caér Finance
 
-Welcome to **Caér Finance**, a cross-chain lending and borrowing protocol purpose-built to serve as a foundational DeFi primitive on the Pharos network.
+Welcome to **Caér Finance**, a cross-chain lending and borrowing protocol built to deliver seamless DeFi experiences across multiple blockchain networks using Chainlink CCIP (Cross-Chain Interoperability Protocol).
 
-Caér is designed to facilitate secure, efficient, and scalable decentralized financial services by enabling users to lend, borrow, and manage collateral across multiple blockchain ecosystems. Through this approach, Caér enhances capital efficiency while contributing directly to Total Value Locked (TVL) and transaction volume on Pharos.
+Caér enables users to supply collateral and borrow assets across different chains, unlocking capital efficiency while minimizing risk exposure. By leveraging Chainlink CCIP, Caér ensures secure, reliable, and decentralized cross-chain messaging and token transfers.
 
-Leveraging the capabilities of Espresso’s Application-Specific Sequencer (ASS) and a solver-based coordination architecture, Caér ensures trustless cross-chain execution with rapid finality. This infrastructure eliminates reliance on centralized bridges and custodians, promoting decentralization without compromising performance or security.
+### Powered by Chainlink CCIP
 
-As one of the first lending protocols deployed on Pharos, Caér plays a critical role in expanding the network’s ecosystem. It serves as a modular, composable financial layer that other decentralized applications can integrate with—thereby supporting broader protocol interoperability and future ecosystem growth.
+With CCIP, Caér Finance achieves:
 
-By offering a robust DeFi experience with a focus on TVL growth, cross-chain liquidity access, and institutional-grade infrastructure, Caér aims to position Pharos as a compelling destination for users and developers seeking novel, blockchain-based financial solutions.
+- Trust Minimized messaging between chains.
+- Programmable token tranfers
+- Defense-in-depth security via Chainlink's Decentralized Oracle Networks and risk management systems
+
+This infrastructure enables secure burn-and-mint token mechanics, real-time collateral verification, and robust cross-chain accounting. All while maintaining user control over assets.
 
 ---
 
 ## What is Caér Finance?
 
-**Caér Finance** is a next-generation cross-chain lending and borrowing protocol developed to serve as a foundational decentralized finance (DeFi) primitive within the Pharos ecosystem. It facilitates seamless asset supply, borrowing, and management across multiple blockchain networks through a unified platform, eliminating the need for centralized custodians or traditional bridging mechanisms.
+**Caér Finance** is a next-generation cross-chain lending and borrowing protocol designed to be a foundational decentralized finance (DeFi) primitive across multiple blockchain networks. Caér enables users to supply collateral on one chain and borrow assets on another, creating seamless capital access without relying on centralized custodians or traditional bridge infrastructures.
 
-At its core, Caér is powered by an Application-Specific Sequencer (ASS), designed to manage transaction ordering, data verification, and execution across chains in a secure, transparent, and trustless manner. This sequencer ensures consistency and correctness in cross-chain operations, enabling reliable financial interactions at scale.
+At the core of Caér lies Chainlink’s Cross-Chain Interoperability Protocol (CCIP), which powers secure and programmable messaging and token transfers between supported blockchains. By leveraging CCIP’s decentralized oracle network (DONs) and modular infrastructure, Caér ensures trust-minimized communication, robust cross-chain accounting, and reliable execution of financial operations.
 
-To reinforce transaction integrity and ensure timely finality, Caér integrates with the Espresso protocol, leveraging its decentralized finality layer. Through this integration, Caér benefits from rapid and secure confirmation of cross-chain transactions while maintaining alignment with the principles of decentralization and verifiability.
+Instead of building a custom messaging or sequencing layer, Caér uses Chainlink CCIP to:
 
-By combining protocol-specific sequencing with robust cross-chain finality infrastructure, Caér delivers a modular, secure, and high-performance lending platform—positioning itself as a critical driver of liquidity, adoption, and composability across the Pharos ecosystem and beyond.
+- Transmit collateral information between chains in a verifiable and decentralized manner
+- Execute burn-and-mint token mechanics to enable efficient cross-chain borrowing
+- Protect protocol operations with built-in security features like the Risk Management Network
+
+This architecture enables Caér to maintain transaction integrity, fast settlement, and high composability, while fully adhering to decentralization principles.
+
+With a focus on decentralization, capital efficiency, and user sovereignty, Caér represents a new standard in interoperable DeFi infrastructure. Unlocking the full potential of multi-chain liquidity and lending.
 
 ---
 
 ## Key Features
 
-- **Application-Specific Sequencer (ASS)**  
-  Custom-built sequencer that governs the ordering, validation, and execution of cross-chain transactions in a deterministic and trustless manner.
+- **Chainlink CCIP-Powered Cross-Chain Messaging**  
+  Utilizes Chainlink’s Cross-Chain Interoperability Protocol (CCIP) to securely transmit messages and token transfers between blockchains—enabling seamless coordination of lending, borrowing, and collateral operations across chains.
+  
+- **Programmable Token Transfers**  
+  Enables native cross-chain asset flows via programmable token transfers, supporting burn-and-mint mechanisms without relying on centralized bridges.
 
-- **Fast & Secure Cross-Chain Finality (Powered by Espresso)**  
-  Seamless and rapid transaction confirmation layer that ensures confidence in cross-chain operations.
-
-- **Seamless Cross-Chain Lending, Borrowing & Swap**  
-  Unified interface for supply, borrowing, and managing assets across chains, including on-chain swap functionality.
+- **Seamless Cross-Chain Lending and Borrowing**  
+  Users can supply collateral on one chain and borrow assets on another through a unified and intuitive interface, expanding access to liquidity and maximizing capital efficiency.
 
 - **Trustless and Transparent Execution**  
-  All operations are fully on-chain using audited smart contracts to preserve user sovereignty.
-
-- **Adaptive Interest Rate and Risk Framework**  
-  Dynamic model based on market conditions and liquidity to optimize protocol health and user incentives.
-
-- **Liquidity Aggregation and Capital Efficiency**  
-  Pooled liquidity from multiple chains increases borrowing power and minimizes capital fragmentation.
+  All protocol operations are executed through fully on-chain smart contracts, with cross-chain communication securely coordinated by decentralized oracle networks (DONs). This architecture ensures verifiability, preserves user autonomy, and upholds the integrity of the system without reliance on centralized intermediaries.
 
 ---
 
