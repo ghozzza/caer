@@ -1,13 +1,12 @@
 import { http } from "wagmi";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { pharosChain, baseMainnet } from "./data/chain-data";
-import { chain_id } from "@/constants/addresses";
+import { avalancheFuji } from "viem/chains";
 
 export const config = getDefaultConfig({
   appName: "MyDApp",
   projectId: "YOUR_PROJECT_ID",
-  chains: [chain_id === 50002 ? pharosChain : baseMainnet],
+  chains: [avalancheFuji],
   transports: {
-    [chain_id === 50002 ? pharosChain.id : baseMainnet.id]: http(),
+    [avalancheFuji.id]: http(),
   },
 });

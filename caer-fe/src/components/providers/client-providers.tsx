@@ -8,7 +8,7 @@ import { config } from "@/lib/wagmi";
 import { pharosChain } from "@/lib/data/chain-data";
 import Navbar from "@/components/navbar";
 import { Toaster } from "sonner";
-import Providers from "@/app/Providers";
+import Providers from "@/app/providers";
 
 export default function ClientProviders({
   children,

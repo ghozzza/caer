@@ -1,6 +1,6 @@
 import React from "react";
-import PositionHeader from "./_components/PositionHeader";
-import FaucetsCard from "./_components/FaucetsCard";
+import PositionHeader from "./_components/position-header";
+import FaucetsCard from "./_components/faucets-card";
 
 
 const page = () => {

@@ -13,162 +13,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Search } from "lucide-react";
-
-type Token = {
-  name: string;
-  symbol: string;
-  address: string;
-  logo: string;
-  chainIds: number[];
-};
-
-type Chain = {
-  id: number;
-  name: string;
-  logo: string;
-  color: string;
-  contracts: {
-    lendingPool: string;
-    factory: string;
-    blockExplorer: string;
-  };
-};
-
-const chains: Chain[] = [
-  {
-    id: 1,
-    name: "Ethereum",
-    logo: "/chain/arbitrum.png",
-    color: "bg-blue-600",
-    contracts: {
-      lendingPool: "0xEtlPoolETH",
-      factory: "0xFactoryETH",
-      blockExplorer: "https://etherscan.io",
-    },
-  },
-  {
-    id: 56,
-    name: "BSC",
-    logo: "/chain/bsc.png",
-    color: "bg-yellow-500",
-    contracts: {
-      lendingPool: "0xEtlPoolBSC",
-      factory: "0xFactoryBSC",
-      blockExplorer: "https://bscscan.com",
-    },
-  },
-  {
-    id: 137,
-    name: "Polygon",
-    logo: "/placeholder.svg?height=40&width=40",
-    color: "bg-purple-600",
-    contracts: {
-      lendingPool: "0xEtlPoolPolygon",
-      factory: "0xFactoryPolygon",
-      blockExplorer: "https://polygonscan.com",
-    },
-  },
-  {
-    id: 43114,
-    name: "Avalanche",
-    logo: "/placeholder.svg?height=40&width=40",
-    color: "bg-red-500",
-    contracts: {
-      lendingPool: "0xEtlPoolAvalanche",
-      factory: "0xFactoryAvalanche",
-      blockExplorer: "https://snowtrace.io",
-    },
-  },
-  {
-    id: 250,
-    name: "Fantom",
-    logo: "/placeholder.svg?height=40&width=40",
-    color: "bg-blue-400",
-    contracts: {
-      lendingPool: "0xEtlPoolFantom",
-      factory: "0xFactoryFantom",
-      blockExplorer: "https://ftmscan.com",
-    },
-  },
-  {
-    id: 10,
-    name: "Optimism",
-    logo: "/chain/optimism.png",
-    color: "bg-red-600",
-    contracts: {
-      lendingPool: "0xEtlPoolOptimism",
-      factory: "0xFactoryOptimism",
-      blockExplorer: "https://optimistic.etherscan.io",
-    },
-  },
-  {
-    id: 42161,
-    name: "Arbitrum",
-    logo: "/chain/arbitrum.png",
-    color: "bg-blue-500",
-    contracts: {
-      lendingPool: "0xEtlPoolArbitrum",
-      factory: "0xFactoryArbitrum",
-      blockExplorer: "https://arbiscan.io",
-    },
-  },
-  {
-    id: 8453,
-    name: "Base",
-    logo: "/placeholder.svg?height=40&width=40",
-    color: "bg-blue-700",
-    contracts: {
-      lendingPool: "0xEtlPoolBase",
-      factory: "0xFactoryBase",
-      blockExplorer: "https://basescan.org",
-    },
-  },
-];
-
-const tokens: Token[] = [
-  {
-    name: "ETH",
-    symbol: "ETH",
-    address: "0x0000000000000000000000000000000000000000",
-    logo: "/placeholder.svg?height=40&width=40",
-    chainIds: [1, 10, 42161, 8453],
-  },
-  {
-    name: "WETH",
-    symbol: "WETH",
-    address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    logo: "/weth.png",
-    chainIds: [1, 10, 42161, 8453, 137],
-  },
-  {
-    name: "USDT",
-    symbol: "USDT",
-    address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    logo: "/usdt.png",
-    chainIds: [1, 56, 137, 43114, 10, 42161],
-  },
-  {
-    name: "USD Coin",
-    symbol: "USDC",
-    address: "usdc.png",
-    logo: "/placeholder.svg?height=40&width=40",
-    chainIds: [1, 10, 42161, 8453, 137, 43114],
-  },
-  {
-    name: "DAI Stablecoin",
-    symbol: "DAI",
-    address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-    logo: "/placeholder.svg?height=40&width=40",
-    chainIds: [1, 137, 10, 42161],
-  },
-  {
-    name: "WBTC",
-    symbol: "WBTC",
-    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-    logo: "/wbtc.png",
-    chainIds: [1, 10, 42161, 137],
-  },
-];
+import { Chain, Token } from "@/types/type";
+import { chains } from "@/constants/chain-address";
+import { tokens } from "@/constants/token-address";
 
 export default function CrossChainBorrowing() {
   const [selectedCollateralChain, setSelectedCollateralChain] =
@@ -205,7 +52,7 @@ export default function CrossChainBorrowing() {
         token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         token.symbol.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesChain = internalSelectedChain
-        ? token.chainIds.includes(internalSelectedChain.id)
+      ? Object.keys(token.addresses).map(Number).includes(internalSelectedChain.id)
         : true;
       return matchesSearch && matchesChain;
     });

@@ -1,5 +1,5 @@
 import { lendingPool } from "@/constants/addresses";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { useAccount, useReadContract } from "wagmi";
 
 export const useBorrowBalance = () => {

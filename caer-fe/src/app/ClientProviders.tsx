@@ -5,7 +5,7 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit';
 import { config } from '@/lib/wagmi';
-import Providers from './Providers';
+import Providers from './providers';
 import { Toaster } from 'sonner';
 import Navbar from '@/components/navbar';
 

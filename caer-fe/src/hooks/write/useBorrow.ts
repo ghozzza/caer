@@ -1,60 +1,81 @@
-import { useState, useEffect } from "react";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
-import { poolAbi } from "@/lib/abi/poolAbi";
-import { lendingPool } from "@/constants/addresses";
+import { toast } from "sonner";
+import { poolAbi } from "@/lib/abis/poolAbi";
+import { chains } from "@/constants/chain-address";
+import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 
-export function useBorrow() {
+export function useBorrow(
+  _chainId: number, // abaikan parameter ini, gunakan 43113
+  destination: number,
+  amount: string
+) {
   const { address } = useAccount();
-  const [amount, setAmount] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  
+  const lendingPool = chains.find((c) => c.id === 43113)?.contracts.lendingPool;
+  const fixedChainId = 43113;
+
   const {
     data: borrowHash,
     isPending: isBorrowPending,
     writeContract: borrowTransaction,
+    error: borrowError,
   } = useWriteContract();
 
-  const { isLoading: isBorrowLoading, isSuccess } = useWaitForTransactionReceipt({
+  const {
+    isLoading: isBorrowLoading,
+    isSuccess,
+    data: receipt,
+  } = useWaitForTransactionReceipt({
     hash: borrowHash,
   });
+
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleBorrow = async () => {
     try {
       if (!amount || Number.parseFloat(amount) <= 0) {
-        throw new Error("Please enter a valid borrow amount");
+        toast.error("Please enter a valid borrow amount");
+        return;
       }
-      
       const decimal = 6;
       const parsedAmount = parseUnits(amount, decimal);
 
+      console.log("Borrow Transaction Data:");
+      console.log("User Address:", address);
+      console.log("Parsed Amount:", parsedAmount.toString());
+      console.log("Chain ID:", fixedChainId); // selalu 43113
+      console.log("Destination:", destination);
+
       await borrowTransaction({
-        address: lendingPool,
+        address: lendingPool as `0x${string}`,
         abi: poolAbi,
         functionName: "borrowDebt",
-        args: [parsedAmount, false],
+        args: [parsedAmount, BigInt(fixedChainId), destination],
       });
 
-      setAmount("");
-    } catch (error) {
-      console.error("Borrow error:", error);
+      toast.info("Transaction sent, waiting for confirmation...");
+    } catch (error: any) {
+      toast.error(error?.message || "Borrow transaction failed");
     }
   };
 
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && borrowHash) {
+      toast.success("Borrow successful. See transaction on explorer.");
       setIsOpen(false);
     }
-  }, [isSuccess]);
+  }, [isSuccess, borrowHash]);
 
   const isProcessing = isBorrowPending || isBorrowLoading;
 
   return {
-    amount,
-    setAmount,
     isOpen,
     setIsOpen,
     handleBorrow,
     isProcessing,
+    borrowHash,
+    isSuccess,
+    borrowError,
   };
 }

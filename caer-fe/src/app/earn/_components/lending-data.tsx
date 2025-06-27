@@ -4,8 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { getAllLPFactoryData } from "@/actions/GetLPFactory";
-import DialogCreatePool from "./DialogCreatePool";
-import RowTable from "./RowTable";
+import DialogCreatePool from "./dialog-create-pool";
+import RowTable from "./row-table";
 import { PlusCircle, ArrowRight } from "lucide-react";
 
 const LendingData = () => {

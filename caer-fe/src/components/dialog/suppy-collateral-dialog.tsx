@@ -13,17 +13,43 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Shield } from "lucide-react";
-import { useWethBalance } from "@/hooks/useTokenBalance";
-import { useSupplyCollateral } from "@/hooks/useSupplyCollateral";
+import { tokens } from "@/constants/token-address";
+import { useBalance } from "@/hooks/useBalance";
+import { useSupplyColateral } from "@/hooks/write/useSupplyCollateral";
+import { useState } from "react";
 
 interface SupplyDialogProps {
   token: string | undefined;
 }
 
 export default function SupplyDialogCol({ token }: SupplyDialogProps) {
-  const wethBalance = useWethBalance();
-  const { amount, setAmount, isOpen, setIsOpen, handleSupply, isProcessing } =
-    useSupplyCollateral();
+  const CHAIN_ID = 43113;
+
+  const selectedToken = tokens.find(
+    (t) => t.symbol === token && t.addresses[CHAIN_ID]
+  );
+
+  const tokenAddress = selectedToken?.addresses[CHAIN_ID] as `0x${string}` | undefined;
+  const decimals = selectedToken?.decimals ?? 18;
+
+  const [amount, setAmount] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const {
+    supply,
+    isProcessing,
+    isApproveLoading,
+    isSupplyLoading,
+    error,
+    isSuccess,
+  } = useSupplyColateral(CHAIN_ID, tokenAddress);
+
+  const { balance } = useBalance(tokenAddress!, decimals);
+
+  const handleSupply = async () => {
+    if (!amount || Number(amount) <= 0) return;
+    await supply(amount);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -31,10 +57,12 @@ export default function SupplyDialogCol({ token }: SupplyDialogProps) {
         <Button
           className="bg-[#141beb] hover:bg-blue-700 text-white font-medium shadow-md hover:shadow-lg transition-colors duration-300 rounded-lg cursor-pointer"
           size="lg"
+          disabled={!selectedToken}
         >
           Supply {token}
         </Button>
       </DialogTrigger>
+
       <DialogContent className="sm:max-w-md bg-gradient-to-b from-white to-slate-50 border-0 shadow-xl rounded-xl backdrop-blur-md">
         <DialogHeader className="pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -80,16 +108,22 @@ export default function SupplyDialogCol({ token }: SupplyDialogProps) {
                 <span className="mr-1">Your Balance:</span>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 mx-2">
-                    {wethBalance} WETH
+                    {balance} {token}
                   </span>
                   <button
-                    onClick={() => setAmount(wethBalance)}
+                    onClick={() => setAmount(balance)}
                     className="text-xs p-0.5 border border-purple-500 rounded-md text-purple-500 hover:bg-purple-200 cursor-pointer"
                   >
                     Max
                   </button>
                 </div>
               </div>
+
+              {error && (
+                <div className="mt-2 text-red-500 text-sm font-medium">
+                  {error}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -101,10 +135,10 @@ export default function SupplyDialogCol({ token }: SupplyDialogProps) {
             className={`w-full h-12 text-base font-medium rounded-lg ${
               isProcessing
                 ? "bg-slate-200 text-slate-500"
-                : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg transition-colors duration-300 rounded-lg cursor-pointer"
+                : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg transition-colors duration-300"
             }`}
           >
-            {isProcessing ? (
+            {isProcessing || isApproveLoading || isSupplyLoading ? (
               <div className="flex items-center justify-center">
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 <span>Processing Transaction...</span>

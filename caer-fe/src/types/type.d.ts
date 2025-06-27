@@ -1,3 +1,5 @@
+import { Address } from "viem";
+
 interface SupplyDialogProps {
   poolId: number;
   token: string;
@@ -20,12 +22,7 @@ interface PositionTokenProps {
   decimal: number;
   addressPosition: Address | undefined;
 }
-export interface Chain {
-  id: number;
-  name: string;
-  type: string;
-  logoUrl: string;
-}
+
 export interface ChainSelectorProps {
   onSelect: (chain: Chain) => void;
   onClose: () => void;
@@ -57,6 +54,32 @@ export interface CreatePositionsResponse {
     positionAddress: string;
   }>;
 }
+export interface Chain {
+  id: number;
+  name: string;
+  logo: string;
+  color: string;
+  destination: number;
+  contracts: {
+    lendingPool: string;
+    factory: string;
+    position: string;
+    blockExplorer: string;
+  };
+}
+
+export interface Token {
+  name: string;
+  symbol: string;
+  logo: string;
+  decimals: number;
+  addresses: {
+    [chainId: number]: Address;
+  };
+}
+
+
+
 
 interface TransactionHandlerProps {
   amount: string;

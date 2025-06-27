@@ -2,7 +2,7 @@
 
 import { useReadContract } from "wagmi";
 import { Address } from "viem";
-import { priceAbi } from "@/lib/abi/price-abi";
+import { priceAbi } from "@/lib/abis/price-abi";
 import { priceFeed } from "@/constants/addresses";
 import { TOKEN_OPTIONS } from "@/constants/tokenOption";
 
