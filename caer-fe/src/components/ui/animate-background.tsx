@@ -305,7 +305,7 @@ export default function imateBackground() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen max-h-[100vh] bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 overflow-hidden"
+      className="relative w-full h-screen max-h-[100vh] bg-white overflow-hidden"
     >
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
 
@@ -352,10 +352,10 @@ export default function imateBackground() {
       <div className="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Cross Chain Lending and Borrowing by
+            Cross-Chain Lending and Borrowing by
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
               {" "}
-              Embocon
+              CAER
             </span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
