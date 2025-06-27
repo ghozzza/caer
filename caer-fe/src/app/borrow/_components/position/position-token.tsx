@@ -4,7 +4,7 @@ import Link from "next/link";
 import { erc20Abi, type Address } from "viem";
 import { useReadContract } from "wagmi";
 import { RepaySelectedToken } from "./repay-selected-token";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 import { ArrowRightLeft } from "lucide-react";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import Image from "next/image";
@@ -46,7 +46,7 @@ const PositionToken = ({
   };
 
   const getDecimal = (address: Address) => {
-    const token = TOKEN_OPTIONS.find((asset) => asset.address === address);
+    const token = tokens.find((asset) => asset.addresses === address);
     return token?.decimals;
   };
 
@@ -56,7 +56,7 @@ const PositionToken = ({
       : convertRealAmount(tokenBalanceUSDC as bigint, decimal).toFixed(2);
 
   const findLogoToken = (address: Address) => {
-    const token = TOKEN_OPTIONS.find((asset) => asset.address === address);
+    const token = tokens.find((asset) => asset.addresses === address);
     return token?.logo;
   };
 

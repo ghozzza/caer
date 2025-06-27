@@ -2,15 +2,30 @@ import { useState } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { poolAbi } from "@/lib/abis/poolAbi";
 import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
-import { lendingPool, mockUsdc } from "@/constants/addresses";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { chains } from "@/constants/chain-address";
+import { tokens } from "@/constants/token-address";
 
-export const useSupply = (lpAddress?: string, borrowToken?: string) => {
+const getTokenDecimals = (tokenAddress?: string): number => {
+  if (!tokenAddress) return 6;
+  const token = tokens.find((token) =>
+    Object.values(token.addresses).some(
+      (addr) => addr.toLowerCase() === tokenAddress.toLowerCase()
+    )
+  );
+  return token?.decimals ?? 6;
+};
+
+const getLendingPoolAddress = (chainId: number): `0x${string}` | undefined => {
+  const chain = chains.find((c) => c.id === chainId);
+  return chain?.contracts.lendingPool as `0x${string}` | undefined;
+};
+
+export const useSupply = (chainId: number, borrowToken?: string) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const decimals =
-    TOKEN_OPTIONS.find((token) => token.address === borrowToken)?.decimals ?? 6;
+  const decimals = getTokenDecimals(borrowToken);
+  const lendingPool = getLendingPoolAddress(chainId);
 
   const {
     data: approveHash,
@@ -33,6 +48,10 @@ export const useSupply = (lpAddress?: string, borrowToken?: string) => {
       hash: supplyHash,
     });
 
+  const calculateBigIntAmount = (amount: string) => {
+    return BigInt(Math.floor(Number(amount) * 10 ** decimals));
+  };
+
   const supply = async (amount: string) => {
     setIsProcessing(true);
     setError(null);
@@ -43,13 +62,19 @@ export const useSupply = (lpAddress?: string, borrowToken?: string) => {
       return;
     }
 
-    const supplyAmountBigInt = BigInt(Number(amount) * 10 ** decimals);
+    if (!lendingPool || !borrowToken) {
+      setError("Missing token or pool address");
+      setIsProcessing(false);
+      return;
+    }
+
+    const supplyAmountBigInt = calculateBigIntAmount(amount);
 
     try {
       console.log("⏳ Sending approval transaction...");
       await approveTransaction({
         abi: mockErc20Abi,
-        address: (borrowToken ?? mockUsdc) as `0x${string}`,
+        address: borrowToken as `0x${string}`,
         functionName: "approve",
         args: [lendingPool, supplyAmountBigInt],
       });
@@ -71,45 +96,8 @@ export const useSupply = (lpAddress?: string, borrowToken?: string) => {
     }
   };
 
-  const dynamicSupply = async (amount: string) => {
-    setIsProcessing(true);
-    setError(null);
-
-    if (!amount || isNaN(Number(amount))) {
-      setError("Invalid supply amount");
-      setIsProcessing(false);
-      return;
-    }
-    const supplyAmountBigInt = BigInt(Number(amount) * 10 ** decimals);
-
-    try {
-      console.log("⏳ Sending approval transaction...");
-      await approveTransaction({
-        abi: mockErc20Abi,
-        address: borrowToken as `0x${string}`,
-        functionName: "approve",
-        args: [lpAddress, supplyAmountBigInt],
-      });
-
-      console.log("✅ Approval transaction sent!");
-      await supplyTransaction({
-        abi: poolAbi,
-        address: lpAddress as `0x${string}`,
-        functionName: "supplyLiquidity",
-        args: [supplyAmountBigInt],
-      });
-      console.log("🚀 Supply transaction sent!");
-    } catch (err) {
-      console.error("❌ Transaction failed:", err);
-      setError("Transaction failed. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   return {
     supply,
-    dynamicSupply,
     isApprovePending,
     isSupplyPending,
     isApproveLoading,

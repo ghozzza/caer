@@ -23,7 +23,7 @@ import {
   mockWeth,
 } from "@/constants/addresses";
 import type { Address } from "viem";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 import PositionToken from "./position-token";
 import { useAccount, useWriteContract } from "wagmi";
 import { poolAbi } from "@/lib/abis/poolAbi";
@@ -128,13 +128,13 @@ const PositionCard = () => {
 
   const findNameToken = (address: string | undefined) => {
     if (!address) return undefined;
-    const token = TOKEN_OPTIONS.find(
-      (asset) => asset.address === (address as `0x${string}`)
+    const token = tokens.find(
+      (asset) => asset.addresses === (address as `0x${string}`)
     );
     return token?.name;
   };
   const findLogoToken = (address: Address | undefined) => {
-    const token = TOKEN_OPTIONS.find((asset) => asset.address === address);
+    const token = tokens.find((asset) => asset.addresses === address);
     return token?.logo;
   };
 
@@ -173,7 +173,7 @@ const PositionCard = () => {
     }
   };
   const getDecimal = (address: string) => {
-    const token = TOKEN_OPTIONS.find((asset) => asset.address === address);
+    const token = tokens.find((asset) => asset.addresses === address);
     return token?.decimals;
   };
 

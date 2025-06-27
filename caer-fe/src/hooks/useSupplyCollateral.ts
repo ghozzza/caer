@@ -5,7 +5,7 @@ import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 import { poolAbi } from "@/lib/abis/poolAbi";
 import { lendingPool, mockWeth } from "@/constants/addresses";
 import { toast } from "sonner";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 
 export function useSupplyCollateral(
   lpAddress?: string,
@@ -82,16 +82,21 @@ export function useSupplyCollateral(
         alert("Please enter a valid amount to supply");
         return;
       }
-      const decimals = TOKEN_OPTIONS.find(
-        (token) => token.address === collateralToken
+      const decimals = tokens.find(
+        (token) => token.addresses === collateralToken
       )?.decimals;
       const parsedAmount = parseUnits(amount.toString(), decimals ?? 18);
+
+      if (!lpAddress) {
+        alert("Liquidity pool address is missing.");
+        return;
+      }
 
       approveTransaction({
         abi: mockErc20Abi,
         address: collateralToken as `0x${string}`,
         functionName: "approve",
-        args: [lpAddress, parsedAmount],
+        args: [lpAddress as `0x${string}`, parsedAmount],
       });
 
       supplyTransaction({

@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 import { ArrowBigRight, ChevronDown } from "lucide-react";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import { useAccount } from "wagmi";
@@ -54,8 +54,7 @@ const PoolDialog = ({
 
   const getTokenLogo = (name: string) => {
     return (
-      TOKEN_OPTIONS.find((token) => token.name === name)?.logo ??
-      "/placeholder.png"
+      tokens.find((token) => token.name === name)?.logo ?? "/placeholder.png"
     );
   };
 

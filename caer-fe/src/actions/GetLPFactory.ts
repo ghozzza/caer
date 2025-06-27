@@ -1,11 +1,12 @@
 "use server";
 
-import { chain_id } from "@/constants/addresses";
+import { chains } from "@/constants/chain-address";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// get all lp factory data
+const chain_id = chains.find((c) => c.id === 43113)?.id || 43113;
+
 export const getAllLPFactoryData = async () => {
   const data = await prisma.lP_Factory.findMany({
     where: {

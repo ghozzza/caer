@@ -1,8 +1,9 @@
 "use server";
-import { chain_id, factory } from "@/constants/addresses";
+
+import { PrismaClient } from "@prisma/client";
 import { factoryAbi } from "@/lib/abis/factoryAbi";
 import { publicClient } from "@/lib/viem";
-import { PrismaClient } from "@prisma/client";
+import { chains } from "@/constants/chain-address";
 
 const prisma = new PrismaClient();
 
@@ -10,19 +11,31 @@ export const createLPFactory = async (
   _sender: string,
   _collateralToken: string,
   _borrowToken: string,
-  _ltv: string
+  _ltv: string,
+  chainId: number
 ) => {
   const sender = _sender;
   const collateralToken = _collateralToken;
   const borrowToken = _borrowToken;
   const ltv = _ltv;
 
-  // Check if pool already exists for this sender
+  // setTimeout(() => {
+  //   console.log("createlpfactory");
+  // }, 5000);
+
+  const chain = chains.find((c) => c.id === chainId);
+  if (!chain) {
+    return { success: false, message: "Invalid chain ID" };
+  }
+
+  const factoryAddress = chain.contracts.factory;
+
+  // Check if pool already exists
   const existingPool = await prisma.lP_Factory.findFirst({
     where: {
-      collateralToken: collateralToken,
-      borrowToken: borrowToken,
-      chain_id: chain_id.toString(),
+      collateralToken,
+      borrowToken,
+      chain_id: chainId.toString(),
     },
   });
 
@@ -31,7 +44,7 @@ export const createLPFactory = async (
       poolIndex: "desc",
     },
     where: {
-      chain_id: chain_id.toString(),
+      chain_id: chainId.toString(),
     },
   });
 
@@ -44,46 +57,49 @@ export const createLPFactory = async (
 
   let poolAddress: [string, string, string];
   let poolCount: bigint;
+
   try {
     poolCount = (await publicClient.readContract({
-      address: factory,
+      address: factoryAddress as `0x${string}`,
       abi: factoryAbi,
       functionName: "poolCount",
     })) as bigint;
-    console.log("poolCount", poolCount);
+
     poolAddress = (await publicClient.readContract({
-      address: factory,
+      address: factoryAddress as `0x${string}`,
       abi: factoryAbi,
       functionName: "pools",
-      args: [Number(poolCount) == 0 ? poolCount : Number(poolCount) - 1],
+      args: [poolCount === BigInt(0) ? poolCount : poolCount - BigInt(1)],
     })) as [string, string, string];
   } catch (error) {
     console.error("Error reading pool address:", error);
     return { success: false, message: "Failed to read pool address" };
   }
+
   if (!poolAddress) {
-    return { success: false, message: "Failed to read pool address" };
+    return { success: false, message: "Failed to fetch pool address" };
   }
-  if (collateralToken && borrowToken) {
-    // Create LP Factory record with placeholder address
-    console.log("poolAddress", poolAddress);
-    console.log("latestPool", latestPool);
-    // check poolcount === poolindex in latest db
-    if (latestPool?.poolIndex == String(Number(poolCount))) {
-      return { success: false, message: "Failed to create LP Factory" };
-    }
+
+  if (latestPool?.poolIndex === String(poolCount)) {
+    return { success: false, message: "Duplicate pool index detected" };
+  }
+
+  try {
     await prisma.lP_Factory.create({
       data: {
-        sender: sender,
+        sender,
         collateralToken: poolAddress[0],
         borrowToken: poolAddress[1],
         lpAddress: poolAddress[2],
-        ltv: ltv,
+        ltv,
         poolIndex: String(poolCount),
-        chain_id: chain_id.toString(),
+        chain_id: chainId.toString(),
       },
     });
+
     return { success: true, message: "LP Factory created successfully" };
+  } catch (err) {
+    console.error("Error saving pool to DB:", err);
+    return { success: false, message: "Failed to save to database" };
   }
-  return { success: false, message: "Failed to create LP Factory" };
 };

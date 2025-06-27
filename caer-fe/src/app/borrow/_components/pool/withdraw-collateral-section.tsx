@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { poolAbi } from "@/lib/abis/poolAbi";
 import { useWriteContract } from "wagmi";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 
 interface SupplyCollateralSectionProps {
@@ -27,12 +27,12 @@ const WithdrawCollateralSection = ({
     lpAddress as `0x${string}`
   );
   const { writeContract, isPending } = useWriteContract();
-  const tokenAddress = TOKEN_OPTIONS.find(
+  const tokenAddress = tokens.find(
     (token) => token.name === collateralToken
-  )?.address;
+  )?.addresses;
 
-  const tokenDecimals = TOKEN_OPTIONS.find(
-    (token) => token.address === tokenAddress
+  const tokenDecimals = tokens.find(
+    (token) => token.addresses === tokenAddress
   )?.decimals;
   const collateralBalance = (amount: number) => {
     return Number(dynamicUserCollateral) / 10 ** Number(tokenDecimals);

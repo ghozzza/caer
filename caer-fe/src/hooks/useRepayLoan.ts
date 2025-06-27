@@ -5,7 +5,7 @@ import { poolAbi } from "@/lib/abis/poolAbi";
 import { lendingPool, mockUsdc, priceFeed } from "@/constants/addresses";
 import { priceAbi } from "@/lib/abis/price-abi";
 import { useReadLendingData } from "./read/useReadLendingData";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 
 interface UseRepayLoanProps {
   tokenAddress: `0x${string}`;
@@ -70,12 +70,12 @@ export const useRepayLoan = ({ tokenAddress, arrayLocation, lpAddress }: UseRepa
     console.log("approvalAmount", approvalAmount)
 
     try {
-      writeContract({
-        address: lendingPool,
-        abi: poolAbi,
-        functionName: "repayWithSelectedToken",
-        args: [amount, 0, tokenAddress],
-      });
+      // writeContract({
+      //   address: lendingPool,
+      //   abi: poolAbi,
+      //   functionName: "repayWithSelectedToken",
+      //   args: [amount, 0, tokenAddress],
+      // });
 
       setValueAmount("");
       setIsOpen(false);
@@ -95,7 +95,7 @@ export const useRepayLoan = ({ tokenAddress, arrayLocation, lpAddress }: UseRepa
     console.log("arrayLocation", arrayLocation)
     console.log("tokenAddress", tokenAddress)
 
-    const tokenDecimals =  TOKEN_OPTIONS.find(token => token.address === tokenAddress)?.decimals ?? 6;
+    const tokenDecimals =  tokens.find(token => token.addresses === tokenAddress)?.decimals ?? 6;
 
     const amount = BigInt(Math.round(Number(valueAmount) * 10 ** tokenDecimals));
     const approvalAmount = amount + amount; // Approving twice to ensure full coverage
@@ -104,12 +104,12 @@ export const useRepayLoan = ({ tokenAddress, arrayLocation, lpAddress }: UseRepa
     console.log("approvalAmount", approvalAmount)
 
     try {
-      writeContract({
-        address: lpAddress,
-        abi: poolAbi,
-        functionName: "repayWithSelectedToken",
-        args: [amount, 0, tokenAddress],
-      });
+      // writeContract({
+      //   address: lpAddress,
+      //   abi: poolAbi,
+      //   functionName: "repayWithSelectedToken",
+      //   args: [amount, 0, tokenAddress],
+      // });
 
       setValueAmount("");
     } catch (error) {

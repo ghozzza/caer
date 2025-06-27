@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { CreditCard, DollarSign, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,23 +17,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-import { useSupply } from "@/hooks/write/useSupply";
+import { useSupply } from "@/hooks/write/useSupplyLiquidity";
 import { useBalance } from "@/hooks/useBalance";
 import { tokens } from "@/constants/token-address";
 
 const DialogSupply = ({
-  lpAddress,
   borrowToken,
   onSuccess,
 }: {
-  lpAddress?: string;
   borrowToken?: string;
   onSuccess?: () => void;
 }) => {
   const CHAIN_ID = 43113;
   const { address } = useAccount();
 
-  // Cari token dari array tokens
   const selectedToken = tokens.find(
     (t) => t.addresses[CHAIN_ID] === borrowToken
   );
@@ -43,21 +39,21 @@ const DialogSupply = ({
   const tokenSymbol = selectedToken?.symbol ?? "";
   const decimals = selectedToken?.decimals ?? 18;
 
-  // Ambil balance token menggunakan hook general
   const { balance: userBalance } = useBalance(
     borrowToken as `0x${string}`,
     decimals
   );
 
   const {
-    dynamicSupply,
+    supply,
     isApprovePending,
     isSupplyPending,
     isApproveLoading,
     isSupplyLoading,
     isProcessing,
     isSuccess,
-  } = useSupply(lpAddress, borrowToken);
+    error,
+  } = useSupply(CHAIN_ID, borrowToken);
 
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");
@@ -76,6 +72,7 @@ const DialogSupply = ({
       setIsOpen(false);
       setAmount("");
       onSuccess?.();
+      toast.success("Supply successful!");
     }
   }, [isSuccess, onSuccess]);
 
@@ -88,10 +85,7 @@ const DialogSupply = ({
         }
       >
         <DialogTrigger asChild>
-          <Button
-            className="bg-gradient-to-r from-indigo-400 to-blue-600 hover:from-indigo-500 hover:to-blue-600 text-white font-medium shadow-md hover:shadow-lg transition-colors duration-300 rounded-lg cursor-pointer"
-            size="default"
-          >
+          <Button className="bg-gradient-to-r from-indigo-400 to-blue-600 text-white shadow-md hover:shadow-lg">
             Supply
           </Button>
         </DialogTrigger>
@@ -102,9 +96,6 @@ const DialogSupply = ({
               <DialogTitle className="text-xl font-bold text-slate-800">
                 Supply {tokenSymbol}
               </DialogTitle>
-              <DialogDescription className="hidden">
-                Supply token to the lending pool
-              </DialogDescription>
             </div>
           </DialogHeader>
 
@@ -156,12 +147,12 @@ const DialogSupply = ({
 
           <DialogFooter>
             <Button
-              onClick={() => dynamicSupply(amount)}
+              onClick={() => supply(amount)}
               disabled={isButtonDisabled}
               className={`w-full h-12 text-base font-medium rounded-lg ${
                 isButtonDisabled
                   ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-500 to-indigo-400 hover:from-blue-600 hover:to-indigo-500 text-white shadow-md hover:shadow-lg cursor-pointer"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-400 hover:from-blue-600 hover:to-indigo-500 text-white shadow-md hover:shadow-lg"
               }`}
             >
               {isTransactionPending ? (

@@ -11,7 +11,7 @@ import { ArrowDown, CreditCard, DollarSign, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 import { toast } from "sonner";
 import { on } from "events";
 
@@ -21,7 +21,7 @@ const AmountInput = ({ value, onChange, token, label, lpAddress }: any) => {
     undefined,
     lpAddress as `0x${string}`
   );
-  const tokenDecimal = TOKEN_OPTIONS.find(
+  const tokenDecimal = tokens.find(
     (option) => option.name === token
   )?.decimals;
   return (
@@ -87,12 +87,12 @@ export const RepaySection = ({
   borrowToken: string;
   onSuccess: () => void;
 }) => {
-  const tokenAddress = TOKEN_OPTIONS.find(
+  const tokenAddress = tokens.find(
     (token) => token.name === borrowToken
-  )?.address;
+  )?.addresses;
   const { dynamicTotalBorrowAssets, dynamicTotalBorrowShares, dynamicUserBorrow } =
     useReadLendingData(undefined, undefined, lpAddress as `0x${string}`);
-  const tokenDecimal = TOKEN_OPTIONS.find(
+  const tokenDecimal = tokens.find(
     (option) => option.name === borrowToken
   )?.decimals;
   const [usdcAmount, setUsdcAmount] = useState("0");

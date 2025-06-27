@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 
 interface AmountInputProps {
   token: string;
@@ -19,7 +19,7 @@ export default function AmountInput({
     onChange("10"); // Simulasi nilai maksimum
   };
 
-  const tokenImage = TOKEN_OPTIONS.find(
+  const tokenImage = tokens.find(
     (option) => option.name === token
   )?.logo;
 

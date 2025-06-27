@@ -15,7 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Shield } from "lucide-react";
 import { tokens } from "@/constants/token-address";
 import { useBalance } from "@/hooks/useBalance";
-import { useSupplyCollateral } from "@/hooks/useSupplyCollateral";
+import { useSupplyColateral } from "@/hooks/write/useSupplyCollateral";
+import { useState } from "react";
 
 interface SupplyDialogProps {
   token: string | undefined;
@@ -31,10 +32,24 @@ export default function SupplyDialogCol({ token }: SupplyDialogProps) {
   const tokenAddress = selectedToken?.addresses[CHAIN_ID] as `0x${string}` | undefined;
   const decimals = selectedToken?.decimals ?? 18;
 
-  const { amount, setAmount, isOpen, setIsOpen, handleSupply, isProcessing } =
-    useSupplyCollateral();
+  const [amount, setAmount] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const {
+    supply,
+    isProcessing,
+    isApproveLoading,
+    isSupplyLoading,
+    error,
+    isSuccess,
+  } = useSupplyColateral(CHAIN_ID, tokenAddress);
 
   const { balance } = useBalance(tokenAddress!, decimals);
+
+  const handleSupply = async () => {
+    if (!amount || Number(amount) <= 0) return;
+    await supply(amount);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -103,6 +118,12 @@ export default function SupplyDialogCol({ token }: SupplyDialogProps) {
                   </button>
                 </div>
               </div>
+
+              {error && (
+                <div className="mt-2 text-red-500 text-sm font-medium">
+                  {error}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -117,7 +138,7 @@ export default function SupplyDialogCol({ token }: SupplyDialogProps) {
                 : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg transition-colors duration-300"
             }`}
           >
-            {isProcessing ? (
+            {isProcessing || isApproveLoading || isSupplyLoading ? (
               <div className="flex items-center justify-center">
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 <span>Processing Transaction...</span>

@@ -1,7 +1,9 @@
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
-import { readLendingData } from "@/hooks/read/useReadLendingData";
+"use client";
+
+import { getTokenInfo } from "@/lib/tokenUtils";
+import { useReadSupplyLiquidity } from "@/hooks/read/useReadSupplyLiquidity";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { toast } from "sonner";
 
 interface RowPoolProps {
@@ -21,6 +23,10 @@ interface RowPoolProps {
     borrowAddress: string;
   }) => void;
 }
+
+// Target chain ID, bisa kamu ubah kalau multi-chain
+const TARGET_CHAIN_ID = 43113;
+
 const RowPool = ({
   collateralToken,
   borrowToken,
@@ -30,80 +36,83 @@ const RowPool = ({
   borrowAddress,
   handleRowClick,
 }: RowPoolProps) => {
-  const [liquidity, setLiquidity] = useState<string>("0.00");
-  const tokenDecimal = TOKEN_OPTIONS.find((token) => token.address === borrowToken)?.decimals;
-  const fetchLiquidity = async (lpAddress: string) => {
-    const data = await readLendingData(lpAddress as `0x${string}`);
-    setLiquidity(
-      String(Number(data.message) !== 0 ? Number(data.message) / (10 ** Number(tokenDecimal)) : "0.00")
-    );
-  };
-  useEffect(() => {
-    fetchLiquidity(lpAddress);
-  }, []);
-  const getTokenName = (address: string) => {
-    const token = TOKEN_OPTIONS.find((token) => token.address === address);
-    return token?.name;
-  };
+  const collateralInfo = getTokenInfo(collateralToken, TARGET_CHAIN_ID);
+  const borrowInfo = getTokenInfo(borrowToken, TARGET_CHAIN_ID);
 
-  const getTokenLogo = (address: string) => {
-    const token = TOKEN_OPTIONS.find((token) => token.address === address);
-    return token?.logo;
-  };
+  const { supplyLiquidity } = useReadSupplyLiquidity({
+    tokenAddress: borrowToken,
+    chainId: TARGET_CHAIN_ID,
+  });
 
-  const convertLtv = (ltv: string) => {
-    const ltvNumber = Number(ltv) / 1e16;
-    return ltvNumber;
-  };
+ const convertLtv = (ltv: string) => {
+  const ltvNumber = Number(ltv) / 1e16; // 1e16 = 1%
+  return `${ltvNumber.toFixed(0)}%`;
+};
+
+
+  const liquidityFormatted =
+    typeof supplyLiquidity === "number"
+      ? supplyLiquidity.toFixed(2)
+      : supplyLiquidity;
+
   return (
     <button
       className="w-full px-6 py-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer text-left"
       onClick={() =>
-        liquidity !== "0.00"
+        liquidityFormatted !== "70.00"
           ? handleRowClick({
-              collateralToken: getTokenName(collateralToken ?? "") ?? "",
-              loanToken: getTokenName(borrowToken ?? "") ?? "",
+              collateralToken: collateralInfo?.name ?? "",
+              loanToken: borrowInfo?.name ?? "",
               ltv: convertLtv(ltv).toString(),
-              liquidity: liquidity,
-              rate: rate,
-              lpAddress: lpAddress,
-              borrowAddress: borrowAddress,
+              liquidity: liquidityFormatted,
+              rate,
+              lpAddress,
+              borrowAddress,
             })
           : toast.error("There is no liquidity in this pool")
       }
     >
       <div className="grid grid-cols-5 gap-4 items-center justify-center text-center">
+        {/* Collateral */}
         <div className="flex items-center justify-center gap-3">
           <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
             <Image
-              src={getTokenLogo(collateralToken ?? "") ?? "/placeholder.png"}
-              alt={getTokenName(collateralToken ?? "") ?? ""}
+              src={collateralInfo?.logo ?? "/placeholder.png"}
+              alt={collateralInfo?.name ?? "Unknown"}
               width={24}
               height={24}
             />
           </div>
           <div className="font-medium text-gray-900">
-            {getTokenName(collateralToken ?? "")}
+            {collateralInfo?.name ?? "Unknown"}
           </div>
         </div>
+
+        {/* Borrow */}
         <div className="flex items-center justify-center gap-3">
           <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
             <Image
-              src={getTokenLogo(borrowToken ?? "") ?? "/placeholder.png"}
-              alt={getTokenName(borrowToken ?? "") ?? ""}
+              src={borrowInfo?.logo ?? "/placeholder.png"}
+              alt={borrowInfo?.name ?? "Unknown"}
               width={24}
               height={24}
             />
           </div>
           <div className="font-medium text-gray-900">
-            {getTokenName(borrowToken ?? "")}
+            {borrowInfo?.name ?? "Unknown"}
           </div>
         </div>
-        <div className="text-emerald-600">{convertLtv(ltv)}%</div>
+
+        {/* LTV */}
+        <div className="text-emerald-600">{convertLtv(ltv)}</div>
+
+        {/* Liquidity */}
         <div className="text-gray-900">
-          {liquidity} ${getTokenName(borrowToken ?? "")}
+          {liquidityFormatted} ${borrowInfo?.name ?? ""}
         </div>
-        <div className="text-blue-600">3%</div>
+
+        {/* Fixed Rate */}
+        <div className="text-blue-600">{rate ?? "3%"}</div>
       </div>
     </button>
   );

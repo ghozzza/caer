@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { poolAbi } from "@/lib/abis/poolAbi";
 import { parseUnits } from "viem";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 
 export default function useOnChainTransactionHandler({
   amount,
@@ -207,18 +207,18 @@ export default function useOnChainTransactionHandler({
 
       // Update first step to loading state
       updateStepStatus("initiate", "loading");
-      const decimal = TOKEN_OPTIONS.find((option) => option.name === token)?.decimals;
+      const decimal = tokens.find((option) => option.name === token)?.decimals;
       const parsedAmount = parseUnits(amount, decimal ?? 6);
 
       console.log("Calling borrowByPosition with", parsedAmount, recipient);
 
       // Execute the borrowByPosition function from the lending pool
-      borrowTransaction({
-        address: lpAddress as `0x${string}`,
-        abi: poolAbi,
-        functionName: "borrowDebt",
-        args: [parsedAmount, false],
-      });
+      // borrowTransaction({
+      //   address: lpAddress as `0x${string}`,
+      //   abi: poolAbi,
+      //   functionName: "borrowDebt",
+      //   args: [parsedAmount, false],
+      // });
 
       // Note: The rest of the transaction flow is handled by the useEffect above
       // which tracks the transaction status changes
