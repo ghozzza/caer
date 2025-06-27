@@ -16,4 +16,7 @@ interface ILendingPool {
     function repayWithSelectedToken(uint256 shares, address _token, bool _fromPosition) external;
     function totalBorrowShares() external view returns (uint256);
     function totalBorrowAssets() external view returns (uint256);
+    function addressPositions(address _user) external view returns (address);
+    function swapTokenByPosition(address _tokenFrom, address _tokenTo, uint256 amountIn) external returns (uint256 amountOut);
+    function userBorrowShares(address _user) external view returns (uint256);
 }

@@ -42,12 +42,6 @@ contract LPBorrowScript is Script, Helper {
             console.log("Your debt amount application", amountBorrow);
             return;
         } else {
-            // IERC20(linkToken).approve(basicTokenSender, 1e18);
-            // IERC20(linkToken).transfer(basicTokenSender, 1e18);
-
-            IERC20(linkToken).approve(lpAddress, 1e18);
-            IERC20(linkToken).transfer(lpAddress, 1e18);
-
             console.log("Your balance before borrow", lpBorrowBalance);
             console.log("borrow token address", borrowToken);
             ILendingPool(lpAddress).borrowDebt(amountBorrow, Avalanche_Fuji, ILendingPool.SupportedNetworks.BASE_SEPOLIA);
