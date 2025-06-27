@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { createPublicClient } from "viem";
 import { http } from "wagmi";
 import { pharosChain } from "@/lib/data/chain-data";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { chain_id } from "@/constants/addresses";
 import { optimismSepolia } from "viem/chains";
 const prisma = new PrismaClient();

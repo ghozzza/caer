@@ -12,8 +12,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { mockErc20Abi } from "@/lib/abi/mockErc20Abi";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { lendingPool, mockUsdc } from "@/constants/addresses";
 import { ArrowDown, CreditCard, DollarSign, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

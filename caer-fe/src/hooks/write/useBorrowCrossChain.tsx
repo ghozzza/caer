@@ -8,9 +8,9 @@ import {
   type TransactionStep,
 } from "@/components/transaction-progress";
 import { toast } from "sonner";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { erc20Abi } from "viem";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 
 export default function useTransactionHandler({
   amount,
@@ -149,21 +149,21 @@ export default function useTransactionHandler({
 
       // First borrow on-chain
       try {
-        const tokenDecimal = TOKEN_OPTIONS.find((option) => option.name === token)?.decimals;
-        const tokenAddress = TOKEN_OPTIONS.find((option) => option.name === token)?.address;
+        const tokenDecimal = tokens.find((option) => option.name === token)?.decimals;
+        const tokenAddress = tokens.find((option) => option.name === token)?.addresses;
         const parsedAmount = BigInt(Number(amount) * (10 ** Number(tokenDecimal))); // Convert to 6 decimals for USDC
         // Replace with actual lending pool address
 
-        // Call borrow transaction
-        borrowTransaction({
-          address: lpAddress as `0x${string}`,
-          abi: poolAbi,
-          functionName: "borrowDebt",
-          args: [
-            parsedAmount,
-            true,
-          ],
-        });
+        // // Call borrow transaction
+        // borrowTransaction({
+        //   address: lpAddress as `0x${string}`,
+        //   abi: poolAbi,
+        //   functionName: "borrowDebt",
+        //   args: [
+        //     parsedAmount,
+        //     true,
+        //   ],
+        // });
 
         // Update steps
         updateStepStatus("borrow", "completed");

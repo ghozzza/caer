@@ -1,51 +1,57 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {LendingPool} from "./LendingPool.sol";
+import {ILPDeployer} from "./interfaces/ILPDeployer.sol";
 
 contract LendingPoolFactory {
-    error lendingPoolHasCreated();
-
-    event CreateLendingPool(
-        address creator, address lendingPool, address token1, address token2, address oracle, uint256 LTV
+    event LendingPoolCreated(
+        address indexed collateralToken, address indexed borrowToken, address lendingPool, uint256 LTV
     );
+    event TokenDataStreamAdded(address indexed token, address indexed dataStream);
+    event BasicTokenSenderAdded(uint256 indexed chainId, address indexed basicTokenSender);
 
-    struct Pools {
+    // solhint-disable-next-line gas-struct-packing
+    struct Pool {
         address collateralToken;
         address borrowToken;
         address lendingPoolAddress;
     }
 
-    address public oracle;
-    address public solver;
-    Pools[] public pools;
+    address public owner;
+    address public isHealthy;
+    address public lendingPoolDeployer;
+    mapping(uint256 => address) public basicTokenSender;
+    mapping(address => address) public tokenDataStream;
+    Pool[] public pools;
     uint256 public poolCount;
 
-    constructor(address _oracle) {
-        oracle = _oracle;
-        solver = 0x44C444f33E25b382AD64C88f40E286966CeC0535;
+    constructor(address _isHealthy, address _lendingPoolDeployer) {
+        owner = msg.sender;
+        isHealthy = _isHealthy;
+        lendingPoolDeployer = _lendingPoolDeployer;
     }
 
-    function createLendingPool(address collateralToken, address borrowToken, uint256 LTV)
-        public
-        returns (address)
-    {
-        LendingPool lendingPool = new LendingPool(collateralToken, borrowToken, address(this), LTV);
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
 
-        pools.push(Pools(collateralToken, borrowToken, address(lendingPool)));
+    function createLendingPool(address collateralToken, address borrowToken, uint256 LTV) public returns (address) {
+        address lendingPool = ILPDeployer(lendingPoolDeployer).deployLendingPool(collateralToken, borrowToken, LTV);
+
+        pools.push(Pool(collateralToken, borrowToken, address(lendingPool)));
         poolCount++;
-        emit CreateLendingPool(
-            msg.sender, address(lendingPool), collateralToken, borrowToken, address(this), LTV
-        );
+        emit LendingPoolCreated(collateralToken, borrowToken, address(lendingPool), LTV);
         return address(lendingPool);
     }
 
-    function editOracle(address _oracle) public {
-        oracle = _oracle;
+    function addTokenDataStream(address _token, address _dataStream) public onlyOwner {
+        tokenDataStream[_token] = _dataStream;
+        emit TokenDataStreamAdded(_token, _dataStream);
     }
 
-    function editSolver(address _solver) public {
-        solver = _solver;
+    function addBasicTokenSender(uint256 _chainId, address _basicTokenSender) public onlyOwner {
+        basicTokenSender[_chainId] = _basicTokenSender;
+        emit BasicTokenSenderAdded(_chainId, _basicTokenSender);
     }
 }

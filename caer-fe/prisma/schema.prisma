@@ -38,3 +38,21 @@ model Position {
   chain_id String
   createdAt DateTime @default(now())
 }
+model TransactionHistory {
+  id                String   @id @default(uuid())
+  user_address      String
+  collateral_token  String
+  collateral_chain  String
+  borrow_token      String
+  borrow_chain      String
+  borrow_amount     String
+  gas_fee_estimate  String
+  collateral_price  String
+  borrow_price      String
+  ltv_ratio         String
+  status            String   // e.g. "pending", "confirmed", "failed"
+  tx_hash           String?  // Optional, only if confirmed
+  error_message     String?  // Optional, only if failed
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}

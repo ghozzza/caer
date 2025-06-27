@@ -1,8 +1,11 @@
 import { useAccount, useReadContract } from "wagmi";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { Address } from "viem";
-import { lendingPool } from "@/constants/addresses";
+import { chains } from "@/constants/chain-address";
 import { publicClient } from "@/lib/viem";
+import { use } from "react";
+
+const lendingPool = chains[1].contracts.lendingPool as `0x${string}`;
 
 export const useReadLendingData = (
   userAddress?: Address,
@@ -14,8 +17,8 @@ export const useReadLendingData = (
   const { data: checkAvailability, refetch: refetchCheckAvailability } = useReadContract({
     address: lendingPool,
     abi: poolAbi,
-    functionName: "addressPosition",
-    args: [address],
+    functionName: "addressPositions",
+    args: [address as `0x${string}`],
   });
 
   const { data: borrowAddress, refetch: refetchBorrowAddress } = useReadContract({
@@ -50,13 +53,6 @@ export const useReadLendingData = (
     args: [],
   });
 
-  const { data: tokenBalanceByPosition, refetch: refetchTokenBalanceByPosition } = useReadContract({
-    address: lendingPool,
-    abi: poolAbi,
-    functionName: "getTokenBalancesByPosition",
-    args: [tokenAddress],
-  });
-
   const { data: totalBorrowAssets, refetch: refetchTotalBorrowAssets } = useReadContract({
     address: lendingPool,
     abi: poolAbi,
@@ -78,50 +74,50 @@ export const useReadLendingData = (
     args: [],
   });
 
-  const { data: userCollateral, refetch: refetchUserCollateral } = useReadContract({
-    address: lendingPool,
-    abi: poolAbi,
-    functionName: "userCollaterals",
-    args: [address],
-  });
+  // const { data: userCollateral, refetch: refetchUserCollateral } = useReadContract({
+  //   address: lendingPool,
+  //   abi: poolAbi,
+  //   functionName: "userCollaterals",
+  //   args: [address],
+  // });
 
-  const { data: userSupply, refetch: refetchUserSupply } = useReadContract({
-    address: lendingPool,
-    abi: poolAbi,
-    functionName: "userSupplyShares",
-    args: [address],
-  });
+  // const { data: userSupply, refetch: refetchUserSupply } = useReadContract({
+  //   address: lendingPool,
+  //   abi: poolAbi,
+  //   functionName: "userSupplyShares",
+  //   args: [address],
+  // });
 
-  const { data: userBorrow, refetch: refetchUserBorrow } = useReadContract({
-    address: lendingPool,
-    abi: poolAbi,
-    functionName: "userBorrowShares",
-    args: [address],
-  });
+  // const { data: userBorrow, refetch: refetchUserBorrow } = useReadContract({
+  //   address: lendingPool,
+  //   abi: poolAbi,
+  //   functionName: "userBorrowShares",
+  //   args: [address],
+  // });
 
-  const { data: dynamicUserBorrow, refetch: refetchDynamicUserBorrow } = useReadContract({
-    address: lpAddress,
-    abi: poolAbi,
-    functionName: "userBorrowShares",
-    args: [address],
-  });
+  // const { data: dynamicUserBorrow, refetch: refetchDynamicUserBorrow } = useReadContract({
+  //   address: lpAddress,
+  //   abi: poolAbi,
+  //   functionName: "userBorrowShares",
+  //   args: [address],
+  // });
 
-  const { data: dynamicUserCollateral, refetch: refetchDynamicUserCollateral } = useReadContract({
-    address: lpAddress,
-    abi: poolAbi,
-    functionName: "userCollaterals",
-    args: [address],
-  });
+  // const { data: dynamicUserCollateral, refetch: refetchDynamicUserCollateral } = useReadContract({
+  //   address: lpAddress,
+  //   abi: poolAbi,
+  //   functionName: "userCollaterals",
+  //   args: [address],
+  // });
 
   const { data: dynamicTotalBorrowAssets, refetch: refetchDynamicTotalBorrowAssets } = useReadContract({
-    address: lpAddress,
+    address: lendingPool,
     abi: poolAbi,
     functionName: "totalBorrowAssets",
     args: [],
   });
 
   const { data: dynamicTotalBorrowShares, refetch: refetchDynamicTotalBorrowShares } = useReadContract({
-    address: lpAddress,
+    address: lendingPool,
     abi: poolAbi,
     functionName: "totalBorrowShares",
     args: [],
@@ -135,15 +131,15 @@ export const useReadLendingData = (
       refetchCollateralAddress(),
       refetchTotalSupplyAssets(),
       refetchDynamicTotalSupplyAssets(),
-      refetchTokenBalanceByPosition(),
+      // refetchTokenBalanceByPosition(),
       refetchTotalBorrowAssets(),
       refetchTotalBorrowShares(),
       refetchTotalSupplyShares(),
-      refetchUserCollateral(),
-      refetchUserSupply(),
-      refetchUserBorrow(),
-      refetchDynamicUserBorrow(),
-      refetchDynamicUserCollateral(),
+      // refetchUserCollateral(),
+      // refetchUserSupply(),
+      // refetchUserBorrow(),
+      // refetchDynamicUserBorrow(),
+      // refetchDynamicUserCollateral(),
       refetchDynamicCollateralAddress(),
       refetchDynamicTotalBorrowAssets(),
       refetchDynamicTotalBorrowShares(),
@@ -156,17 +152,17 @@ export const useReadLendingData = (
     totalSupplyShares,
     collateralAddress,
     borrowAddress,
-    userCollateral,
-    tokenBalanceByPosition,
+    // userCollateral,
+    // tokenBalanceByPosition,
     totalBorrowAssets,
     totalBorrowShares,
-    userSupply,
-    userBorrow,
-    dynamicTotalSupplyAssets: dynamicTotalSupplyAssets
-      ? Number(dynamicTotalSupplyAssets)
-      : "0.00",
-    dynamicUserBorrow,
-    dynamicUserCollateral,
+    // userSupply,
+    // userBorrow,
+    // dynamicTotalSupplyAssets: dynamicTotalSupplyAssets
+    //   ? Number(dynamicTotalSupplyAssets)
+    //   : "0.00",
+    // dynamicUserBorrow,
+    // dynamicUserCollateral,
     dynamicCollateralAddress,
     dynamicTotalBorrowAssets,
     dynamicTotalBorrowShares,

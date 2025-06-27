@@ -5,7 +5,7 @@ import { ArrowDownIcon, } from "@heroicons/react/24/outline";
 import { TOKEN_OPTIONS, TokenOption } from "@/constants/tokenOption";
 import { useAccount } from "wagmi";
 import { formatUnits, Address } from "viem";
-import { usePositionBalance } from "@/hooks/useTokenBalance";
+import { usePositionBalance } from "@/hooks/useBalance";
 import { useSwapToken } from "@/hooks/useSwapToken";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";

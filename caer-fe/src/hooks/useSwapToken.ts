@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { erc20Abi, parseUnits, Address } from "viem";
-import { poolAbi } from "@/lib/abi/poolAbi";
+import { poolAbi } from "@/lib/abis/poolAbi";
 import { toast } from "sonner";
 
 interface SwapTokenParams {

@@ -16,7 +16,7 @@ import {
   useReadContract,
   useWriteContract,
 } from "wagmi";
-import { priceAbi } from "@/lib/abi/price-abi";
+import { priceAbi } from "@/lib/abis/price-abi";
 import { priceFeed } from "@/constants/addresses";
 
 const FaucetsCardForm = () => {
