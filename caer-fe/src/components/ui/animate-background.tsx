@@ -1,10 +1,20 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Building2, TrendingUp, Link, Hexagon, Shield, FileText, Landmark, Package, RotateCcw, Wallet } from "lucide-react"
-import eth from "/eth.svg"
-import usdt from "/usdt.png"
-import base from "/base-logo.png"
+import Image from "next/image"
+import { Building2, TrendingUp, Hexagon, Shield, FileText, Landmark, Package, RotateCcw, Wallet, LucideIcon } from "lucide-react"
+
+interface IconPosition {
+  icon?: LucideIcon
+  image?: string
+  x: number
+  y: number
+  bg: string
+  color?: string
+  size: number
+  type: "icon" | "image"
+  border?: boolean
+}
 
 export default function imateBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -34,60 +44,36 @@ export default function imateBackground() {
     canvas.width = dimensions.width
     canvas.height = dimensions.height
 
-    // Fixed points that correspond to icon positions
-    const getFixedPoints = () => {
-      const { width, height } = dimensions
-
-      // Scale positions based on the reference image layout
-      return [
-        // Top row
-        { x: width * 0.12, y: height * 0.15 }, // Golden cube area
-        { x: width * 0.25, y: height * 0.25 }, // Ethereum area
-        { x: width * 0.45, y: height * 0.22 }, // Center-top area
-        { x: width * 0.75, y: height * 0.28 }, // Shield area
-        { x: width * 0.88, y: height * 0.18 }, // Top-right area
-
-        // Middle row
-        { x: width * 0.08, y: height * 0.35 }, // Left chain
-        { x: width * 0.08, y: height * 0.55 }, // Left chart
-        { x: width * 0.35, y: height * 0.45 }, // Red circle
-        { x: width * 0.55, y: height * 0.52 }, // Center building
-        { x: width * 0.82, y: height * 0.45 }, // Right building
-        { x: width * 0.92, y: height * 0.55 }, // Right document
-
-        // Bottom row
-        { x: width * 0.18, y: height * 0.75 }, // Bottom-left link
-        { x: width * 0.32, y: height * 0.78 }, // Blue circle
-        { x: width * 0.52, y: height * 0.82 }, // Bottom cube
-        { x: width * 0.78, y: height * 0.78 }, // Purple circle
-      ]
+    // Get icon positions to match with connection points
+    const iconPositions = getIconPositions()
+    
+    // Create points based on actual icon positions
+    const getActivePoints = () => {
+      return iconPositions.map(icon => ({
+        x: icon.x,
+        y: icon.y
+      }))
     }
 
-    const points = getFixedPoints()
+    const points = getActivePoints()
 
-    // Create connections between nearby points (similar to the image)
+    // Create connections between actual icons to match Chainlink layout pattern
     const connections: number[][] = [
-      [0, 1],
-      [1, 2],
-      [2, 3],
-      [3, 4], // Top connections
-      [0, 5],
-      [1, 7],
-      [2, 8],
-      [3, 9],
-      [4, 10], // Vertical connections
-      [5, 6],
-      [6, 11],
-      [7, 8],
-      [8, 9],
-      [9, 10], // Middle connections
-      [11, 12],
-      [12, 13],
-      [13, 14], // Bottom connections
-      [6, 12],
-      [7, 13],
-      [8, 13],
-      [9, 14], // More verticals
+      [0, 1], // BSC to Chainlink
+      [1, 2], // Chainlink to Base
+      [10, 4], // Chainlink to ETH (center hub)
+      [4, 6], // ETH to Wallet (center connection)
+      [5, 9], // Arbitrum to Polkadot
+      [7, 8], // USDT to Optimism
+      [8, 9], // Optimism to Polkadot
+      [0, 3], // BSC to USDC (left side)
+      [2, 5], // Base to Arbitrum (right side)
+      [3, 7], // USDC to USDT (bottom left)
+      [5, 8], // Arbitrum to Optimism (bottom right)
+      
+      // New connections for DeFi/CCIP icons
+      [1, 10], // Chainlink to Shield (security)
+      [6, 11], // Shield to TrendingUp (DeFi growth)
     ]
 
     // Moving dots on connections
@@ -110,8 +96,8 @@ export default function imateBackground() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Draw connections
-      ctx.strokeStyle = "#e0e7ff"
+      // Draw connections with lighter, more subtle lines
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.3)" // Very light gray-blue
       ctx.lineWidth = 1
       connections.forEach(([startIndex, endIndex]) => {
         const start = points[startIndex]
@@ -138,10 +124,10 @@ export default function imateBackground() {
         const x = start.x + (end.x - start.x) * dot.progress
         const y = start.y + (end.y - start.y) * dot.progress
 
-        // Draw moving dot
-        ctx.fillStyle = "#6366f1"
+        // Draw moving dot with blue color like Chainlink
+        ctx.fillStyle = "#1D4ED8" // Blue-600
         ctx.beginPath()
-        const dotSize = dimensions.width < 768 ? 2 : 3
+        const dotSize = dimensions.width < 768 ? 1.5 : 2
         ctx.arc(x, y, dotSize, 0, Math.PI * 2)
         ctx.fill()
 
@@ -156,13 +142,21 @@ export default function imateBackground() {
         }
       })
 
-      // Draw static dots at connection points
-      ctx.fillStyle = "#6366f1"
-      points.forEach((point) => {
-        ctx.beginPath()
-        const pointSize = dimensions.width < 768 ? 2 : 3
-        ctx.arc(point.x, point.y, pointSize, 0, Math.PI * 2)
-        ctx.fill()
+      // Only draw static dots at points that have connections
+      const connectedPoints = new Set<number>()
+      connections.forEach(([start, end]) => {
+        connectedPoints.add(start)
+        connectedPoints.add(end)
+      })
+
+      ctx.fillStyle = "#1D4ED8" // Blue-600 to match moving dots
+      points.forEach((point, index) => {
+        if (connectedPoints.has(index)) {
+          ctx.beginPath()
+          const pointSize = dimensions.width < 768 ? 1 : 1.5
+          ctx.arc(point.x, point.y, pointSize, 0, Math.PI * 2)
+          ctx.fill()
+        }
       })
 
       requestAnimationFrame(animate)
@@ -171,8 +165,8 @@ export default function imateBackground() {
     animate()
   }, [dimensions])
 
-  // Icon positions matching the reference image exactly
-  const getIconPositions = () => {
+  // Icon and image positions - supporting both icons and images  
+  const getIconPositions = (): IconPosition[] => {
     const { width, height } = dimensions
     if (width === 0) return []
 
@@ -180,142 +174,128 @@ export default function imateBackground() {
     const iconSize = isMobile ? 10 : 12
 
     return [
-      // Top row - matching the reference image
+      // Top row - distributed like Chainlink layout
       {
-        icon: Package,
-        x: width * 0.12,
-        y: height * 0.15,
-        bg: "bg-yellow-400",
-        color: "text-white",
-        size: iconSize,
-      },
-      {
-        icon: Hexagon,
-        x: width * 0.25,
-        y: height * 0.25,
-        bg: "bg-gray-800",
-        color: "text-white",
-        size: iconSize,
-      },
-      {
-        icon: Shield,
-        x: width * 0.75,
-        y: height * 0.28,
-        bg: "bg-gray-600",
-        color: "text-white",
-        size: iconSize,
-      },
-      {
-        icon: Building2,
-        x: width * 0.88,
-        y: height * 0.18,
+        image: "/chain/bsc.png",
+        x: width * 0.15,
+        y: height * 0.12,
         bg: "bg-white",
-        color: "text-indigo-500",
+        size: iconSize + 2,
+        type: "image",
         border: true,
-        size: iconSize,
       },
+      // Chainlink in center-top
       {
-        icon: RotateCcw,
-        x: width * 0.88,
-        y: height * 0.32,
-        bg: "bg-red-500",
-        color: "text-white",
-        size: iconSize,
+        image: "/eth2.jpg",
+        x: width * 0.5,
+        y: height * 0.08,
+        bg: "bg-white",
+        size: iconSize + 4,
+        type: "image",
+        border: true,
       },
-
+      // Base top-right
+      {
+        image: "/base-logo.png",
+        x: width * 0.85,
+        y: height * 0.12,
+        bg: "bg-white",
+        size: iconSize + 2,
+        type: "image",
+        border: true,
+      },
+      
       // Left side
       {
-        icon: Link,
+        image: "/usdc.png",
         x: width * 0.08,
         y: height * 0.35,
         bg: "bg-white",
-        color: "text-indigo-500",
+        size: iconSize + 2,
+        type: "image",
         border: true,
-        size: iconSize,
       },
+      
+      // Center-left ETH position
       {
-        icon: TrendingUp,
-        x: width * 0.08,
-        y: height * 0.55,
+        image: "/chainlink.png",
+        x: width * 0.25,
+        y: height * 0.45,
         bg: "bg-white",
-        color: "text-indigo-500",
+        size: iconSize + 3,
+        type: "image",
         border: true,
-        size: iconSize,
       },
-
-      // Center area
+      
+      // Center area - larger elements
       {
-        icon: RotateCcw,
+        image: "/arbitrum-arb-logo.png",
+        x: width * 0.75,
+        y: height * 0.35,
+        bg: "bg-white",
+        size: iconSize + 3,
+        type: "image",
+        border: true,
+      },
+      
+      // Center-bottom
+      {
+        icon: Wallet,
         x: width * 0.35,
-        y: height * 0.45,
-        bg: "bg-red-500",
-        color: "text-white",
-        size: iconSize,
-      },
-      {
-        icon: Building2,
-        x: width * 0.55,
-        y: height * 0.52,
-        bg: "bg-white",
-        color: "text-indigo-500",
-        border: true,
-        size: iconSize,
-      },
-
-      // Right side
-      {
-        icon: Building2,
-        x: width * 0.82,
-        y: height * 0.45,
-        bg: "bg-white",
-        color: "text-indigo-500",
-        border: true,
-        size: iconSize,
-      },
-      {
-        icon: FileText,
-        x: width * 0.92,
-        y: height * 0.55,
-        bg: "bg-white",
-        color: "text-indigo-500",
-        border: true,
-        size: iconSize,
-      },
-
-      // Bottom area
-      {
-        icon: Link,
-        x: width * 0.18,
-        y: height * 0.75,
-        bg: "bg-white",
-        color: "text-indigo-500",
-        border: true,
-        size: iconSize,
-      },
-      {
-        icon: Landmark,
-        x: width * 0.32,
-        y: height * 0.78,
+        y: height * 0.65,
         bg: "bg-blue-500",
         color: "text-white",
         size: iconSize,
+        type: "icon",
       },
+      
+      // Bottom distributed
       {
-        icon: Package,
-        x: width * 0.52,
-        y: height * 0.82,
+        image: "/usdt.png",
+        x: width * 0.15,
+        y: height * 0.8,
         bg: "bg-white",
-        color: "text-indigo-500",
+        size: iconSize + 2,
+        type: "image",
         border: true,
-        size: iconSize,
       },
       {
-        icon: Link,
-        x: width * 0.78,
-        y: height * 0.78,
-        bg: "bg-purple-600",
-        color: "text-white",
+        image: "/chain/optimism.png",
+        x: width * 0.65,
+        y: height * 0.75,
+        bg: "bg-white",
+        size: iconSize + 2,
+        type: "image",
+        border: true,
+      },
+      {
+        image: "/polkadot.png",
+        x: width * 0.92,
+        y: height * 0.65,
+        bg: "bg-white",
+        size: iconSize + 2,
+        type: "image",
+        border: true,
+      },
+      
+      // Additional DeFi/CCIP related icons
+      {
+        icon: Shield,
+        x: width * 0.45,
+        y: height * 0.3,
+        bg: "bg-white",
+        color: "text-blue-800",
+        size: iconSize + 2,
+        type: "icon",
+      },
+      {
+        icon: TrendingUp,
+        x: width * 0.25,
+        y: height * 0.70,
+        bg: "bg-white",
+        color: "text-green-600",
         size: iconSize,
+        type: "icon",
       },
     ]
   }
@@ -325,21 +305,22 @@ export default function imateBackground() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen max-h-[100vh] bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 overflow-hidden"
+      className="relative w-full h-screen max-h-[100vh] bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 overflow-hidden"
     >
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
 
-      {/* Floating Icons */}
+      {/* Floating Icons and Images */}
       <div className="absolute inset-0 pointer-events-none">
         {iconPositions.map((item, index) => {
-          const IconComponent = item.icon
           const sizeClass = `w-${item.size} h-${item.size}`
           const iconSizeClass = dimensions.width < 768 ? "w-4 h-4" : "w-5 h-5"
+          // Use fixed sizes for images to ensure they display properly
+          const imageSizeClass = dimensions.width < 768 ? "w-12 h-12" : "w-14 h-14"
 
           return (
             <div
               key={index}
-              className={`absolute ${sizeClass} ${item.bg} rounded-${item.bg.includes("white") ? "lg" : "full"} flex items-center justify-center shadow-lg transition-transform hover:scale-110 ${
+              className={`absolute ${sizeClass} ${item.bg} ${item.type === "image" ? "rounded-full" : item.bg.includes("white") ? "rounded-lg" : "rounded-full"} flex items-center justify-center shadow-lg transition-transform hover:scale-110 ${
                 item.border ? "border border-indigo-100" : ""
               }`}
               style={{
@@ -350,7 +331,18 @@ export default function imateBackground() {
                 animationDelay: `${Math.random() * 2}s`,
               }}
             >
-              <IconComponent className={`${iconSizeClass} ${item.color}`} />
+              {item.type === "icon" && item.icon ? (
+                <item.icon className={`${iconSizeClass} ${item.color}`} />
+              ) : item.type === "image" && item.image ? (
+                <div className={`${imageSizeClass} relative rounded-full overflow-hidden`}>
+                  <Image 
+                    src={item.image} 
+                    alt="" 
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : null}
             </div>
           )
         })}
