@@ -13,3 +13,9 @@
 [submodule "caer-sc/lib/v2-core"]
 	path = caer-sc/lib/v2-core
 	url = https://github.com/uniswap/v2-core
+[submodule "caer-sc/lib/chainlink-evm"]
+	path = caer-sc/lib/chainlink-evm
+	url = https://github.com/smartcontractkit/chainlink.git
+[submodule "caer-sc/lib/chainlink-ccip"]
+	path = caer-sc/lib/chainlink-ccip
+	url = https://github.com/smartcontractkit/chainlink-ccip

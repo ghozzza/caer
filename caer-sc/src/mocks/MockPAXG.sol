@@ -3,8 +3,11 @@ pragma solidity ^0.8.13;
 
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
-contract MockSAAPL is ERC20 {
-    constructor() ERC20("Swarm AAPL", "sAAPL") {
+contract MockPAXG is ERC20 {
+    address public owner;
+
+    constructor() ERC20("PAX Gold", "PAXG") {
+        owner = msg.sender;
         _mint(msg.sender, 1e18);
     }
 
@@ -12,7 +15,11 @@ contract MockSAAPL is ERC20 {
         _mint(to, amount);
     }
 
-    function burn(address spender, uint256 amount) public {
+    function burn(uint256 amount) public {
+        _burn(msg.sender, amount);
+    }
+
+    function burnFrom(address spender, uint256 amount) public {
         _burn(spender, amount);
     }
 }
