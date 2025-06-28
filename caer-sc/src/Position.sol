@@ -38,15 +38,18 @@ contract Position is ReentrancyGuard {
         lpAddress = _lpAddress;
         factory = _factory;
         owner = msg.sender;
+        ++counter;
+        tokenLists[counter] = _collateral;
+        tokenListsId[_collateral] = counter;
     }
 
-    function swapToken(address _token, uint256 _amount) public {
+    modifier checkTokenList(address _token) {
         if (tokenListsId[_token] == 0) {
             ++counter;
             tokenLists[counter] = _token;
             tokenListsId[_token] = counter;
         }
-        emit SwapToken(msg.sender, _token, _amount);
+        _;
     }
 
     function withdrawCollateral(uint256 amount, address _user) public {
@@ -57,6 +60,8 @@ contract Position is ReentrancyGuard {
 
     function swapTokenByPosition(address _tokenIn, address _tokenOut, uint256 amountIn)
         public
+        checkTokenList(_tokenIn)
+        checkTokenList(_tokenOut)
         returns (uint256 amountOut)
     {
         uint256 balances = IERC20(_tokenIn).balanceOf(address(this));
@@ -70,7 +75,6 @@ contract Position is ReentrancyGuard {
         amountOut = tokenCalculator(_tokenIn, _tokenOut, amountIn, _tokenInPrice, _tokenOutPrice);
         ITokenSwap(_tokenIn).burn_mock(amountIn);
         ITokenSwap(_tokenOut).mint_mock(address(this), amountOut);
-        swapToken(_tokenOut, amountOut);
         emit SwapTokenByPosition(msg.sender, _tokenIn, _tokenOut, amountIn, amountOut);
     }
 
@@ -103,5 +107,20 @@ contract Position is ReentrancyGuard {
             (_amountIn * ((uint256(quotePrice) * (10 ** tokenOutDecimal)) / uint256(basePrice))) / 10 ** tokenInDecimal;
 
         return amountOut;
+    }
+
+    function tokenValue(address token) public view returns (uint256) {
+        uint256 tokenBalance = IERC20(token).balanceOf(address(this));
+        uint256 tokenDecimals = IERC20Metadata(token).decimals();
+
+        address tokenDataStream = IFactory(factory).tokenDataStream(token);
+
+        (, int256 tokenPrice,,,) = IChainLink(tokenDataStream).latestRoundData();
+
+        uint256 tokenAdjustedPrice = uint256(tokenPrice) * 1e18 / 1e8;
+        // balance token dikali harga token (yang sudah di convert ke 18 decimals) lalu dibagi dengan decimals token
+        uint256 value = (tokenBalance * tokenAdjustedPrice) / (10 ** tokenDecimals);
+
+        return value;
     }
 }

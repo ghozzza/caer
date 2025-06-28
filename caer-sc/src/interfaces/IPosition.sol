@@ -10,4 +10,5 @@ interface IPosition {
     function withdrawCollateral(uint256 amount, address _user) external;
     function swapTokenByPosition(address _tokenIn, address _tokenOut, uint256 amountIn) external returns (uint256 amountOut);
     function repayWithSelectedToken(uint256 amount, address _token) external;
+    function tokenValue(address token) external view returns (uint256);
 }

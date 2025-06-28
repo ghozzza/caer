@@ -208,16 +208,15 @@ contract LendingPool is ReentrancyGuard, Helper {
         if (totalBorrowAssets > totalSupplyAssets) {
             revert InsufficientLiquidity();
         }
-        IIsHealthy(IFactory(factory).isHealthy())._isHealthy(
-            collateralToken,
+        address isHealthy = IFactory(factory).isHealthy();
+        IIsHealthy(isHealthy)._isHealthy(
             borrowToken,
             factory,
+            addressPositions[msg.sender],
             ltv,
             totalBorrowAssets,
             totalBorrowShares,
-            amount,
-            userBorrowShares[msg.sender],
-            addressPositions[msg.sender]
+            userBorrowShares[msg.sender]
         );
         if (destination != SupportedNetworks.AVALANCHE_FUJI) {
             address basicTokenSenderAddress = IFactory(factory).basicTokenSender(_chainId);

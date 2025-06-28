@@ -11,57 +11,35 @@ contract IsHealthy {
     error InsufficientCollateral();
 
     function _isHealthy(
-        address collateralToken,
         address borrowToken,
         address factory,
+        address addressPositions,
         uint256 ltv,
         uint256 totalBorrowAssets,
         uint256 totalBorrowShares,
-        uint256 userBorrowShares,
-        address addressPositions
+        uint256 userBorrowShares
     ) public view {
-        address collateralTokenDataStream = IFactory(factory).tokenDataStream(collateralToken);
         address borrowTokenDataStream = IFactory(factory).tokenDataStream(borrowToken);
-
-        (, int256 collateralPrice,,,) = IChainLink(collateralTokenDataStream).latestRoundData();
         (, int256 borrowPrice,,,) = IChainLink(borrowTokenDataStream).latestRoundData();
+        uint8 borrowPriceDecimals = IChainLink(borrowTokenDataStream).decimals();
+        uint8 borrowDecimals = IERC20Metadata(borrowToken).decimals();
 
-        uint8 collateralDecimals = IERC20Metadata(collateralToken).decimals(); // usually 18
-        uint8 borrowDecimals = IERC20Metadata(borrowToken).decimals(); // usually 6
-
-        uint256 borrowed = 0;
         uint256 collateralValue = 0;
         uint256 counter = IPosition(addressPositions).counter();
-        for (uint256 i = 0; i < counter; i++) {
+        for (uint256 i = 1; i <= counter; i++) {
             address token = IPosition(addressPositions).tokenLists(i);
             if (token != address(0)) {
-                if (token != collateralToken) {
-                    uint256 tokenBalance = IERC20(token).balanceOf(addressPositions);
-                    uint256 tokenDecimals = IERC20Metadata(token).decimals();
-
-                    address tokenDataStream = IFactory(factory).tokenDataStream(token);
-
-                    (, int256 tokenPrice,,,) = IChainLink(tokenDataStream).latestRoundData();
-
-                    uint256 tokenAdjustedPrice = uint256(tokenPrice) * 1e18 / 1e8;
-                    // balance token dikali harga token (yang sudah di convert ke 18 decimals) lalu dibagi dengan decimals token
-                    uint256 tokenValue = (tokenBalance * tokenAdjustedPrice) / (10 ** tokenDecimals);
-
-                    collateralValue += tokenValue;
-                }
+                collateralValue += IPosition(addressPositions).tokenValue(token);
             }
         }
-        uint256 collateralBalance = IERC20(collateralToken).balanceOf(addressPositions);
-        // Adjust price to 18 decimals
-        uint256 collateralAdjustedPrice = uint256(collateralPrice) * 1e18 / 1e8; // Chainlink price (8 decimals) -> 18
-        // Convert collateralBalance to value in 18 decimals
-        collateralValue += (collateralBalance * collateralAdjustedPrice) / (10 ** collateralDecimals);
 
+        uint256 borrowed = 0;
         borrowed = (userBorrowShares * totalBorrowAssets) / totalBorrowShares;
 
-        uint256 borrowAdjustedPrice = uint256(borrowPrice) * 1e18 / 1e8; // Chainlink price (8 decimals) -> 18
+        uint256 borrowAdjustedPrice = uint256(borrowPrice) * 1e18 / 10 ** borrowPriceDecimals;
         uint256 borrowValue = (borrowed * borrowAdjustedPrice) / (10 ** borrowDecimals);
         uint256 maxBorrow = (collateralValue * ltv) / 1e18;
+        if (borrowValue > collateralValue) revert InsufficientCollateral();
         if (borrowValue > maxBorrow) revert InsufficientCollateral();
     }
 }
