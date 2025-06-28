@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 
 export function useBorrow(
-  _chainId: number, // abaikan parameter ini, gunakan 43113
+  _chainId: number, 
   destination: number,
   amount: string
 ) {

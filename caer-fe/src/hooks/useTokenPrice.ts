@@ -4,7 +4,9 @@ import { useReadContract } from "wagmi";
 import { Address } from "viem";
 import { priceAbi } from "@/lib/abis/price-abi";
 import { priceFeed } from "@/constants/addresses";
-import { TOKEN_OPTIONS } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address"; // gunakan konstanta tokens
+
+const CURRENT_CHAIN_ID = 43113;
 
 export const useTokenPrice = (
   fromTokenAddress: Address,
@@ -21,12 +23,13 @@ export const useTokenPrice = (
     args: [fromTokenAddress, toTokenAddress],
   });
 
-  // Convert price from contract format (usually with 6 decimals precision)
+  // Temukan token yang cocok berdasarkan address di chain 43113
+  const token = tokens.find(
+    (t) => t.addresses[CURRENT_CHAIN_ID] === toTokenAddress
+  );
+
   const formattedPrice = price
-    ? Number(price) /
-      10 **
-        (TOKEN_OPTIONS.find((token) => token.address === toTokenAddress)
-          ?.decimals ?? 18)
+    ? Number(price) / 10 ** (token?.decimals ?? 18)
     : 0;
 
   return {
@@ -48,9 +51,22 @@ export const usePriceTrade = (
     args: [fromTokenAddress, toTokenAddress],
   });
 
-  // Extract prices from the tuple returned by getPriceTrade
-  const fromPrice = data && Array.isArray(data) ? Number(data[0]) / 10 ** 6 : 0;
-  const toPrice = data && Array.isArray(data) ? Number(data[1]) / 10 ** 6 : 0;
+  const fromToken = tokens.find(
+    (t) => t.addresses[CURRENT_CHAIN_ID] === fromTokenAddress
+  );
+  const toToken = tokens.find(
+    (t) => t.addresses[CURRENT_CHAIN_ID] === toTokenAddress
+  );
+
+  const fromPrice =
+    data && Array.isArray(data)
+      ? Number(data[0]) / 10 ** (fromToken?.decimals ?? 18)
+      : 0;
+
+  const toPrice =
+    data && Array.isArray(data)
+      ? Number(data[1]) / 10 ** (toToken?.decimals ?? 18)
+      : 0;
 
   return {
     fromPrice,
