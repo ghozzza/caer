@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {LendingPoolDeployer} from "../src/LendingPoolDeployer.sol";
 import {LendingPoolFactory} from "../src/LendingPoolFactory.sol";
 import {LendingPool} from "../src/LendingPool.sol";
@@ -15,6 +16,9 @@ import {MockWAVAX} from "../src/mocks/MockWAVAX.sol";
 import {MockPEPE} from "../src/mocks/MockPEPE.sol";
 import {Helper} from "../src/Helper.sol";
 import {IsHealthy} from "../src/IsHealthy.sol";
+import {IPosition} from "../src/interfaces/IPosition.sol";
+import {IChainLink} from "../src/interfaces/IChainLink.sol";
+import {IFactory} from "../src/interfaces/IFactory.sol";
 
 contract LendingPoolFactoryTest is Test {
     IsHealthy public isHealthy;
@@ -139,18 +143,18 @@ contract LendingPoolFactoryTest is Test {
         IERC20(address(weth)).approve(address(lendingPool), 1e18);
         lendingPool.supplyCollateral(1e18);
 
-        // vm.expectRevert(LendingPool.InsufficientCollateral.selector);
+        vm.expectRevert(IsHealthy.InsufficientCollateral.selector);
         lendingPool.borrowDebt(3000e6, chainId, Helper.SupportedNetworks.AVALANCHE_FUJI);
 
-        lendingPool.borrowDebt(1000e6, chainId, Helper.SupportedNetworks.AVALANCHE_FUJI);
+        lendingPool.borrowDebt(100e6, chainId, Helper.SupportedNetworks.AVALANCHE_FUJI);
 
-        assertEq(lendingPool.userBorrowShares(bob), 4000e6);
+        assertEq(lendingPool.userBorrowShares(bob), 100e6);
         vm.stopPrank();
     }
 
     function test_borrow() public {
-        // bob borrow 1800 usdc
-        uint256 borrowed = 1000e6;
+        // bob borrow 100 usdc
+        uint256 borrowed = 100e6;
         uint256 lended = 1e18;
 
         // alice supplies 10000 usdc as liquidity
@@ -202,7 +206,7 @@ contract LendingPoolFactoryTest is Test {
         vm.startPrank(charlie);
         lendingPool.createPosition();
         // No collateral supplied
-        // vm.expectRevert(LendingPool.InsufficientCollateral.selector); // Should revert due to insufficient collateral or similar
+        vm.expectRevert(LendingPool.InsufficientCollateral.selector); // Should revert due to insufficient collateral or similar
         lendingPool.borrowDebt(100e6, chainId, Helper.SupportedNetworks.AVALANCHE_FUJI);
         vm.stopPrank();
     }

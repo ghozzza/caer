@@ -12,7 +12,6 @@ import {IFactory} from "./interfaces/IFactory.sol";
 contract Position is ReentrancyGuard {
     using SafeERC20 for IERC20; // fungsi dari IERC20 akan ketambahan SafeERC20
 
-    error TokenNotFound();
     error InsufficientBalance();
     error ZeroAmount();
     error NotForWithdraw();
@@ -27,11 +26,9 @@ contract Position is ReentrancyGuard {
 
     mapping(uint256 => address) public tokenLists;
     mapping(address => uint256) public tokenListsId;
-    mapping(address => uint256) public tokenBalances;
 
     event Liquidate(address user);
     event SwapToken(address user, address token, uint256 amount);
-    event CostSwapToken(address user, address token, uint256 amount);
     event SwapTokenByPosition(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
     event WithdrawCollateral(address indexed user, uint256 amount);
 
@@ -41,26 +38,18 @@ contract Position is ReentrancyGuard {
         lpAddress = _lpAddress;
         factory = _factory;
         owner = msg.sender;
+        ++counter;
+        tokenLists[counter] = _collateral;
+        tokenListsId[_collateral] = counter;
     }
 
-    function swapToken(address _token, uint256 _amount) public {
+    modifier checkTokenList(address _token) {
         if (tokenListsId[_token] == 0) {
             ++counter;
             tokenLists[counter] = _token;
             tokenListsId[_token] = counter;
         }
-        tokenBalances[_token] += _amount;
-        emit SwapToken(msg.sender, _token, _amount);
-    }
-
-    function costSwapToken(address _token, uint256 _amount) public {
-        if (tokenListsId[_token] == 0) revert TokenNotFound();
-        tokenBalances[_token] -= _amount;
-        emit CostSwapToken(msg.sender, _token, _amount);
-    }
-
-    function getTokenCounter(address _token) public view returns (uint256) {
-        return tokenListsId[_token];
+        _;
     }
 
     function withdrawCollateral(uint256 amount, address _user) public {
@@ -71,6 +60,8 @@ contract Position is ReentrancyGuard {
 
     function swapTokenByPosition(address _tokenIn, address _tokenOut, uint256 amountIn)
         public
+        checkTokenList(_tokenIn)
+        checkTokenList(_tokenOut)
         returns (uint256 amountOut)
     {
         uint256 balances = IERC20(_tokenIn).balanceOf(address(this));
@@ -82,10 +73,8 @@ contract Position is ReentrancyGuard {
         address _tokenOutPrice = IFactory(factory).tokenDataStream(_tokenOut);
 
         amountOut = tokenCalculator(_tokenIn, _tokenOut, amountIn, _tokenInPrice, _tokenOutPrice);
-        if (_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
         ITokenSwap(_tokenIn).burn_mock(amountIn);
         ITokenSwap(_tokenOut).mint_mock(address(this), amountOut);
-        swapToken(_tokenOut, amountOut);
         emit SwapTokenByPosition(msg.sender, _tokenIn, _tokenOut, amountIn, amountOut);
     }
 
@@ -118,5 +107,20 @@ contract Position is ReentrancyGuard {
             (_amountIn * ((uint256(quotePrice) * (10 ** tokenOutDecimal)) / uint256(basePrice))) / 10 ** tokenInDecimal;
 
         return amountOut;
+    }
+
+    function tokenValue(address token) public view returns (uint256) {
+        uint256 tokenBalance = IERC20(token).balanceOf(address(this));
+        uint256 tokenDecimals = IERC20Metadata(token).decimals();
+
+        address tokenDataStream = IFactory(factory).tokenDataStream(token);
+
+        (, int256 tokenPrice,,,) = IChainLink(tokenDataStream).latestRoundData();
+
+        uint256 tokenAdjustedPrice = uint256(tokenPrice) * 1e18 / 1e8;
+        // balance token dikali harga token (yang sudah di convert ke 18 decimals) lalu dibagi dengan decimals token
+        uint256 value = (tokenBalance * tokenAdjustedPrice) / (10 ** tokenDecimals);
+
+        return value;
     }
 }

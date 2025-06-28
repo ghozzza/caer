@@ -45,6 +45,12 @@ contract CaerScript is Script {
     address public basicTokenSenderARBSEPOLIA = 0xf38E89B07eBFAe0fC59647D198Dd077267E8CA7E;
     address public basicTokenSenderBASESEPOLIA = 0x8751aF34d18d195DF87f7dF710662eD53d49222E;
 
+    address public deployed_Usdc = 0xC014F158EbADce5a8e31f634c0eb062Ce8CDaeFe;
+    address public deployed_Usdt = 0x1E713E704336094585c3e8228d5A8d82684e4Fb0;
+    address public deployed_Weth = 0x63CFd5c58332c38d89B231feDB5922f5817DF180;
+    address public deployed_Wbtc = 0xa7A93C5F0691a5582BAB12C0dE7081C499aECE7f;
+    address public deployed_Wavax = 0xA61Eb0D33B5d69DC0D0CE25058785796296b1FBd;
+
     function setUp() public {
         // vm.createSelectFork(vm.rpcUrl("rise_sepolia"));
         // vm.createSelectFork(vm.rpcUrl("op_sepolia"));
@@ -60,11 +66,11 @@ contract CaerScript is Script {
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(privateKey);
 
-        mockWETH = new MockWETH();
-        mockWBTC = new MockWBTC();
-        mockWAVAX = new MockWAVAX();
-        mockUSDC = new MockUSDC();
-        mockUSDT = new MockUSDT();
+        // mockWETH = new MockWETH();
+        // mockWBTC = new MockWBTC();
+        // mockWAVAX = new MockWAVAX();
+        // mockUSDC = new MockUSDC();
+        // mockUSDT = new MockUSDT();
 
         if (block.chainid == 43113) {
             isHealthy = new IsHealthy();
@@ -74,11 +80,11 @@ contract CaerScript is Script {
             position =
                 new Position(address(mockWETH), address(mockUSDC), address(lendingPool), address(lendingPoolFactory));
 
-            lendingPoolFactory.addTokenDataStream(address(mockWETH), AVAX_EthUsd);
-            lendingPoolFactory.addTokenDataStream(address(mockWBTC), AVAX_BtcUsd);
-            lendingPoolFactory.addTokenDataStream(address(mockWAVAX), AVAX_AvaxUsd);
-            lendingPoolFactory.addTokenDataStream(address(mockUSDC), AVAX_UsdcUsd);
-            lendingPoolFactory.addTokenDataStream(address(mockUSDT), AVAX_UsdtUsd);
+            lendingPoolFactory.addTokenDataStream(deployed_Weth, AVAX_EthUsd);
+            lendingPoolFactory.addTokenDataStream(deployed_Wbtc, AVAX_BtcUsd);
+            lendingPoolFactory.addTokenDataStream(deployed_Wavax, AVAX_AvaxUsd);
+            lendingPoolFactory.addTokenDataStream(deployed_Usdc, AVAX_UsdcUsd);
+            lendingPoolFactory.addTokenDataStream(deployed_Usdt, AVAX_UsdtUsd);
 
             lendingPoolFactory.addBasicTokenSender(11155111, basicTokenSenderETHSEPOLIA);
             lendingPoolFactory.addBasicTokenSender(43113, basicTokenSenderAVAXFUJI);
@@ -87,12 +93,15 @@ contract CaerScript is Script {
         }
         vm.stopBroadcast();
 
-        console.log("export const mockWeth = ", address(mockWETH));
-        console.log("export const mockWbtc = ", address(mockWBTC));
-        console.log("export const mockWavax = ", address(mockWAVAX));
-        console.log("export const mockUsdc = ", address(mockUSDC));
-        console.log("export const mockUsdt = ", address(mockUSDT));
+        // console.log("export const mockWeth = ", address(mockWETH));
+        // console.log("export const mockWbtc = ", address(mockWBTC));
+        // console.log("export const mockWavax = ", address(mockWAVAX));
+        // console.log("export const mockUsdc = ", address(mockUSDC));
+        // console.log("export const mockUsdt = ", address(mockUSDT));
         if (block.chainid == 43113) {
+            // is healthy
+            console.log("export const isHealthy = ", address(isHealthy));
+            console.log("export const lendingPoolDeployer = ", address(lendingPoolDeployer));
             console.log("export const factory = ", address(lendingPoolFactory));
             console.log("export const lendingPool = ", address(lendingPool));
             console.log("export const position = ", address(position));
@@ -100,5 +109,5 @@ contract CaerScript is Script {
     }
 
     // RUN
-    // forge script CaerScript -vvv --broadcast
+    // forge script CaerScript --broadcast --verify --verifier-url 'https://api.routescan.io/v2/network/testnet/evm/43113/etherscan'  --etherscan-api-key DG7K8I1UG76QJMKKFEQJJ8R7B7X2P81ZI7
 }
