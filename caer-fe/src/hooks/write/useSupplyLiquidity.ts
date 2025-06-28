@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { poolAbi } from "@/lib/abis/poolAbi";
-import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
-import { chains } from "@/constants/chain-address";
 import { tokens } from "@/constants/token-address";
+import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 
 const getTokenDecimals = (tokenAddress?: string): number => {
   if (!tokenAddress) return 6;
@@ -17,149 +16,104 @@ const getTokenDecimals = (tokenAddress?: string): number => {
   return token?.decimals ?? 6;
 };
 
-export const useSupply = (chainId: number, borrowToken?: string, lpAddress?: string) => {
-  const [isProcessing, setIsProcessing] = useState(false);
+export const useSupply = (borrowToken?: string, lpAddress?: string) => {
   const [error, setError] = useState<Error | null>(null);
-  const [currentStep, setCurrentStep] = useState<
-    "idle" | "approving" | "supplying"
-  >("idle");
-
-  const decimals = getTokenDecimals(borrowToken);
-
-  const {
-    data: approveHash,
-    isPending: isApprovePending,
-    writeContract: approveTransaction,
-    reset: resetApprove,
-  } = useWriteContract();
-
-  const {
-    data: supplyHash,
-    isPending: isSupplyPending,
-    writeContract: supplyTransaction,
-    reset: resetSupply,
-  } = useWriteContract();
-
-  const { isLoading: isApproveLoading, isSuccess: isApproveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveHash,
-    });
-
-  const { isLoading: isSupplyLoading, isSuccess: isSupplySuccess } =
-    useWaitForTransactionReceipt({
-      hash: supplyHash,
-    });
-
-  // Return the most relevant transaction hash based on current step
-  const txHash =
-    currentStep === "supplying" || supplyHash ? supplyHash : approveHash;
-
-  const calculateBigIntAmount = (amount: string) => {
-    return BigInt(Math.floor(Number(amount) * 10 ** decimals));
-  };
+  const { data: hash, isPending, writeContract, reset } = useWriteContract();
+  const { isLoading, isSuccess, isError } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   const supply = async (amount: string) => {
-    setIsProcessing(true);
     setError(null);
-    setCurrentStep("approving");
+    if (!lpAddress) {
+      setError(new Error("Missing pool address"));
+      return;
+    }
 
     if (!amount || isNaN(Number(amount))) {
       setError(new Error("Invalid supply amount"));
-      setIsProcessing(false);
-      setCurrentStep("idle");
       return;
     }
 
-    if (!lpAddress || !borrowToken) {
-      setError(new Error("Missing token or pool address"));
-      setIsProcessing(false);
-      setCurrentStep("idle");
-      return;
-    }
-
-    const supplyAmountBigInt = calculateBigIntAmount(amount);
+    const decimals = getTokenDecimals(borrowToken);
+    const amountBigInt = BigInt(Math.floor(Number(amount) * 10 ** decimals));
 
     try {
-      console.log("⏳ Sending approval transaction...");
-
-      // Step 1: Approve token
-      await approveTransaction({
-        abi: mockErc20Abi,
-        address: borrowToken as `0x${string}`,
-        functionName: "approve",
-        args: [lpAddress as `0x${string}`, supplyAmountBigInt],
-      });
-
-      console.log("✅ Approval transaction sent!");
-
-      // Wait for approval to complete before proceeding
-      // This will be handled by the component watching isApproveSuccess
-    } catch (err) {
-      console.error("❌ Approval failed:", err);
-      setError(
-        err instanceof Error
-          ? err
-          : new Error("Approval failed. Please try again.")
-      );
-      setCurrentStep("idle");
-      setIsProcessing(false);
-    }
-  };
-
-  // Auto-proceed to supply step when approval is successful
-  const proceedToSupply = async (amount: string) => {
-    if (!isApproveSuccess || !lpAddress) return;
-
-    setCurrentStep("supplying");
-    const supplyAmountBigInt = calculateBigIntAmount(amount);
-
-    try {
-      console.log("⏳ Sending supply transaction...");
-
-      await supplyTransaction({
+      await writeContract({
         abi: poolAbi,
         address: lpAddress as `0x${string}`,
         functionName: "supplyLiquidity",
-        args: [supplyAmountBigInt],
+        args: [amountBigInt],
       });
-
-      console.log("🚀 Supply transaction sent!");
     } catch (err) {
-      console.error("❌ Supply failed:", err);
       setError(
         err instanceof Error
           ? err
           : new Error("Supply failed. Please try again.")
       );
-      setCurrentStep("idle");
-    } finally {
-      setIsProcessing(false);
     }
-  };
-
-  const reset = () => {
-    setIsProcessing(false);
-    setError(null);
-    setCurrentStep("idle");
-    resetApprove();
-    resetSupply();
   };
 
   return {
     supply,
-    proceedToSupply, // New function to handle the second step
-    isApprovePending,
-    isSupplyPending,
-    isApproveLoading,
-    isSupplyLoading,
-    isProcessing,
-    isSuccess: isSupplySuccess, // Only consider successful when supply is complete
-    isApproveSuccess, // Expose approve success for step management
+    hash,
+    isPending,
+    isLoading,
+    isSuccess,
+    isError,
     error,
-    txHash, // Current relevant transaction hash
-    approveHash, // Specific approve transaction hash
-    supplyHash, // Specific supply transaction hash
-    currentStep, // Current step in the process
+    reset,
+  };
+};
+export const useApproveToken = (
+  tokenAddress?: string,
+  spenderAddress?: string
+) => {
+  const [error, setError] = useState<Error | null>(null);
+  const { data: hash, isPending, writeContract, reset } = useWriteContract();
+  const { isLoading, isSuccess, isError } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  const approve = async (amount: string) => {
+    setError(null);
+    if (!tokenAddress || !spenderAddress) {
+      setError(new Error("Missing token or spender address"));
+      return;
+    }
+
+    if (!amount || isNaN(Number(amount))) {
+      setError(new Error("Invalid approve amount"));
+      return;
+    }
+
+    const decimals = getTokenDecimals(tokenAddress);
+    const amountBigInt = BigInt(Math.floor(Number(amount) * 10 ** decimals));
+
+    try {
+      await writeContract({
+        abi: mockErc20Abi,
+        address: tokenAddress as `0x${string}`,
+        functionName: "approve",
+        args: [spenderAddress as `0x${string}`, amountBigInt],
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error("Approval failed. Please try again.")
+      );
+    }
+  };
+
+  return {
+    approve,
+    hash,
+    isPending,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
     reset,
   };
 };

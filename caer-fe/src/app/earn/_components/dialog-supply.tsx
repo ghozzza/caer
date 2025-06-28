@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useSupply } from "@/hooks/write/useSupplyLiquidity";
+import { useSupply, useApproveToken } from "@/hooks/write/useSupplyLiquidity";
 import { useBalance } from "@/hooks/useBalance";
 import { tokens } from "@/constants/token-address";
 import { chains } from "@/constants/chain-address";
@@ -44,7 +44,6 @@ const DialogSupply = ({
   const selectedToken = tokens.find(
     (t) => t.addresses[CHAIN_ID] === borrowToken
   );
-  const tokenName = selectedToken?.name ?? "Token";
   const tokenSymbol = selectedToken?.symbol ?? "";
   const decimals = selectedToken?.decimals ?? 18;
 
@@ -53,46 +52,62 @@ const DialogSupply = ({
     decimals
   );
 
+  // Approval hook
+  const {
+    approve,
+    hash: approveHash,
+    isPending: isApprovePending,
+    isLoading: isApproveLoading,
+    isSuccess: isApproveSuccess,
+    error: approveError,
+    reset: resetApprove,
+  } = useApproveToken(borrowToken, lpAddress);
+
+  // Supply hook
   const {
     supply,
-    proceedToSupply,
-    isApprovePending,
-    isSupplyPending,
-    isApproveLoading,
-    isSupplyLoading,
-    isProcessing,
-    isSuccess,
-    isApproveSuccess,
-    error,
-    txHash,
-    approveHash,
-    supplyHash,
-    currentStep,
-    reset,
-  } = useSupply(CHAIN_ID, borrowToken, lpAddress);
+    hash: supplyHash,
+    isPending: isSupplyPending,
+    isLoading: isSupplyLoading,
+    isSuccess: isSupplySuccess,
+    error: supplyError,
+    reset: resetSupply,
+  } = useSupply(borrowToken, lpAddress);
 
-  /* ── UI state ─────────────────────────────────────────────────────────── */
+  // Local state
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [inputError, setInputError] = useState("");
+  const [currentStep, setCurrentStep] = useState<
+    "idle" | "approving" | "supplying"
+  >("idle");
 
   const explorer = chains.find((c) => c.id === chainId)?.contracts
     .blockExplorer;
   const maxBalance = Number.parseFloat(userBalance) || 0;
 
   const isTransactionPending =
-    isApprovePending ||
-    isSupplyPending ||
-    isApproveLoading ||
-    isSupplyLoading ||
-    isProcessing;
+    isApprovePending || isSupplyPending || isApproveLoading || isSupplyLoading;
 
-  // Auto-proceed to supply step when approval is successful
+  // Update current step based on hook states
   useEffect(() => {
-    if (isApproveSuccess && currentStep === "approving" && amount) {
-      proceedToSupply(amount);
+    if (isApprovePending || isApproveLoading) {
+      setCurrentStep("approving");
+    } else if (isSupplyPending || isSupplyLoading) {
+      setCurrentStep("supplying");
+    } else if (isApproveSuccess || isSupplySuccess) {
+      // Keep current step until reset
+    } else {
+      setCurrentStep("idle");
     }
-  }, [isApproveSuccess, currentStep, amount, proceedToSupply]);
+  }, [
+    isApprovePending,
+    isApproveLoading,
+    isSupplyPending,
+    isSupplyLoading,
+    isApproveSuccess,
+    isSupplySuccess,
+  ]);
 
   const validateAmount = (value: string): string => {
     if (!value || value === "0") return "Amount is required";
@@ -115,7 +130,7 @@ const DialogSupply = ({
     setInputError(validateAmount(maxAmount));
   };
 
-  const handleSupply = () => {
+  const handleAction = () => {
     const error = validateAmount(amount);
     if (error) {
       setInputError(error);
@@ -123,42 +138,75 @@ const DialogSupply = ({
       return;
     }
 
-    supply(amount);
+    // If approval is successful, proceed to supply
+    if (isApproveSuccess && currentStep !== "supplying") {
+      supply(amount);
+    } else {
+      // Otherwise, start with approval
+      approve(amount);
+    }
   };
 
   const handleClose = () => {
     setIsOpen(false);
     setAmount("");
     setInputError("");
-    reset();
+    setCurrentStep("idle");
+    resetApprove();
+    resetSupply();
   };
 
-  const copyTxHash = () => {
-    if (txHash) {
-      navigator.clipboard.writeText(txHash);
-      toast.success("Transaction hash copied!");
-    }
+  const copyTxHash = (hash: string) => {
+    navigator.clipboard.writeText(hash);
+    toast.success("Transaction hash copied!");
   };
 
   // Handle success state
   useEffect(() => {
-    if (isSuccess) {
+    if (isSupplySuccess) {
       onSuccess?.();
       toast.success("Supply successful!");
     }
-  }, [isSuccess, onSuccess]);
+  }, [isSupplySuccess, onSuccess]);
 
   const isAmountValid = amount && !inputError && Number.parseFloat(amount) > 0;
 
-  const getLoadingMessage = () => {
+  // Determine if we should show the supply button
+  const shouldShowSupplyButton = isApproveSuccess && !isSupplySuccess;
+
+  const getButtonText = () => {
+    if (isTransactionPending) {
+      if (currentStep === "approving") {
+        return isApprovePending ? "Confirm Approval..." : "Approving Token...";
+      }
+      if (currentStep === "supplying") {
+        return isSupplyPending ? "Confirm Supply..." : "Supplying...";
+      }
+      return "Processing Transaction...";
+    }
+
+    if (shouldShowSupplyButton) {
+      return `Supply ${tokenSymbol}`;
+    }
+
+    return `Approve ${tokenSymbol}`;
+  };
+
+  const getStepBadge = () => {
     if (currentStep === "approving") {
-      return isApprovePending ? "Confirm Approval..." : "Approving Token...";
+      return "Step 1/2: Approving";
     }
     if (currentStep === "supplying") {
-      return isSupplyPending ? "Confirm Supply..." : "Supplying...";
+      return "Step 2/2: Supplying";
     }
-    return "Processing Transaction...";
+    if (isApproveSuccess && !isSupplySuccess) {
+      return "Step 1/2: Approved ✓";
+    }
+    return null;
   };
+
+  const currentError = approveError || supplyError;
+  const currentTxHash = currentStep === "approving" ? approveHash : supplyHash;
 
   return (
     <div>
@@ -183,13 +231,15 @@ const DialogSupply = ({
             <div className="flex items-center gap-2">
               <CreditCard className="h-6 w-6 text-blue-500" />
               <DialogTitle className="text-xl font-bold text-slate-800">
-                {isSuccess ? "Supply Successful!" : `Supply ${tokenSymbol}`}
+                {isSupplySuccess
+                  ? "Supply Successful!"
+                  : `Supply ${tokenSymbol}`}
               </DialogTitle>
             </div>
           </DialogHeader>
 
           {/* Success State */}
-          {isSuccess ? (
+          {isSupplySuccess ? (
             <div className="text-center space-y-4 py-6">
               <div className="flex justify-center">
                 <div className="rounded-full bg-green-100 p-3">
@@ -199,6 +249,7 @@ const DialogSupply = ({
               <p className="text-slate-600">
                 Your {amount} {tokenSymbol} has been supplied successfully.
               </p>
+
               {supplyHash && (
                 <Card className="border border-slate-200 bg-white shadow-sm">
                   <CardContent className="p-3">
@@ -219,10 +270,7 @@ const DialogSupply = ({
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => {
-                            navigator.clipboard.writeText(supplyHash);
-                            toast.success("Transaction hash copied!");
-                          }}
+                          onClick={() => copyTxHash(supplyHash)}
                           className="h-6 w-6 p-0"
                         >
                           <ClipboardCopy className="h-3 w-3" />
@@ -232,6 +280,7 @@ const DialogSupply = ({
                   </CardContent>
                 </Card>
               )}
+
               <Button
                 onClick={handleClose}
                 className="w-full h-12 text-base font-medium rounded-lg bg-gradient-to-r from-blue-500 to-indigo-400 hover:from-blue-600 hover:to-indigo-500 text-white shadow-md hover:shadow-lg"
@@ -249,14 +298,13 @@ const DialogSupply = ({
                       <h3 className="text-sm font-medium text-slate-700">
                         Supply Amount
                       </h3>
-                      {currentStep !== "idle" && (
+                      {getStepBadge() && (
                         <Badge variant="secondary" className="text-xs">
-                          {currentStep === "approving"
-                            ? "Step 1/2: Approving"
-                            : "Step 2/2: Supplying"}
+                          {getStepBadge()}
                         </Badge>
                       )}
                     </div>
+
                     <div className="flex items-center space-x-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
                       <Input
                         placeholder={`Enter amount of ${tokenSymbol}`}
@@ -296,20 +344,37 @@ const DialogSupply = ({
                   </CardContent>
                 </Card>
 
+                {/* Approval Success Message */}
+                {shouldShowSupplyButton && (
+                  <Card className="border border-green-200 bg-green-50 shadow-sm">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 text-sm text-green-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>
+                          Token approval successful! You can now supply your{" "}
+                          {tokenSymbol}.
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Error Display */}
-                {error && (
+                {currentError && (
                   <Card className="border border-red-200 bg-red-50 shadow-sm">
                     <CardContent className="p-3">
                       <div className="flex items-center gap-2 text-sm text-red-600">
                         <AlertCircle className="h-4 w-4" />
-                        <span>{error.message || "Supply failed"}</span>
+                        <span>
+                          {currentError.message || "Transaction failed"}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
                 )}
 
                 {/* Transaction Hash */}
-                {txHash && !isSuccess && (
+                {currentTxHash && !isSupplySuccess && (
                   <Card className="border border-slate-200 bg-white shadow-sm">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between text-sm">
@@ -320,18 +385,19 @@ const DialogSupply = ({
                         </span>
                         <div className="flex items-center gap-2">
                           <a
-                            href={`${explorer}/tx/${txHash}`}
+                            href={`${explorer}/tx/${currentTxHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-500 hover:underline flex items-center gap-1"
                           >
-                            {txHash.slice(0, 6)}...{txHash.slice(-4)}
+                            {currentTxHash.slice(0, 6)}...
+                            {currentTxHash.slice(-4)}
                             <ExternalLink className="h-3 w-3" />
                           </a>
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={copyTxHash}
+                            onClick={() => copyTxHash(currentTxHash)}
                             className="h-6 w-6 p-0"
                           >
                             <ClipboardCopy className="h-3 w-3" />
@@ -345,21 +411,23 @@ const DialogSupply = ({
 
               <DialogFooter>
                 <Button
-                  onClick={handleSupply}
+                  onClick={handleAction}
                   disabled={!isAmountValid || isTransactionPending}
                   className={`w-full h-12 text-base font-medium rounded-lg ${
                     !isAmountValid || isTransactionPending
                       ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                      : shouldShowSupplyButton
+                      ? "bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500 text-white shadow-md hover:shadow-lg"
                       : "bg-gradient-to-r from-blue-500 to-indigo-400 hover:from-blue-600 hover:to-indigo-500 text-white shadow-md hover:shadow-lg"
                   }`}
                 >
                   {isTransactionPending ? (
                     <div className="flex items-center justify-center">
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      <span>{getLoadingMessage()}</span>
+                      <span>{getButtonText()}</span>
                     </div>
                   ) : (
-                    <span>Supply {tokenSymbol}</span>
+                    <span>{getButtonText()}</span>
                   )}
                 </Button>
               </DialogFooter>
