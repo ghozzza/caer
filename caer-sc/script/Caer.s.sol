@@ -100,5 +100,5 @@ contract CaerScript is Script {
     }
 
     // RUN
-    // forge script CaerScript -vvv --broadcast
+    // forge script CaerScript --broadcast --verify --verifier-url 'https://api.routescan.io/v2/network/testnet/evm/43113/etherscan'  --etherscan-api-key DG7K8I1UG76QJMKKFEQJJ8R7B7X2P81ZI7
 }
