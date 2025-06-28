@@ -1,4 +1,3 @@
-// File: components/BorrowInputForm.tsx
 "use client";
 
 import { Input } from "@/components/ui/input";

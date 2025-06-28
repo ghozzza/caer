@@ -10,7 +10,7 @@ export const useBalance = (tokenAddress: Address, decimals: number) => {
   const { address } = useAccount();
   const [balance, setBalance] = useState("0");
 
-  const { data, isLoading } = useReadContract({
+  const { data, isLoading, refetch } = useReadContract({
     abi: erc20Abi,
     address: tokenAddress,
     functionName: "balanceOf",
@@ -19,11 +19,20 @@ export const useBalance = (tokenAddress: Address, decimals: number) => {
 
   useEffect(() => {
     if (data) {
-      const formattedBalance = parseFloat(formatUnits(data as bigint, decimals))
-        .toFixed(decimals === 6 ? 2 : 4);
+      const formattedBalance = parseFloat(
+        formatUnits(data as bigint, decimals)
+      ).toFixed(decimals === 6 ? 2 : 4);
       setBalance(formattedBalance);
     }
   }, [data, decimals]);
+
+  // Refetch setiap 3 detik
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   return {
     balance,
