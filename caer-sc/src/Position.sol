@@ -12,7 +12,6 @@ import {IFactory} from "./interfaces/IFactory.sol";
 contract Position is ReentrancyGuard {
     using SafeERC20 for IERC20; // fungsi dari IERC20 akan ketambahan SafeERC20
 
-    error TokenNotFound();
     error InsufficientBalance();
     error ZeroAmount();
     error NotForWithdraw();
@@ -27,11 +26,9 @@ contract Position is ReentrancyGuard {
 
     mapping(uint256 => address) public tokenLists;
     mapping(address => uint256) public tokenListsId;
-    mapping(address => uint256) public tokenBalances;
 
     event Liquidate(address user);
     event SwapToken(address user, address token, uint256 amount);
-    event CostSwapToken(address user, address token, uint256 amount);
     event SwapTokenByPosition(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
     event WithdrawCollateral(address indexed user, uint256 amount);
 
@@ -49,18 +46,7 @@ contract Position is ReentrancyGuard {
             tokenLists[counter] = _token;
             tokenListsId[_token] = counter;
         }
-        tokenBalances[_token] += _amount;
         emit SwapToken(msg.sender, _token, _amount);
-    }
-
-    function costSwapToken(address _token, uint256 _amount) public {
-        if (tokenListsId[_token] == 0) revert TokenNotFound();
-        tokenBalances[_token] -= _amount;
-        emit CostSwapToken(msg.sender, _token, _amount);
-    }
-
-    function getTokenCounter(address _token) public view returns (uint256) {
-        return tokenListsId[_token];
     }
 
     function withdrawCollateral(uint256 amount, address _user) public {
@@ -82,7 +68,6 @@ contract Position is ReentrancyGuard {
         address _tokenOutPrice = IFactory(factory).tokenDataStream(_tokenOut);
 
         amountOut = tokenCalculator(_tokenIn, _tokenOut, amountIn, _tokenInPrice, _tokenOutPrice);
-        if (_tokenIn != collateralAssets) costSwapToken(_tokenIn, amountIn);
         ITokenSwap(_tokenIn).burn_mock(amountIn);
         ITokenSwap(_tokenOut).mint_mock(address(this), amountOut);
         swapToken(_tokenOut, amountOut);

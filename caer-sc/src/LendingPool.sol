@@ -10,7 +10,7 @@ import {IPosition} from "./interfaces/IPosition.sol";
 import {IBasicTokenSender} from "./interfaces/IBasicTokenSender.sol";
 import {Helper} from "./Helper.sol";
 import {Client} from "@chainlink-ccip/chains/evm/contracts/libraries/Client.sol";
-// import {IIsHealthy} from "./interfaces/IIsHealthy.sol";
+import {IIsHealthy} from "./interfaces/IIsHealthy.sol";
 
 contract LendingPool is ReentrancyGuard, Helper {
     using SafeERC20 for IERC20;
@@ -49,6 +49,13 @@ contract LendingPool is ReentrancyGuard, Helper {
 
     uint256 public lastAccrued;
     uint256 public ltv;
+
+    constructor(address _collateralToken, address _borrowToken, address _factory, uint256 _ltv) {
+        collateralToken = _collateralToken;
+        borrowToken = _borrowToken;
+        factory = _factory;
+        ltv = _ltv;
+    }
 
     modifier positionRequired() {
         if (addressPositions[msg.sender] == address(0)) {
@@ -198,19 +205,20 @@ contract LendingPool is ReentrancyGuard, Helper {
         totalBorrowShares += shares;
         totalBorrowAssets += amount;
         // TODO: uncomment this when we have a way to get the price of the collateral token and position token
-        // IIsHealthy(IFactory(factory).isHealthy())._isHealthy(
-        //     collateralToken,
-        //     borrowToken,
-        //     factory,
-        //     ltv,
-        //     totalBorrowAssets,
-        //     totalBorrowShares,
-        //     userBorrowShares[msg.sender],
-        //     addressPositions[msg.sender]
-        // );
         if (totalBorrowAssets > totalSupplyAssets) {
             revert InsufficientLiquidity();
         }
+        IIsHealthy(IFactory(factory).isHealthy())._isHealthy(
+            collateralToken,
+            borrowToken,
+            factory,
+            ltv,
+            totalBorrowAssets,
+            totalBorrowShares,
+            amount,
+            userBorrowShares[msg.sender],
+            addressPositions[msg.sender]
+        );
         if (destination != SupportedNetworks.AVALANCHE_FUJI) {
             address basicTokenSenderAddress = IFactory(factory).basicTokenSender(_chainId);
             IERC20(borrowToken).approve(basicTokenSenderAddress, amount);
@@ -274,7 +282,7 @@ contract LendingPool is ReentrancyGuard, Helper {
         returns (uint256 amountOut)
     {
         if (amountIn == 0) revert ZeroAmount();
-        if (_tokenFrom != collateralToken && IPosition(addressPositions[msg.sender]).getTokenCounter(_tokenFrom) == 0) {
+        if (_tokenFrom != collateralToken && IPosition(addressPositions[msg.sender]).tokenListsId(_tokenFrom) == 0) {
             revert TokenNotAvailable();
         }
         _accrueInterest();
