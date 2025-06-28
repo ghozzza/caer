@@ -44,7 +44,7 @@ export default function CrossChainProcess() {
       title: "Multi-Chain Support",
       description: "Support for Ethereum, Arbitrum, Base, Optimism, and more",
       icon: Globe,
-      chains: ["/chain/base.png", "/chain/arbitrum.png", "/chain/optimism.png", "/eth2.jpg"]
+      chains: ["/chain/base.png", "/chain/arbitrum.png", "/optimism.jpg", "/eth2.jpg"]
     },
     {
       title: "Instant Settlements",

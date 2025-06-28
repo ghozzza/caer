@@ -176,7 +176,7 @@ export default function imateBackground() {
     return [
       // Top row - distributed like Chainlink layout
       {
-        image: "/chain/bsc.png",
+        image: "/bnb.png",
         x: width * 0.15,
         y: height * 0.12,
         bg: "bg-white",
@@ -196,7 +196,7 @@ export default function imateBackground() {
       },
       // Base top-right
       {
-        image: "/base-logo.png",
+        image: "/chain/base.png",
         x: width * 0.85,
         y: height * 0.12,
         bg: "bg-white",
@@ -207,7 +207,7 @@ export default function imateBackground() {
       
       // Left side
       {
-        image: "/usdc.png",
+        image: "/token/usdc.png",
         x: width * 0.08,
         y: height * 0.35,
         bg: "bg-white",
@@ -229,7 +229,7 @@ export default function imateBackground() {
       
       // Center area - larger elements
       {
-        image: "/arbitrum-arb-logo.png",
+        image: "/chain/arbitrum.png",
         x: width * 0.75,
         y: height * 0.35,
         bg: "bg-white",
@@ -251,7 +251,7 @@ export default function imateBackground() {
       
       // Bottom distributed
       {
-        image: "/usdt.png",
+        image: "/token/usdt.png",
         x: width * 0.15,
         y: height * 0.8,
         bg: "bg-white",
@@ -260,7 +260,7 @@ export default function imateBackground() {
         border: true,
       },
       {
-        image: "/chain/optimism.png",
+        image: "/optimism.jpg",
         x: width * 0.65,
         y: height * 0.75,
         bg: "bg-white",
@@ -352,15 +352,12 @@ export default function imateBackground() {
       <div className="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Cross-Chain Lending and Borrowing by
+            The first Permissionless Lending Protocol Powered by
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
               {" "}
-              CAER
+              Chainlink CCIP
             </span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            The First Lending and Borrowing Platform Integrated With CCIP
-          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
               Get Started
