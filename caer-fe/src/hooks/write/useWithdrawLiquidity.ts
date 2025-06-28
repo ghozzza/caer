@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Address, Hash } from "viem";
 import {
   useAccount,
@@ -11,13 +11,13 @@ import { toast } from "sonner";
 
 interface WithdrawArgs {
   amount: bigint;
-  onSuccess?: () => void;
+  onBroadcast?: (txHash: Hash) => void;
 }
 
 export function useWithdrawLiquidity() {
   const { chain } = useAccount();
   const lendingPoolAddress = chain?.id
-    ? getLendingPoolAddress(chain.id)
+    ? (getLendingPoolAddress(chain.id) as Address)
     : undefined;
 
   const [txHash, setTxHash] = useState<Hash | undefined>();
@@ -36,49 +36,66 @@ export function useWithdrawLiquidity() {
     isSuccess: isReceiptSuccess,
     isError: isReceiptError,
     error: receiptError,
-  } = useWaitForTransactionReceipt({
-    hash: txHash,
-  });
+  } = useWaitForTransactionReceipt({ hash: txHash });
 
+  // Tangkap txHash dari data write
   useEffect(() => {
-    if (writeData) setTxHash(writeData);
+    if (writeData) {
+      setTxHash(writeData as Hash); // ✅ cast jika perlu
+      toast.info(
+        `Transaction submitted. Hash: ${String(writeData).slice(0, 10)}...`,
+        { duration: 7000 }
+      );
+    }
   }, [writeData]);
 
+  // Tampilkan status sukses atau gagal
   useEffect(() => {
-    if (isReceiptSuccess) toast.success("Withdrawal confirmed! ✅");
-    if (isReceiptError) toast.error("Transaction reverted ❌");
+    if (isReceiptSuccess) {
+      toast.success("Withdrawal confirmed on-chain ✅");
+    }
+    if (isReceiptError) {
+      toast.error("Transaction reverted ❌");
+    }
   }, [isReceiptSuccess, isReceiptError]);
 
   const withdraw = useCallback(
-    async ({ amount, onSuccess }: WithdrawArgs) => {
+    ({ amount, onBroadcast }: WithdrawArgs) => {
       if (!lendingPoolAddress) {
         toast.error("Lending pool address unavailable on this network");
         return;
       }
+
       if (amount <= BigInt(0)) {
         toast.error("Amount must be greater than zero");
         return;
       }
 
       try {
-        await writeContract({
-          address: lendingPoolAddress as Address,
+        writeContract({
+          address: lendingPoolAddress,
           abi: poolAbi,
           functionName: "withdrawLiquidity",
           args: [amount],
         });
 
-        toast.info("Transaction submitted; awaiting confirmation…");
-        onSuccess?.();
+        // txHash baru akan muncul lewat useEffect writeData
+        // Callback jika dibutuhkan
+        if (onBroadcast && writeData) {
+          onBroadcast(writeData as Hash);
+        }
       } catch (err) {
-        console.error("Withdrawal error:", err);
+        console.error("Withdraw error:", err);
         toast.error(
-          err instanceof Error ? err.message : "Failed to send transaction"
+          err instanceof Error
+            ? err.message
+            : "Failed to send withdraw transaction"
         );
       }
     },
-    [lendingPoolAddress, writeContract]
+    [lendingPoolAddress, writeContract, writeData]
   );
+
   const reset = () => {
     resetWrite();
     setTxHash(undefined);
@@ -88,11 +105,11 @@ export function useWithdrawLiquidity() {
     withdraw,
     reset,
     txHash,
-    isPending: isWritePending,
-    isLoading: isReceiptLoading,
-    isSuccess: isReceiptSuccess,
-    isError: isReceiptError,
-    error: writeError ?? receiptError ?? undefined,
+    isWritePending,
+    isReceiptLoading,
+    isReceiptSuccess,
+    isReceiptError,
     receipt,
+    error: writeError ?? receiptError ?? undefined,
   };
 }

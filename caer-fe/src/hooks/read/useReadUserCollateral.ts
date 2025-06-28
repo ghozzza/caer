@@ -3,6 +3,7 @@ import { tokens } from "@/constants/token-address";
 import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 import { poolAbi } from "@/lib/abis/poolAbi";
 import { useAccount, useReadContract } from "wagmi";
+import { useEffect } from "react";
 
 export const useReadUserCollateral = () => {
   const { address, chainId } = useAccount();
@@ -16,6 +17,7 @@ export const useReadUserCollateral = () => {
     data: userPostitionAddress,
     isLoading: positionLoading,
     error: positionError,
+    refetch: refetchPosition,
   } = useReadContract({
     address: lendingPoolAddress as `0x${string}`,
     abi: poolAbi,
@@ -30,6 +32,7 @@ export const useReadUserCollateral = () => {
     data: userCollateral,
     isLoading: collateralLoading,
     error: collateralError,
+    refetch: refetchCollateral,
   } = useReadContract({
     address: wethAddress as `0x${string}`,
     abi: mockErc20Abi,
@@ -39,6 +42,14 @@ export const useReadUserCollateral = () => {
       enabled: !!userPostitionAddress && !!wethAddress,
     },
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchPosition();
+      refetchCollateral();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [refetchPosition, refetchCollateral]);
 
   return {
     userPostitionAddress,
