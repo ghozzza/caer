@@ -6,7 +6,6 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { poolAbi } from "@/lib/abis/poolAbi";
-import { getLendingPoolAddress } from "@/lib/util/get-lending-pool";
 import { toast } from "sonner";
 
 interface WithdrawArgs {
@@ -14,11 +13,7 @@ interface WithdrawArgs {
   onBroadcast?: (txHash: Hash) => void;
 }
 
-export function useWithdrawLiquidity() {
-  const { chain } = useAccount();
-  const lendingPoolAddress = chain?.id
-    ? (getLendingPoolAddress(chain.id) as Address)
-    : undefined;
+export function useWithdrawLiquidity(lpAddress?: string) {
 
   const [txHash, setTxHash] = useState<Hash | undefined>();
 
@@ -61,7 +56,7 @@ export function useWithdrawLiquidity() {
 
   const withdraw = useCallback(
     ({ amount, onBroadcast }: WithdrawArgs) => {
-      if (!lendingPoolAddress) {
+      if (!lpAddress) {
         toast.error("Lending pool address unavailable on this network");
         return;
       }
@@ -73,7 +68,7 @@ export function useWithdrawLiquidity() {
 
       try {
         writeContract({
-          address: lendingPoolAddress,
+          address: lpAddress as `0x${string}`,
           abi: poolAbi,
           functionName: "withdrawLiquidity",
           args: [amount],
@@ -93,7 +88,7 @@ export function useWithdrawLiquidity() {
         );
       }
     },
-    [lendingPoolAddress, writeContract, writeData]
+    [lpAddress, writeContract, writeData]
   );
 
   const reset = () => {

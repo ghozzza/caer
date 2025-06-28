@@ -2,17 +2,17 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
 import { toast } from "sonner";
 import { poolAbi } from "@/lib/abis/poolAbi";
-import { chains } from "@/constants/chain-address";
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
+import { chains } from "@/constants/chain-address";
 
 export function useBorrow(
-  _chainId: number, 
-  destination: number,
-  amount: string
+  destinationChainId: number,
+  amount: string,
+  lpAddress: string,
+  decimal: number
 ) {
   const { address } = useAccount();
-  const lendingPool = chains.find((c) => c.id === 43113)?.contracts.lendingPool;
   const fixedChainId = 43113;
 
   const {
@@ -38,8 +38,9 @@ export function useBorrow(
         toast.error("Please enter a valid borrow amount");
         return;
       }
-      const decimal = 6;
       const parsedAmount = parseUnits(amount, decimal);
+
+      const destination = chains.find((c) => c.id === destinationChainId)?.destination;
 
       console.log("Borrow Transaction Data:");
       console.log("User Address:", address);
@@ -48,10 +49,10 @@ export function useBorrow(
       console.log("Destination:", destination);
 
       await borrowTransaction({
-        address: lendingPool as `0x${string}`,
+        address: lpAddress as `0x${string}`,
         abi: poolAbi,
         functionName: "borrowDebt",
-        args: [parsedAmount, BigInt(fixedChainId), destination],
+        args: [parsedAmount, BigInt(fixedChainId), Number(destination)],
       });
 
       toast.info("Transaction sent, waiting for confirmation...");

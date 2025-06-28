@@ -20,6 +20,7 @@ import WithdrawCollateralSection from "./withdraw-collateral-section";
 import BorrowSection from "./borrow-section";
 import { RepaySection } from "./repay-section";
 import ButtonConnectWallet from "@/components/navbar/button-connect-wallet";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface PoolDialogProps {
   isOpen?: boolean;
@@ -72,6 +73,9 @@ const PoolDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogDescription className="hidden">
+        ini desc
+      </DialogDescription>
       <DialogContent className="sm:max-w-md bg-gradient-to-b from-white to-slate-50 border-0 shadow-xl rounded-xl backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}

@@ -2,16 +2,24 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ArrowRightLeft, ChevronDown } from "lucide-react";
+import { ArrowRight, ArrowRightLeft, ChevronDown } from "lucide-react";
 import type { Chain } from "@/types/type";
 import ChainSelector from "@/components/chain-selector";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { chains } from "@/constants/chain-address";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
-  fromChain: Chain;
-  toChain: Chain;
-  setFromChain: (chain: Chain) => void;
-  setToChain: (chain: Chain) => void;
+  fromChain: number;
+  toChain: number;
+  setFromChain: (chain: number) => void;
+  setToChain: (chain: number) => void;
 }
 
 export default function ChainSelectorButton({
@@ -25,6 +33,9 @@ export default function ChainSelectorButton({
     "to"
   );
 
+  const fromChainDetail = chains.find((chain) => chain.id === fromChain);
+  const toChainDetail = chains.find((chain) => chain.id === toChain);
+
   const handleSwapChains = () => {
     setFromChain(toChain);
     setToChain(fromChain);
@@ -35,61 +46,83 @@ export default function ChainSelectorButton({
     setIsChainSelectorOpen(true);
   };
 
-  const handleChainSelect = (chain: Chain) => {
+  const handleChainSelect = (chain: string) => {
     if (activeSelectorType === "from") {
-      setFromChain(chain);
+      setFromChain(Number(chain));
     } else {
-      setToChain(chain);
+      setToChain(Number(chain));
     }
     setIsChainSelectorOpen(false);
   };
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div className="w-fit">
-          <p className="text-sm text-gray-600 mb-2">From</p>
-          <button
-            className="w-full flex items-center border rounded-lg p-3 bg-white cursor-pointer"
-            disabled
-          >
+      <div className="grid grid-cols-7 items-center justify-between gap-2">
+        <div className="w-full col-span-3">
+          <p className="text-sm text-gray-600 mb-">From</p>
+          <div className="w-full flex items-center rounded-lg p-3 bg-white border border-gray-200">
             <Image
-              src={fromChain.logoUrl || "/placeholder.svg"}
-              alt={fromChain.name}
+              src={fromChainDetail?.logo || "/placeholder.svg"}
+              alt={fromChainDetail?.name || "Chain"}
               width={24}
               height={24}
               className="mr-2 rounded-full"
             />
-            <span className="font-medium">{fromChain.name}</span>
-          </button>
+            <span className="font-medium truncate">
+              {fromChainDetail?.name}
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-center">
-          <button
-            className="bg-gray-100 p-2 rounded-full mt-7 hover:bg-gray-200 transition-colors cursor-pointer"
+          <div
+            className="bg-gray-100 p-2 mt-6 rounded-full transition-colors flex items-center justify-center"
             onClick={handleSwapChains}
             aria-label="Swap chains"
           >
-            <ArrowRightLeft className="h-5 w-5 text-gray-600" />
-          </button>
+            <ArrowRight className="size-5 text-gray-600" />
+          </div>
         </div>
-        <div className="w-fit">
-          <p className="text-sm text-gray-600 mb-2">To</p>
-          <button
-            className="w-full flex items-center border rounded-lg p-3 bg-white cursor-pointer"
-            onClick={() => handleOpenChainSelector("to")}
+        <div className="w-full col-span-3">
+          <p className="text-sm text-gray-600">To</p>
+          <Select
+            onValueChange={handleChainSelect}
+            defaultValue={toChain.toString()}
           >
-            <div className="flex items-center">
-              <Image
-                src={toChain.logoUrl || "/placeholder.svg"}
-                alt={toChain.name}
-                width={24}
-                height={24}
-                className="mr-2 rounded-full"
-              />
-              <span className="font-medium">{toChain.name}</span>
-            </div>
-            <ChevronDown className="h-4 w-4 text-gray-500" />
-          </button>
+            <SelectTrigger className="py-6 border border-gray-200 cursor-pointer min-w-full">
+              <SelectValue placeholder="Select a chain">
+                {toChainDetail && (
+                  <div className="flex items-center">
+                    <Image
+                      src={toChainDetail.logo || "/placeholder.svg"}
+                      alt={toChainDetail.name}
+                      width={24}
+                      height={24}
+                      className="mr-2 rounded-full"
+                    />
+                    <span className="font-medium truncate">
+                      {toChainDetail.name}
+                    </span>
+                  </div>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {chains.map((chain) => (
+                <SelectItem key={chain.id} value={chain.id.toString()}>
+                  <div className="flex items-center">
+                    <Image
+                      src={chain.logo || "/placeholder.svg"}
+                      alt={chain.name}
+                      width={24}
+                      height={24}
+                      className="mr-2 rounded-full"
+                    />
+                    <span className="font-medium">{chain.name}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -98,11 +131,11 @@ export default function ChainSelectorButton({
           <DialogTitle className="sr-only">
             Select Destination Chain
           </DialogTitle>
-          <ChainSelector
+          {/* <ChainSelector
             onSelect={handleChainSelect}
             onClose={() => setIsChainSelectorOpen(false)}
             selectorType={activeSelectorType}
-          />
+          /> */}
         </DialogContent>
       </Dialog>
     </>

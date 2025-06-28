@@ -68,6 +68,13 @@ export interface Chain {
   };
 }
 
+export interface DestinationChain {
+  id: number;
+  name: string;
+  logo: string;
+  destination: number;
+}
+
 export interface Token {
   name: string;
   symbol: string;
@@ -77,9 +84,6 @@ export interface Token {
     [chainId: number]: Address;
   };
 }
-
-
-
 
 interface TransactionHandlerProps {
   amount: string;
@@ -109,3 +113,18 @@ export {
   BorrowingDialogProps,
   TokenOption,
 };
+
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: any }) => Promise<any>;
+      on: (event: string, callback: (...args: any[]) => void) => void;
+      removeListener: (event: string, callback: (...args: any[]) => void) => void;
+      isMetaMask?: boolean;
+      selectedAddress?: string;
+      chainId?: string;
+    };
+  }
+}
+
+export {};

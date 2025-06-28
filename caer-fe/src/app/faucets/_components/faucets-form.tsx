@@ -13,11 +13,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { useFaucet } from "@/hooks/write/useClaimFaucet";
-import { Loader2, ExternalLink, Copy } from "lucide-react";
+import { Loader2, ExternalLink, Copy, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { useAccount } from "wagmi";
+import Image from "next/image";
 
 const FaucetsCardForm = () => {
   const currentChainId = 43113;
+
+  //fetch chain id from wallet
+  const { chainId } = useAccount();
 
   const {
     selectedTokenAddress,
@@ -30,6 +35,7 @@ const FaucetsCardForm = () => {
     setAmount,
     handleClaim,
     copyTokenAddress,
+    addTokenToWallet,
     isSuccess,
     isError,
   } = useFaucet(currentChainId);
@@ -52,6 +58,22 @@ const FaucetsCardForm = () => {
       return <Loader2 className="w-4 h-4 animate-spin mr-2" />;
     }
     return null;
+  };
+
+  const execAddTokenToWallet = () => {
+    if (Number(chainId) == currentChainId) {
+      addTokenToWallet();
+    } else {
+      toast.error("Please switch to the Avalanche Fuji network");
+    }
+  };
+
+  const execCopyTokenAddress = () => {
+    if (Number(chainId) == currentChainId) {
+      copyTokenAddress();
+    } else {
+      toast.error("Please switch to the Avalanche Fuji network");
+    }
   };
 
   return (
@@ -82,8 +104,8 @@ const FaucetsCardForm = () => {
                     value={token.address}
                   >
                     <div className="flex items-center gap-2">
+                      <Image src={token.logo} alt={token.name} width={20} height={20} />
                       <span>{token.name}</span>
-                      <span className="text-xs opacity-60">({token.symbol})</span>
                     </div>
                   </SelectItem>
                 </motion.div>
@@ -184,10 +206,18 @@ const FaucetsCardForm = () => {
               {selectedTokenAddress}
             </code>
             <button
-              onClick={copyTokenAddress}
-              className="text-[#141beb] hover:text-[#141beb]/80 transition-colors"
+              onClick={execCopyTokenAddress}
+              className="text-[#141beb] hover:text-[#141beb]/80 transition-colors cursor-pointer"
+              title="Copy token address"
             >
               <Copy className="w-3 h-3" />
+            </button>
+            <button
+              onClick={execAddTokenToWallet}
+              className="text-[#141beb] hover:text-[#141beb]/80 transition-colors cursor-pointer"
+              title="Add token to wallet automatically"
+            >
+              <Wallet className="w-3 h-3" />
             </button>
           </div>
         </div>

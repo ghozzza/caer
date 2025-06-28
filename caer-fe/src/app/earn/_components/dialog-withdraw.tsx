@@ -28,7 +28,13 @@ import { useReadUserShares } from "@/hooks/read/useReadUserShares";
 import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
 import { chains } from "@/constants/chain-address";
 
-export default function DialogWithdraw() {
+export default function DialogWithdraw({
+  lpAddress,
+  onSuccess,
+}: {
+  lpAddress?: string;
+  onSuccess?: () => void;
+}) {
   const { address, chainId } = useAccount();
   const { userSupplySharesAmountParsed, sharesLoading, sharesError } =
     useReadUserShares();
@@ -40,7 +46,7 @@ export default function DialogWithdraw() {
     isReceiptSuccess,
     error: withdrawError,
     reset,
-  } = useWithdrawLiquidity();
+  } = useWithdrawLiquidity(lpAddress);
 
   /* ── UI state ─────────────────────────────────────────────────────────── */
   const [isOpen, setIsOpen] = useState(false);

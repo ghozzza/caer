@@ -27,8 +27,6 @@ interface CollateralSectionProps {
   lpAddress: string;
   setLpAddress: (value: string) => void;
   lpData: LpData[];
-  setDynamicUserCollateral: (value: number) => void;
-  setDynamicUserBorrow: (value: number) => void;
 }
 
 // Default chain ID (ubah jika multi-chain)
@@ -38,20 +36,10 @@ const CollateralSection = ({
   lpAddress,
   setLpAddress,
   lpData,
-  setDynamicUserCollateral,
-  setDynamicUserBorrow,
 }: CollateralSectionProps) => {
-  const { dynamicUserCollateral, dynamicUserBorrow, refetchAll } =
-    useReadLendingData(undefined, undefined, lpAddress as `0x${string}`);
-
-  useEffect(() => {
-    setDynamicUserCollateral(Number(dynamicUserCollateral));
-    setDynamicUserBorrow(Number(dynamicUserBorrow));
-  }, [dynamicUserCollateral, dynamicUserBorrow]);
 
   const handleLpChange = (value: string) => {
     setLpAddress(value);
-    refetchAll();
   };
 
   return (
