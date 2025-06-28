@@ -1,4 +1,3 @@
-// File: components/TokenChainSelector.tsx
 "use client";
 
 import { useState } from "react";
