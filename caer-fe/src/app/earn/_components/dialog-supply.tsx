@@ -24,9 +24,11 @@ import { tokens } from "@/constants/token-address";
 const DialogSupply = ({
   borrowToken,
   onSuccess,
+  lpAddress,
 }: {
   borrowToken?: string;
   onSuccess?: () => void;
+  lpAddress?: string;
 }) => {
   const CHAIN_ID = 43113;
   const { address } = useAccount();
@@ -53,7 +55,7 @@ const DialogSupply = ({
     isProcessing,
     isSuccess,
     error,
-  } = useSupply(CHAIN_ID, borrowToken);
+  } = useSupply(CHAIN_ID, borrowToken, lpAddress);
 
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");

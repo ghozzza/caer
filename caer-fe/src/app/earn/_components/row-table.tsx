@@ -27,6 +27,7 @@ const RowTable = ({
   const { supplyLiquidity } = useReadSupplyLiquidity({
     tokenAddress: borrowToken,
     chainId: TARGET_CHAIN_ID,
+    lpAddress: lpAddress,
   });
 
   const handleSupplySuccess = () => {};
@@ -82,6 +83,7 @@ const RowTable = ({
           <DialogSupply
             borrowToken={borrowToken}
             onSuccess={handleSupplySuccess}
+            lpAddress={lpAddress}
           />
           <DialogWithdraw
             lpAddress={lpAddress}

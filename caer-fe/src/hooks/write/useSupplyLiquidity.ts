@@ -15,17 +15,11 @@ const getTokenDecimals = (tokenAddress?: string): number => {
   return token?.decimals ?? 6;
 };
 
-const getLendingPoolAddress = (chainId: number): `0x${string}` | undefined => {
-  const chain = chains.find((c) => c.id === chainId);
-  return chain?.contracts.lendingPool as `0x${string}` | undefined;
-};
-
-export const useSupply = (chainId: number, borrowToken?: string) => {
+export const useSupply = (chainId: number, borrowToken?: string, lpAddress?: string) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const decimals = getTokenDecimals(borrowToken);
-  const lendingPool = getLendingPoolAddress(chainId);
 
   const {
     data: approveHash,
@@ -62,7 +56,7 @@ export const useSupply = (chainId: number, borrowToken?: string) => {
       return;
     }
 
-    if (!lendingPool || !borrowToken) {
+    if (!lpAddress || !borrowToken) {
       setError("Missing token or pool address");
       setIsProcessing(false);
       return;
@@ -76,13 +70,13 @@ export const useSupply = (chainId: number, borrowToken?: string) => {
         abi: mockErc20Abi,
         address: borrowToken as `0x${string}`,
         functionName: "approve",
-        args: [lendingPool, supplyAmountBigInt],
+        args: [lpAddress as `0x${string}`, supplyAmountBigInt],
       });
 
       console.log("✅ Approval transaction sent!");
       await supplyTransaction({
         abi: poolAbi,
-        address: lendingPool,
+        address: lpAddress as `0x${string}`,
         functionName: "supplyLiquidity",
         args: [supplyAmountBigInt],
       });

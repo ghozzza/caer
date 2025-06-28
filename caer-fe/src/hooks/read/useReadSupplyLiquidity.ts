@@ -8,12 +8,12 @@ import { getTokenDecimals } from "@/lib/tokenUtils";
 export const useReadSupplyLiquidity = ({
   tokenAddress,
   chainId = 43113,
+  lpAddress,
 }: {
   tokenAddress?: string;
   chainId?: number;
+  lpAddress?: string;
 }) => {
-  const lendingPool = chains.find((c) => c.id === chainId)?.contracts
-    .lendingPool as `0x${string}`;
   const decimals = getTokenDecimals(tokenAddress ?? "", chainId) ?? 6;
   const address = tokenAddress as `0x${string}`;
 
@@ -21,7 +21,7 @@ export const useReadSupplyLiquidity = ({
     address,
     abi: mockErc20Abi,
     functionName: "balanceOf",
-    args: [lendingPool],
+    args: [lpAddress as `0x${string}`],
   });
 
   return {
