@@ -42,11 +42,12 @@ const RowPool = ({
   const { supplyLiquidity } = useReadSupplyLiquidity({
     tokenAddress: borrowToken,
     chainId: TARGET_CHAIN_ID,
+    lpAddress: lpAddress,
   });
 
  const convertLtv = (ltv: string) => {
-  const ltvNumber = Number(ltv) / 1e16; // 1e16 = 1%
-  return `${ltvNumber.toFixed(0)}%`;
+  const ltvNumber = Number(ltv);
+  return `${ltvNumber.toFixed(2)}%`;
 };
 
 

@@ -15,19 +15,14 @@ const getTokenDecimals = (tokenAddress?: string): number => {
   return token?.decimals ?? 6
 }
 
-const getLendingPoolAddress = (chainId: number): `0x${string}` | undefined => {
-  const chain = chains.find((c) => c.id === chainId)
-  return chain?.contracts.lendingPool as `0x${string}` | undefined
-}
-
-export const useSupplyCollateral = (chainId: number, borrowToken?: string) => {
+export const useSupplyCollateral = (chainId: number, borrowToken?: string, lpAddress?: string) => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentStep, setCurrentStep] = useState<"idle" | "approving" | "supplying" | "success">("idle")
   const [pendingAmount, setPendingAmount] = useState<string>("")
 
   const decimals = getTokenDecimals(borrowToken)
-  const lendingPool = getLendingPoolAddress(chainId)
+  const lendingPool = lpAddress as `0x${string}`
 
   const { data: approveHash, isPending: isApprovePending, writeContract: approveTransaction } = useWriteContract()
 

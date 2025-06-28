@@ -1,14 +1,15 @@
 import React, { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy } from "lucide-react";
+import { Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { DialogFooter } from "@/components/ui/dialog";
 import ChainSelectorButton from "@/components/dialog/borrow/chain-selector-button";
 import AmountInput from "@/components/dialog/borrow/amount-input";
 import RecipientInput from "@/components/dialog/borrow/recipient-input";
-import { Chain } from "@/types/type";
+import { Chain, DestinationChain } from "@/types/type";
 import useOnChainTransactionHandler from "@/components/dialog/borrow/onchain-transaction-handler";
-import useTransactionHandler from "@/hooks/write/useBorrowCrossChain";
+import { useBorrow } from "@/hooks/write/useBorrow";
+import { tokens } from "@/constants/token-address";
 
 interface BorrowSectionProps {
   onTransactionSuccess?: () => void;
@@ -23,68 +24,24 @@ const BorrowSection = ({
   loanToken,
   lpAddress,
 }: BorrowSectionProps) => {
-  const [fromChain, setFromChain] = useState<Chain>({
-    id: 50002,
-    name: "Base",
-    type: "Testnet",
-    logoUrl: "/base-logo.png",
-  });
-  const [toChain, setToChain] = useState<Chain>({
-    id: 50002,
-    name: "Base",
-    type: "Testnet",
-    logoUrl: "/base-logo.png",
-  });
+  const [fromChain, setFromChain] = useState<Number>(43113);
+  const [toChain, setToChain] = useState<Number>(43113);
   const [amount, setAmount] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [txCompleted, setTxCompleted] = useState(false);
 
-  const isOnChainTransaction = fromChain.id === 50002 && toChain.id === 50002;
+  const decimal = tokens.find((token) => token.name === loanToken)?.decimals;
 
-  // Handle transaction success
-  const handleTransactionSuccess = useCallback(() => {
-    console.log("Transaction success callback triggered");
-    setTxCompleted(true);
-    setIsLoading(false);
-    onTransactionSuccess?.();
-  }, [onTransactionSuccess]);
+  const { handleBorrow, isProcessing, isSuccess, borrowHash, borrowError } =
+    useBorrow(
+      Number(toChain),
+      amount,
+      lpAddress,
+      Number(decimal)
+    );
 
-  // Use the appropriate transaction handler based on the chains.
-  const onChainHandler = useOnChainTransactionHandler({
-    amount,
-    token: loanToken,
-    fromChain,
-    toChain,
-    recipientAddress,
-    lpAddress,
-    onSuccess: handleTransactionSuccess,
-    onLoading: setIsLoading,
-  });
-
-  const crossChainHandler = useTransactionHandler({
-    amount,
-    token: loanToken,
-    fromChain,
-    toChain,
-    recipientAddress,
-    lpAddress,
-    onSuccess: handleTransactionSuccess,
-    onLoading: setIsLoading,
-  });
-
-  // Choose the appropriate handler based on the transaction type
-  const handler = isOnChainTransaction ? onChainHandler : crossChainHandler;
-  const handleTransaction = handler.handleTransaction;
-  const TransactionProgress = handler.TransactionProgress;
-
-  const processingState =
-    "isProcessing" in handler && typeof handler.isProcessing === "boolean"
-      ? handler.isProcessing
-      : false;
 
   let buttonText = `Borrow ${loanToken}`;
-  if (isLoading || processingState) {
+  if (isProcessing) {
     buttonText = "Processing...";
   } else if (txCompleted) {
     buttonText = "Completed";
@@ -94,64 +51,22 @@ const BorrowSection = ({
     <>
       <div className="space-y-6 py-4">
         <ChainSelectorButton
-          fromChain={fromChain}
-          toChain={toChain}
+          fromChain={Number(fromChain)}
+          toChain={Number(toChain)}
           setFromChain={setFromChain}
           setToChain={setToChain}
         />
         <AmountInput token={loanToken} value={amount} onChange={setAmount} />
-
-        {/* Only show recipient input for cross-chain transactions */}
-        {!isOnChainTransaction && (
-          <>
-            <RecipientInput
-              value={recipientAddress}
-              onChange={setRecipientAddress}
-            />
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <span className="text-sm text-blue-600">
-                <strong>Important: </strong>For cross-chain borrowing, please
-                use this gas limit:{" "}
-              </span>
-              <button
-                className="cursor-pointer text-sm text-blue-700 text-bold hover:text-blue-800 bg-transparent border-none p-0"
-                onClick={() => {
-                  navigator.clipboard.writeText("15694186");
-                  toast.success("Gas limit copied to clipboard!");
-                }}
-              >
-                15694186 <Copy className="inline-block w-3 h-3 ml-1" />
-              </button>
-            </div>
-          </>
-        )}
-
-        {isOnChainTransaction && (
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-600">
-              <strong>On-chain Transaction:</strong> Borrowing directly on Base
-              Chain using your position.
-            </p>
-          </div>
-        )}
-
-        {txCompleted && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg animate-pulse">
-            <p className="text-sm text-green-600 text-center font-medium">
-              Transaction completed successfully! Closing dialog...
-            </p>
-          </div>
-        )}
       </div>
 
       <DialogFooter>
         <Button
-          onClick={handleTransaction}
+          onClick={handleBorrow}
           className="w-full bg-gradient-to-r from-[#141beb] to-[#01ECBE] hover:from-[#01ECBE] hover:to-[#141beb] text-white font-medium shadow-md hover:shadow-lg transition-colors duration-300 rounded-lg cursor-pointer"
-          disabled={isLoading || processingState || txCompleted || !amount}
+          disabled={isProcessing || txCompleted || !amount}
         >
           {buttonText}
-          {TransactionProgress}
+          {isProcessing && <Loader2 className="w-4 h-4 animate-spin" />}
         </Button>
       </DialogFooter>
     </>

@@ -14,9 +14,6 @@ export default function AmountInput({
   value,
   onChange,
 }: AmountInputProps) {
-  const handleMaxAmount = () => {
-    onChange("10"); // Simulasi nilai maksimum
-  };
 
   const tokenImage = tokens.find(
     (option) => option.name === token
@@ -44,8 +41,11 @@ export default function AmountInput({
               placeholder="0.00"
               value={value}
               onChange={(e) => {
-                const numericValue = e.target.value.replace(/\D/g, '');
-                onChange(numericValue);
+                const numericValue = e.target.value.replace(/[^\d.]/g, '');
+                // Ensure only one decimal point
+                const parts = numericValue.split('.');
+                const formattedValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue;
+                onChange(formattedValue);
               }}
             />
           </div>

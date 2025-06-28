@@ -9,6 +9,8 @@ import { ArrowRightLeft } from "lucide-react";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import Image from "next/image";
 import { mockUsdc } from "@/constants/addresses";
+import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+import { useReadPositionBalance } from "@/hooks/read/useReadPositionBalance";
 
 interface PositionTokenProps {
   name: string | undefined;
@@ -17,6 +19,7 @@ interface PositionTokenProps {
   addressPosition: Address | undefined;
   arrayLocation: bigint;
   lpAddress: Address | undefined;
+  logo: string | undefined;
 }
 
 const PositionToken = ({
@@ -25,13 +28,11 @@ const PositionToken = ({
   decimal,
   addressPosition,
   arrayLocation,
-  lpAddress
+  lpAddress,
+  logo
 }: PositionTokenProps) => {
-  const { dynamicUserCollateral, dynamicCollateralAddress } = useReadLendingData(
-    undefined,
-    undefined,
-    lpAddress as Address
-  );
+
+  const { positionBalance, isLoadingPositionBalance, refetchPositionBalance } = useReadPositionBalance(address, addressPosition as Address);
 
   const { data: tokenBalanceUSDC } = useReadContract({
     address: mockUsdc,
@@ -41,7 +42,7 @@ const PositionToken = ({
   });
 
   const convertRealAmount = (amount: bigint | undefined, decimal: number) => {
-    const realAmount = amount ? Number(amount) / decimal : 0;
+    const realAmount = amount ? Number(amount) / 10 ** decimal : 0;
     return realAmount;
   };
 
@@ -50,10 +51,8 @@ const PositionToken = ({
     return token?.decimals;
   };
 
-  const tokenBalance =
-    dynamicCollateralAddress === address
-      ? convertRealAmount(dynamicUserCollateral as bigint, decimal).toFixed(5)
-      : convertRealAmount(tokenBalanceUSDC as bigint, decimal).toFixed(2);
+  const tokenBalance = convertRealAmount(positionBalance as bigint, decimal).toFixed(5);
+
 
   const findLogoToken = (address: Address) => {
     const token = tokens.find((asset) => asset.addresses === address);
@@ -65,7 +64,7 @@ const PositionToken = ({
       <div className="flex items-center gap-2 pl-2">
         <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold">
           <Image
-            src={findLogoToken(address) as string}
+            src={logo as string}
             alt={name as string}
             width={32}
             height={32}

@@ -45,7 +45,7 @@ export function BorrowReviewDetails({
     isSuccess,
     borrowHash,
     borrowError,
-  } = useBorrow(chainId, destination, amount);
+  } = useBorrow(destination, amount, address as `0x${string}`, borrowToken.decimals);
 
   // Indexing ke DB setelah transaksi sukses
   useEffect(() => {

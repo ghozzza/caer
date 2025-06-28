@@ -32,9 +32,11 @@ import { chains } from "@/constants/chain-address";
 const DialogSupply = ({
   borrowToken,
   onSuccess,
+  lpAddress,
 }: {
   borrowToken?: string;
   onSuccess?: () => void;
+  lpAddress?: string;
 }) => {
   const CHAIN_ID = 43113;
   const { address, chainId } = useAccount();
@@ -67,7 +69,7 @@ const DialogSupply = ({
     supplyHash,
     currentStep,
     reset,
-  } = useSupply(CHAIN_ID, borrowToken);
+  } = useSupply(CHAIN_ID, borrowToken, lpAddress);
 
   /* ── UI state ─────────────────────────────────────────────────────────── */
   const [isOpen, setIsOpen] = useState(false);

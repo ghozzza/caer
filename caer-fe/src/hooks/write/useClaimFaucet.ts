@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 import { tokens } from "@/constants/token-address";
 import { Token } from "@/types/type";
+import { addTokenToWallet } from "@/lib/walletUtils";
 
 export const useFaucet = (chainId: number = 43113) => {
   const { address } = useAccount();
@@ -89,6 +90,16 @@ export const useFaucet = (chainId: number = 43113) => {
     }
   };
 
+  const handleAddTokenToWallet = async () => {
+    const selectedToken = filteredTokens.find(
+      (token) => token.address === selectedTokenAddress
+    );
+
+    if (selectedToken) {
+      await addTokenToWallet(selectedTokenAddress, selectedToken);
+    }
+  };
+
   useEffect(() => {
     if (isSuccess && txHash) {
       toast.success(`Successfully claimed tokens!`);
@@ -117,6 +128,7 @@ export const useFaucet = (chainId: number = 43113) => {
     setAmount,
     handleClaim,
     copyTokenAddress,
+    addTokenToWallet: handleAddTokenToWallet,
     isSuccess,
     isError,
     error: confirmError || writeError,

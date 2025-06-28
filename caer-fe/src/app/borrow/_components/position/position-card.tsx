@@ -12,6 +12,7 @@ import {
   Plus,
   Loader2,
   CreditCard,
+  SquareArrowOutUpRight,
 } from "lucide-react";
 import {
   mockBnvda,
@@ -36,9 +37,14 @@ import CollateralSection from "./collateral-section";
 import { toast } from "sonner";
 import { createPosition } from "@/actions/CreatePosition";
 import { getPositionByOwnerAndLpAddress } from "@/actions/GetPosition";
+import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+import { useReadUserBorrowShares } from "@/hooks/read/useReadUserBorrowShares";
+import { useReadTotalBorrowAssets } from "@/hooks/read/useReadTotalBorrowAssets";
+import { useReadTotalBorrowShares } from "@/hooks/read/useReadTotalBorrowShares";
+import { useReadAddressPosition } from "@/hooks/read/useReadAddressPosition";
+import Link from "next/link";
 
 const PositionCard = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [positionAddress, setPositionAddress] = useState<string | undefined>(
     undefined
   );
@@ -50,12 +56,6 @@ const PositionCard = () => {
   const [collateralToken, setCollateralToken] = useState<string | undefined>(
     mockWeth
   );
-  const [dynamicUserCollateral, setDynamicUserCollateral] = useState<
-    number | undefined
-  >(undefined);
-  const [dynamicUserBorrow, setDynamicUserBorrow] = useState<
-    number | undefined
-  >(undefined);
   const [borrowToken, setBorrowToken] = useState<string | undefined>(mockUsdc);
   const [poolIndex, setPoolIndex] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,30 +90,6 @@ const PositionCard = () => {
   }, [collateralToken, lpAddress]);
 
   useEffect(() => {
-    if (isPositionPending) {
-      setIsPositionStorePending(true);
-    } else if (isPositionStorePending && !isPositionPending) {
-      console.log("isPositionStorePending", isPositionStorePending);
-      const addPosition = async () => {
-        setIsPositionStorePending(false);
-        const response = await createPosition(
-          collateralToken as string,
-          borrowToken as string,
-          poolIndex as string,
-          lpAddress as string,
-          address as string
-        );
-        if (response.success) {
-          toast.success(response.message);
-        } else {
-          toast.error(response.message);
-        }
-      };
-      addPosition();
-    }
-  }, [isPositionPending]);
-
-  useEffect(() => {
     const fetchPosition = async () => {
       const response = await getPositionByOwnerAndLpAddress(
         address as string,
@@ -129,7 +105,7 @@ const PositionCard = () => {
   const findNameToken = (address: string | undefined) => {
     if (!address) return undefined;
     const token = tokens.find(
-      (asset) => asset.addresses === (address as `0x${string}`)
+      (asset) => asset.addresses[43113] === (address as `0x${string}`)
     );
     return token?.name;
   };
@@ -142,6 +118,23 @@ const PositionCard = () => {
     const realAmount = Number(amount) ? Number(amount) / decimal : 0; // convert to USDC
     return realAmount;
   };
+
+  const { userCollateral } = useReadUserCollateral(
+    collateralToken as `0x${string}`,
+    lpAddress as `0x${string}`
+  );
+
+  const { userBorrowShares, isLoadingUserBorrowShares, refetchUserBorrowShares } =
+    useReadUserBorrowShares(lpAddress as `0x${string}`);
+
+  const { totalBorrowAssets, isLoadingTotalBorrowAssets, refetchTotalBorrowAssets } =
+    useReadTotalBorrowAssets(lpAddress as `0x${string}`);
+
+  const { totalBorrowShares, isLoadingTotalBorrowShares, refetchTotalBorrowShares } =
+    useReadTotalBorrowShares(lpAddress as `0x${string}`);
+
+  const { addressPosition, isLoadingAddressPosition, refetchAddressPosition } =
+    useReadAddressPosition(lpAddress as `0x${string}`);
 
   const handleAddPosition = async (address: string) => {
     try {
@@ -173,56 +166,80 @@ const PositionCard = () => {
     }
   };
   const getDecimal = (address: string) => {
-    const token = tokens.find((asset) => asset.addresses === address);
+    const token = tokens.find((asset) => asset.addresses[43113] === address);
     return token?.decimals;
   };
 
   const formatTitle = () => {
     if (isLoading)
       return (
-        <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-xl duration-500" />
+        <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-xl duration-1300" />
       );
     if (!lpAddress) return "Select position address";
     return `${
-      dynamicUserCollateral
-        ? dynamicUserCollateral /
-          10 ** Number(getDecimal(String(collateralToken)))
-        : "0"
-    } $${findNameToken(collateralToken)}`;
+      (Number(userCollateral) / 10 ** Number(getDecimal(String(collateralToken)))).toFixed(5)} $${findNameToken(collateralToken)}`;
   };
   const formatCollateralAmount = () => {
     if (isLoading)
       return (
         <div className="flex justify-center">
-          <Loader2 className="size-8 animate-spin" />
+          <Loader2 className="size-8 animate-spin duration-1000" />
         </div>
       );
-    const amount = dynamicUserCollateral
-      ? convertRealAmount(
-          dynamicUserCollateral,
-          10 ** Number(getDecimal(String(collateralToken)))
-        ).toFixed(5)
-      : "0";
+    const amount = convertRealAmount(
+      Number(userCollateral),
+      10 ** Number(getDecimal(String(collateralToken)))
+    ).toFixed(5);
     return `${amount} $${findNameToken(collateralToken)}`;
   };
   const formatBorrowAmount = () => {
-    if (isLoading)
+    refetchUserBorrowShares();
+    refetchTotalBorrowAssets();
+    refetchTotalBorrowShares();
+    if (isLoadingUserBorrowShares || isLoadingTotalBorrowAssets || isLoadingTotalBorrowShares || isLoading)
       return (
         <div className="flex justify-center">
-          <Loader2 className="size-8 animate-spin" />
+          <Loader2 className="size-8 animate-spin duration-1000" />
         </div>
       );
-    const amount = dynamicUserBorrow ? convertRealAmount(dynamicUserBorrow, 10 ** Number(getDecimal(String(borrowToken)))).toFixed(5) : "0";
+
+    const userDebt = Number(userBorrowShares) * Number(totalBorrowAssets) / Number(totalBorrowShares)
+    const amount = convertRealAmount(
+      Number(userDebt),
+      10 ** Number(getDecimal(String(borrowToken)))
+    ).toFixed(5);
     return `${amount} $${findNameToken(borrowToken)}`;
   };
+
+  const formatAddressPosition = () => {
+    if (isLoadingAddressPosition)
+      return <div className="flex justify-center">
+        <Loader2 className="size-8 animate-spin duration-1000" />
+      </div>
+    return addressPosition != "0x0000000000000000000000000000000000000000" ? (
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2 text-gray-500">
+          <CreditCard className="size-5" />
+          <span className="text-lg">Your position:</span>
+        </div>
+        <div>
+          <Link href={`https://testnet.snowtrace.io/address/${addressPosition}`}
+            className="text-lg text-gray-500 flex items-center gap-1 hover:text-blue-400 duration-300" target="_blank">
+            {addressPosition}
+            <SquareArrowOutUpRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+    ) : "";
+  }
   const formatRate = () => {
     if (isLoading)
       return (
         <div className="flex justify-center">
-          <Loader2 className="size-8 animate-spin" />
+          <Loader2 className="size-8 animate-spin duration-1000" />
         </div>
       );
-    const rate = dynamicUserBorrow ? "3%" : "0%";
+    const rate = "3%";
     return `${rate}`;
   };
   return (
@@ -233,42 +250,22 @@ const PositionCard = () => {
             lpAddress={lpAddress as string}
             setLpAddress={setLpAddress}
             lpData={lpData}
-            findLogoToken={findLogoToken as (address: string) => string}
-            findNameToken={findNameToken as (address: string) => string}
-            setDynamicUserCollateral={setDynamicUserCollateral}
-            setDynamicUserBorrow={setDynamicUserBorrow}
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              lpAddress
-                ? setIsExpanded(!isExpanded)
-                : toast.error("Please Select Collateral Pool")
-            }
-            className="text-white bg-emerald-500 hover:bg-emerald-600 hover:text-white transform transition-all duration-200 cursor-pointer"
-          >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
         </div>
         <div className="flex items-center gap-2 ml-7">
           <h1 className="text-lg text-gray-500">{formatTitle()}</h1>
         </div>
       </CardHeader>
       <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            key="content"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-          >
-            <CardContent className="px-4 md:px-6 pt-4">
+        <motion.div
+          key="content"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <CardContent className="px-4 md:px-6 pt-4">
+            {lpAddress ? (
               <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-4 p-4 bg-white border border-blue-100 rounded-lg shadow-sm">
                   <div className="space-y-2 text-center">
@@ -304,49 +301,10 @@ const PositionCard = () => {
                   </div>
                 </div>
                 <div className="flex justify-center text-2xl font-medium items-center gap-2">
-                  <div>
-                    <CreditCard className="h-5 w-5" />
-                  </div>
-                  <div>Your Trading Position</div>
-                  <div className="ml-3">
-                    <SelectPosition
-                      positionAddress={positionAddress}
-                      positionArray={positionsArray}
-                      positionIndex={positionIndex}
-                      setPositionAddress={setPositionAddress}
-                      setPositionLength={setPositionLength}
-                      setPositionsArray={setPositionsArray}
-                      setPositionIndex={setPositionIndex}
-                    />
-                  </div>
-                  <div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={isPositionPending}
-                      className="ml-3 bg-emerald-500 hover:bg-emerald-600 transform transition-all duration-200 rounded-lg cursor-pointer"
-                      onClick={() =>
-                        dynamicUserCollateral
-                          ? handleAddPosition(lpAddress as `0x${string}`)
-                          : toast.error("You don't have any collateral")
-                      }
-                    >
-                      {isPositionPending ? (
-                        <div className="flex items-center justify-center">
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          <span>Processing Transaction...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-white">
-                          <Plus className="h-4 w-4" />
-                          Add Position
-                        </div>
-                      )}
-                    </Button>
-                  </div>
+                  <div>{formatAddressPosition()}</div>
                 </div>
                 <div className="overflow-x-auto rounded-lg border border-blue-100 shadow-sm">
-                  {positionAddress === undefined || positionAddress === "" ? (
+                  {addressPosition === "0x0000000000000000000000000000000000000000" ? (
                     <div className="flex flex-col items-center justify-center gap-4 p-8 text-center bg-white">
                       <div className="bg-blue-100 p-4 rounded-full">
                         <Wallet className="h-10 w-10 text-blue-600" />
@@ -361,18 +319,6 @@ const PositionCard = () => {
                           ? "You don't have any active positions. Start by supplying collateral and borrowing assets."
                           : "Select a position address to view your position."}
                       </p>
-                      {positionLength === 0 && (
-                        <Button
-                          className="mt-2 bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer"
-                          onClick={() =>
-                            dynamicUserCollateral
-                              ? handleAddPosition(lpAddress as `0x${string}`)
-                              : toast.error("You don't have any collateral")
-                          }
-                        >
-                          Create Position
-                        </Button>
-                      )}
                     </div>
                   ) : (
                     <div>
@@ -382,73 +328,35 @@ const PositionCard = () => {
                         <div className="text-center">Actions</div>
                       </div>
                       <div className="divide-y divide-blue-100">
-                        {/* WETH */}
-                        <PositionToken
-                          name={findNameToken(mockWeth)}
-                          address={mockWeth}
-                          decimal={1e18}
-                          addressPosition={positionAddress as `0x${string}`}
-                          arrayLocation={BigInt(positionIndex)}
-                          lpAddress={lpAddress as `0x${string}`}
-                        />
-                        {/* WBTC */}
-                        <PositionToken
-                          name={findNameToken(mockWbtc)}
-                          address={mockWbtc}
-                          decimal={1e8}
-                          addressPosition={positionAddress as `0x${string}`}
-                          arrayLocation={BigInt(positionIndex)}
-                          lpAddress={lpAddress as `0x${string}`}
-                        />
-                        {/* USDC */}
-                        <PositionToken
-                          name={findNameToken(mockUsdc)}
-                          address={mockUsdc}
-                          decimal={1e6}
-                          addressPosition={positionAddress as `0x${string}`}
-                          arrayLocation={BigInt(positionIndex)}
-                          lpAddress={lpAddress as `0x${string}`}
-                        />
-                        <PositionToken
-                          name={findNameToken(mockUsdt)}
-                          address={mockUsdt}
-                          decimal={1e6}
-                          addressPosition={positionAddress as `0x${string}`}
-                          arrayLocation={BigInt(positionIndex)}
-                          lpAddress={lpAddress as `0x${string}`}
-                        />
-                        <PositionToken
-                          name={findNameToken(mockBnvda)}
-                          address={mockBnvda}
-                          decimal={1e18}
-                          addressPosition={positionAddress as `0x${string}`}
-                          arrayLocation={BigInt(positionIndex)}
-                          lpAddress={lpAddress as `0x${string}`}
-                        />
-                        <PositionToken
-                          name={findNameToken(mockSaapl)}
-                          address={mockSaapl}
-                          decimal={1e18}
-                          addressPosition={positionAddress as `0x${string}`}
-                          arrayLocation={BigInt(positionIndex)}
-                          lpAddress={lpAddress as `0x${string}`}
-                        />
-                        <PositionToken
-                          name={findNameToken(mockPaxg)}
-                          address={mockPaxg}
-                          decimal={1e18}
-                          addressPosition={positionAddress as `0x${string}`}
-                          arrayLocation={BigInt(positionIndex)}
-                          lpAddress={lpAddress as `0x${string}`}
-                        />
+                        {tokens.map((token) => (
+                          <PositionToken
+                            key={token.addresses[43113]}
+                            name={token.name}
+                            address={token.addresses[43113]}
+                            logo={token.logo as string}
+                            decimal={token.decimals}
+                            addressPosition={addressPosition as `0x${string}`}
+                            arrayLocation={BigInt(0)}
+                            lpAddress={lpAddress as `0x${string}`}
+                          />
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-            </CardContent>
-          </motion.div>
-        )}
+            ) : (
+              <div className="flex justify-center items-center h-full">
+                <div className="flex flex-col items-center justify-center gap-4 p-8 text-center bg-white">
+                  <div className="bg-blue-100 p-4 rounded-full">
+                    <Wallet className="h-10 w-10 text-blue-600" />
+                  </div>
+                  <span className="text-xl md:text-2xl text-gray-800">Select Lending Pool</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </motion.div>
       </AnimatePresence>
     </Card>
   );

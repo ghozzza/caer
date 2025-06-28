@@ -21,6 +21,7 @@ import { createPosition } from "@/actions/CreatePosition";
 import { useAccount } from "wagmi";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { X } from 'lucide-react';
 
 interface SupplyCollateralSectionProps {
   collateralToken: string;
@@ -62,7 +63,7 @@ const SupplyCollateralSection = ({
     supplyHash,
     currentStep,
     isApproveSuccess,
-  } = useSupplyCollateral(CHAIN_ID, tokenAddress);
+  } = useSupplyCollateral(CHAIN_ID, tokenAddress, lpAddress);
 
   const tokenBalance = useBalance(tokenAddress, tokenDecimals);
 
@@ -383,10 +384,10 @@ const SupplyCollateralSection = ({
         <Button
           onClick={handleSupply}
           disabled={isProcessing || !amount || Number(amount) <= 0}
-          className={`w-full h-12 text-base font-medium rounded-lg duration-300 ${
+          className={`w-full h-12 text-base font-medium rounded-lg duration-300 transition-colors ${
             isProcessing
               ? "bg-slate-200 text-slate-500"
-              : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg"
+              : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg cursor-pointer"
           }`}
         >
           {isProcessing ? (
