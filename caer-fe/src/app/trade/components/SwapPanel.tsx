@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { ArrowDownIcon, } from "@heroicons/react/24/outline";
-import { TOKEN_OPTIONS, TokenOption } from "@/constants/tokenOption";
+import { tokens } from "@/constants/token-address";
 import { useAccount } from "wagmi";
 import { formatUnits, Address } from "viem";
-import { usePositionBalance } from "@/hooks/useBalance";
+import { useBalance } from "@/hooks/useBalance";
 import { useSwapToken } from "@/hooks/useSwapToken";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
@@ -30,8 +30,8 @@ import { getPositionByOwnerAndLpAddress } from "@/actions/GetPosition";
 
 export default function SwapPanel() {
   const { address } = useAccount();
-  const [fromToken, setFromToken] = useState<TokenOption>(TOKEN_OPTIONS[0]);
-  const [toToken, setToToken] = useState<TokenOption>(TOKEN_OPTIONS[1]);
+  const [fromToken, setFromToken] = useState<tokens>(tokens[0]);
+  const [toToken, setToToken] = useState<tokens>(tokens[1]);
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState("0.5");
@@ -219,12 +219,12 @@ export default function SwapPanel() {
   };
 
   const tokenName = (address: string) => {
-    const token = TOKEN_OPTIONS.find((token) => token.address === address);
+    const token = tokens.find((token) => token.addresses === address);
     return token?.name;
   };
 
   const tokenLogo = (address: string) => {
-    const token = TOKEN_OPTIONS.find((token) => token.address === address);
+    const token = tokens.find((token) => token.addresses === address);
     return token?.logo;
   };
 
@@ -332,14 +332,14 @@ export default function SwapPanel() {
               value={fromToken.address}
               onChange={(e) =>
                 setFromToken(
-                  TOKEN_OPTIONS.find((t) => t.address === e.target.value) ||
-                  TOKEN_OPTIONS[0]
+                  tokens.find((t) => t.addresses === e.target.value) ||
+                  tokens[0]
                 )
               }
               aria-label="Select token to swap from"
             >
-              {TOKEN_OPTIONS.map((token, index) => (
-                <option key={index} value={token.address}>
+              {tokens.map((token, index) => (
+                <option key={index} value={token.addresses}>
                   {token.name}
                 </option>
               ))}
@@ -392,14 +392,14 @@ export default function SwapPanel() {
               value={toToken.address}
               onChange={(e) =>
                 setToToken(
-                  TOKEN_OPTIONS.find((t) => t.address === e.target.value) ||
-                  TOKEN_OPTIONS[1]
+                  tokens.find((t) => t.addresses === e.target.value) ||
+                  tokens[43113]
                 )
               }
               aria-label="Select token to receive"
             >
-              {TOKEN_OPTIONS.map((token, index) => (
-                <option key={index} value={token.address}>
+              {tokens.map((token, index) => (
+                <option key={index} value={token.addresses[43113]}>
                   {token.name}
                 </option>
               ))}

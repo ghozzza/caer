@@ -11,13 +11,11 @@ import { createLPFactory } from "@/actions/CreateLPFactory";
 import { getSelectedLPFactorybyColBor } from "@/actions/GetLPFactory";
 import { chains } from "@/constants/chain-address";
 
-// Reusable template‑literal address type
 export type HexAddress = `0x${string}`;
 
 export const useCreatePool = (chainId: number, onSuccess: () => void) => {
   const { address } = useAccount();
 
-  // allow empty string ("") for “not selected yet”
   const [collateralToken, setCollateralToken] = useState<HexAddress | "">("");
   const [borrowToken, setBorrowToken] = useState<HexAddress | "">("");
   const [ltv, setLtv] = useState("");
