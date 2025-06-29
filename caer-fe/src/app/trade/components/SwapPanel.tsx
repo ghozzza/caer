@@ -32,6 +32,7 @@ import { useReadAddressPosition } from "@/hooks/read/useReadAddressPosition";
 import Link from "next/link";
 import { useReadPositionBalance } from "@/hooks/read/useReadPositionBalance";
 import { toast } from "sonner";
+import { useTokenCalculator } from "@/hooks/read/useTokenCalculator";
 
 export default function SwapPanel() {
   const { address } = useAccount();
@@ -78,9 +79,26 @@ export default function SwapPanel() {
 
   // address position from hooks
 
-  const { price } = useTokenPrice(
+  const {
+    price: priceExchangeRate,
+    isLoading: isLoadingPrice,
+    error: errorPrice,
+  } = useTokenCalculator(
     fromToken.addresses[43113] as Address,
-    toToken.addresses[43113] as Address
+    toToken.addresses[43113] as Address,
+    Number(1),
+    addressPosition as Address
+  );
+
+  const {
+    price: priceExchangeRateReverse,
+    isLoading: isLoadingPriceReverse,
+    error: errorPriceReverse,
+  } = useTokenCalculator(
+    fromToken.addresses[43113] as Address,
+    toToken.addresses[43113] as Address,
+    Number(fromAmount),
+    addressPosition as Address
   );
 
   const { swapToken, isLoading, error, setError } = useSwapToken({
@@ -118,7 +136,6 @@ export default function SwapPanel() {
       const data = await getSelectedCollateralTokenByLPAddress(
         lpAddressSelected
       );
-      console.log("data", data?.collateralToken);
       setSelectedCollateralToken(data?.collateralToken);
     };
     fetchSelectedCollateralToken();
@@ -126,11 +143,11 @@ export default function SwapPanel() {
 
   // Calculate exchange rate and to amount
   useEffect(() => {
-    if (fromAmount && price) {
+    if (fromAmount && priceExchangeRate && priceExchangeRateReverse) {
       try {
         const amount = parseFloat(fromAmount);
         if (!isNaN(amount) && amount > 0) {
-          const calculatedAmount = amount * price;
+          const calculatedAmount = Number(priceExchangeRateReverse);
           setToAmount(calculatedAmount.toFixed(6));
         } else {
           setToAmount("");
@@ -141,8 +158,15 @@ export default function SwapPanel() {
       }
     } else {
       setToAmount("");
+      setError("");
     }
-  }, [fromAmount, price, fromToken, toToken]);
+  }, [
+    fromAmount,
+    priceExchangeRate,
+    priceExchangeRateReverse,
+    fromToken,
+    toToken,
+  ]);
 
   useEffect(() => {
     const fetchLpAddress = async () => {
@@ -170,7 +194,6 @@ export default function SwapPanel() {
         setPositionsArray(response.data);
         setPositionLength(response.data.length);
         setPositionAddress(undefined);
-        console.log("response", response.data);
       };
       fetchPosition();
     }
@@ -184,17 +207,19 @@ export default function SwapPanel() {
     setToAmount(fromAmount);
   };
 
+  const formatExchangeRate = (price: number) => {
+    return `1 ${fromToken.name} ≈ ${
+      isLoadingPrice ? "Loading..." : Number(price).toFixed(6)
+    } ${toToken.name}`;
+  };
+
   // Handle token swap
   const handleSwap = async () => {
-    console.log("toToken", toToken);
     const fromAmountReal = parseFloat(fromAmount) * 10 ** fromToken.decimals;
-    const toAmountReal = parseFloat(toAmount) * 10 ** toToken.decimals;
     const fromTokenBalanceReal =
       fromToken.name === tokenName(selectedCollateralToken)
         ? Number(userCollateral?.toString() ?? "0")
         : Number(fromTokenBalance) * 10 ** fromToken.decimals;
-    console.log("fromAmount", fromAmountReal);
-    console.log("toAmount", toAmountReal);
     if (!address) {
       setError("Please connect your wallet");
       return;
@@ -254,6 +279,36 @@ export default function SwapPanel() {
         {name}
       </>
     );
+  };
+
+  const formatButtonClick = () => {
+    if (
+      addressPosition === "0x0000000000000000000000000000000000000000" ||
+      addressPosition === undefined
+    ) {
+      toast.error("You don't have any active positions. Start by supplying collateral and borrowing assets.");
+    } else if (
+      Number(fromAmount) >
+      Number(fromTokenBalance) / 10 ** fromToken.decimals
+    ) {
+      toast.error("Insufficient balance");
+    } else {
+      handleSwap();
+    }
+  };
+
+  const formatButtonClassName = () => {
+    return `w-full py-3.5 rounded-xl font-bold transition-colors ${
+      isLoading ||
+      !fromAmount ||
+      !toAmount ||
+      !address ||
+      addressPosition === undefined ||
+      addressPosition === "0x0000000000000000000000000000000000000000" ||
+      Number(fromAmount) > Number(fromTokenBalance) / 10 ** fromToken.decimals
+        ? "bg-blue-600/30 text-white shadow-md hover:shadow-lg cursor-not-allowed"
+        : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
+    }`;
   };
 
   return (
@@ -479,16 +534,14 @@ export default function SwapPanel() {
         </div>
 
         {/* Swap Rate */}
-        {/* <div className="bg-white border border-blue-300 rounded-xl p-3 text-sm text-blue-700 shadow-sm">
+        <div className="bg-white border border-blue-300 rounded-xl p-3 text-sm text-blue-700 shadow-sm">
           <div className="flex justify-between">
             <span>Exchange Rate:</span>
             <span className="truncate">
-              {price
-                ? `1 ${fromToken.name} ≈ ${price.toFixed(6)} ${toToken.name}`
-                : "Loading..."}
+              {formatExchangeRate(priceExchangeRate)}
             </span>
           </div>
-        </div> */}
+        </div>
 
         {/* Slippage Setting */}
         <div className="bg-white border border-blue-300 rounded-xl p-3 shadow-sm">
@@ -522,26 +575,8 @@ export default function SwapPanel() {
         )}
 
         {/* Swap Button */}
-        <button
-          onClick={() =>
-            addressPosition === "0x0000000000000000000000000000000000000000" ||
-            addressPosition === undefined
-              ? toast.error("Please select a position")
-              : handleSwap()
-          }
-          className={`w-full py-3.5 rounded-xl font-bold transition-colors ${
-            isLoading ||
-            !fromAmount ||
-            !toAmount ||
-            !address ||
-            addressPosition === undefined ||
-            addressPosition === "0x0000000000000000000000000000000000000000"
-              ? "bg-blue-600/30 text-white shadow-md hover:shadow-lg cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
-          }`}
-        >
+        <button onClick={formatButtonClick} className={formatButtonClassName()}>
           {getButtonText()}{" "}
-          {lpAddressSelected}
         </button>
       </div>
     </div>

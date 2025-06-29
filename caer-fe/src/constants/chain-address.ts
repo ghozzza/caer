@@ -24,7 +24,7 @@ export const chains: Chain[] = [
     contracts: {
       lendingPool: "0xe10e79324c133DA09426972c9401b503a7b48186",
       factory: "0x694B5A70f83062308aa60ecf12074Bc8f694612d",
-      position: "0x1506485c87F06366b5c8148a18019f9EF11373B2",
+      position: "0x9ee9F9158b872fe812C3F2204588dfc8b0FC4Eda",
       blockExplorer: "https://testnet.snowtrace.io",
     },
   },

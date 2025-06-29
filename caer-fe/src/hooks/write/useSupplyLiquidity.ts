@@ -25,17 +25,6 @@ export const useSupply = (borrowToken?: string, lpAddress?: string) => {
     hash,
   });
 
-  console.log("📊 useSupply hook state:", {
-    borrowToken,
-    lpAddress,
-    hash,
-    isPending,
-    isLoading,
-    isSuccess,
-    isError,
-    error: error?.message,
-  });
-
   const supply = async (amount: string) => {
     console.log("🚀 Starting supply transaction:", { amount, borrowToken, lpAddress });
     setError(null);
@@ -120,17 +109,6 @@ export const useApproveToken = (
   const { data: hash, isPending, writeContract, reset } = useWriteContract();
   const { isLoading, isSuccess, isError } = useWaitForTransactionReceipt({
     hash,
-  });
-
-  console.log("🔐 useApproveToken hook state:", {
-    tokenAddress,
-    spenderAddress,
-    hash,
-    isPending,
-    isLoading,
-    isSuccess,
-    isError,
-    error: error?.message,
   });
 
   const approve = async (amount: string) => {

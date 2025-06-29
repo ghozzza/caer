@@ -12,6 +12,7 @@ export const tokens: Token[] = [
       421614: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
       84532: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
     },
+    priceFeed: "0x86d67c3D38D2bCeE722E601025C25a575021c6EA",
   },
   {
     name: "WBTC",
@@ -24,6 +25,7 @@ export const tokens: Token[] = [
       421614: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
       84532: "0x4200000000000000000000000000000000000006",
     },
+    priceFeed: "0x31CF013A08c6Ac228C94551d535d5BAfE19c602a",
   },
   {
     name: "WAVAX",
@@ -36,6 +38,7 @@ export const tokens: Token[] = [
       421614: "0x55d398326f99059fF775485246999027B3197955",
       84532: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
     },
+    priceFeed: "0x5498BB86BC934c8D34FDA08E81D444153d0D06aD",
   },
   {
     name: "USDC",
@@ -48,6 +51,7 @@ export const tokens: Token[] = [
       421614: "0x55d398326f99059fF775485246999027B3197955",
       84532: "0xcba01c75d035ca98ffc7710dae710435ca53c03c",
     },
+    priceFeed: "0x97FE42a7E96640D932bbc0e1580c73E705A8EB73",
   },
   {
     name: "USDT",
@@ -60,5 +64,6 @@ export const tokens: Token[] = [
       421614: "0x55d398326f99059fF775485246999027B3197955",
       84532: "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
     },
+    priceFeed: "0x7898AcCC83587C3C55116c5230C17a6Cd9C71bad",
   },
 ];
