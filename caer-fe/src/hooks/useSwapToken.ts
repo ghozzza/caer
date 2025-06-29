@@ -8,12 +8,12 @@ import { toast } from "sonner";
 
 interface SwapTokenParams {
   fromToken: {
-    address: string;
+    address: `0x${string}`;
     name: string;
     decimals: number;
   };
   toToken: {
-    address: string;
+    address: `0x${string}`;
     name: string;
     decimals: number;
   };
@@ -22,27 +22,25 @@ interface SwapTokenParams {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
   positionAddress: Address;
-  arrayLocation: bigint;
   lpAddress: Address;
 }
 
-export const useSwapToken = () => {
+export const useSwapToken = ({
+  fromToken,
+  toToken,
+  fromAmount,
+  toAmount,
+  onSuccess,
+  onError,
+  positionAddress,
+  lpAddress,
+}: SwapTokenParams) => {
   const { address } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { writeContract } = useWriteContract();
 
-  const swapToken = async ({
-    fromToken,
-    toToken,
-    fromAmount,
-    toAmount,
-    onSuccess,
-    onError,
-    positionAddress,
-    arrayLocation,
-    lpAddress,
-  }: SwapTokenParams) => {
+  const swapToken = async () => {
     if (!address) {
       setError("Please connect your wallet");
       return;
@@ -59,29 +57,16 @@ export const useSwapToken = () => {
 
       // Calculate the amount with proper decimals
       const amountIn = parseUnits(fromAmount, fromToken.decimals);
-      console.log("arrayLocation", arrayLocation);
 
-      // First approve the token spending
-      writeContract({
-        address: fromToken.address as Address,
-        abi: erc20Abi,
-        functionName: "approve",
-        args: [positionAddress, BigInt(amountIn)],
-      });
+      console.log("fromToken", fromToken);
 
       // Then perform the swap
       writeContract({
         address: lpAddress,
         abi: poolAbi,
         functionName: "swapTokenByPosition",
-        args: [
-          toToken.address,
-          fromToken.address,
-          BigInt(amountIn)
-        ], // Position index 0
+        args: [fromToken.address, toToken.address, BigInt(amountIn)],
       });
-
-    
 
       if (onSuccess) {
         onSuccess();

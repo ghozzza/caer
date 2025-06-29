@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowDownIcon, } from "@heroicons/react/24/outline";
+import { ArrowDownIcon } from "@heroicons/react/24/outline";
 import { tokens } from "@/constants/token-address";
 import { useAccount } from "wagmi";
 import { formatUnits, Address } from "viem";
@@ -9,7 +9,7 @@ import { useBalance } from "@/hooks/useBalance";
 import { useSwapToken } from "@/hooks/useSwapToken";
 import { useTokenPrice } from "@/hooks/useTokenPrice";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
-import { MoveRight } from "lucide-react"
+import { MoveRight, ShieldAlert, Wallet2 } from "lucide-react";
 import { ArrowDownUp } from "lucide-react";
 import SelectPosition from "@/app/borrow/_components/position/selectPosition";
 import {
@@ -27,11 +27,16 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { getPositionByOwnerAndLpAddress } from "@/actions/GetPosition";
+import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+import { useReadAddressPosition } from "@/hooks/read/useReadAddressPosition";
+import Link from "next/link";
+import { useReadPositionBalance } from "@/hooks/read/useReadPositionBalance";
+import { toast } from "sonner";
 
 export default function SwapPanel() {
   const { address } = useAccount();
-  const [fromToken, setFromToken] = useState<tokens>(tokens[0]);
-  const [toToken, setToToken] = useState<tokens>(tokens[1]);
+  const [fromToken, setFromToken] = useState(tokens[0]);
+  const [toToken, setToToken] = useState(tokens[1]);
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState("0.5");
@@ -49,32 +54,59 @@ export default function SwapPanel() {
   const [selectedCollateralToken, setSelectedCollateralToken] =
     useState<any>(null);
   // Use our custom hooks
-  const { balance: fromTokenBalance } = usePositionBalance(
-    positionAddress as Address,
-    fromToken.address as Address,
-    fromToken.decimals
+  // const { balance: fromTokenBalance } = useBalance(
+  //   fromToken.addresses[43113] as Address,
+  //   fromToken.decimals
+  // );
+  const { addressPosition } = useReadAddressPosition(lpAddressSelected);
+  const { positionBalance: fromTokenBalance } = useReadPositionBalance(
+    fromToken.addresses[43113] as Address,
+    addressPosition as `0x${string}`
   );
-  const { balance: toTokenBalance } = usePositionBalance(
-    positionAddress as Address,
-    toToken.address as Address,
-    toToken.decimals
+  const { positionBalance: toTokenBalance } = useReadPositionBalance(
+    toToken.addresses[43113] as Address,
+    addressPosition as `0x${string}`
   );
+
+  const {
+    userCollateral,
+    positionLoading,
+    collateralLoading,
+    positionError,
+    collateralError,
+  } = useReadUserCollateral(selectedCollateralToken, lpAddressSelected);
+
+  // address position from hooks
 
   const { price } = useTokenPrice(
-    fromToken.address as Address,
-    toToken.address as Address
-  );
-  const { swapToken, isLoading, error, setError } = useSwapToken();
-
-  const { dynamicUserCollateral } = useReadLendingData(
-    undefined,
-    undefined,
-    lpAddressSelected as `0x${string}`
+    fromToken.addresses[43113] as Address,
+    toToken.addresses[43113] as Address
   );
 
-  const arrayLocation = positionsArray.findIndex(
-    (position) => position.positionAddress === positionAddress
-  );
+  const { swapToken, isLoading, error, setError } = useSwapToken({
+    fromToken: {
+      address: fromToken.addresses[43113] as Address,
+      name: fromToken.name,
+      decimals: fromToken.decimals,
+    },
+    toToken: {
+      address: toToken.addresses[43113] as Address,
+      name: toToken.name,
+      decimals: toToken.decimals,
+    },
+    fromAmount,
+    toAmount,
+    onSuccess: () => {
+      // Reset form after successful swap
+      setFromAmount("");
+      setToAmount("");
+    },
+    onError: (error) => {
+      console.error("Swap error:", error);
+    },
+    positionAddress: addressPosition as `0x${string}`,
+    lpAddress: lpAddressSelected as Address,
+  });
 
   // Set mounted state to true after hydration
   useEffect(() => {
@@ -159,7 +191,7 @@ export default function SwapPanel() {
     const toAmountReal = parseFloat(toAmount) * 10 ** toToken.decimals;
     const fromTokenBalanceReal =
       fromToken.name === tokenName(selectedCollateralToken)
-        ? Number(dynamicUserCollateral?.toString() ?? "0")
+        ? Number(userCollateral?.toString() ?? "0")
         : Number(fromTokenBalance) * 10 ** fromToken.decimals;
     console.log("fromAmount", fromAmountReal);
     console.log("toAmount", toAmountReal);
@@ -179,23 +211,7 @@ export default function SwapPanel() {
     }
 
     try {
-      await swapToken({
-        fromToken,
-        toToken,
-        fromAmount,
-        toAmount,
-        onSuccess: () => {
-          // Reset form after successful swap
-          setFromAmount("");
-          setToAmount("");
-        },
-        onError: (error) => {
-          console.error("Swap error:", error);
-        },
-        positionAddress: positionAddress as Address,
-        arrayLocation: BigInt(arrayLocation),
-        lpAddress: lpAddressSelected as Address,
-      });
+      await swapToken();
     } catch (err) {
       console.error("Swap error:", err);
       setError(
@@ -214,24 +230,36 @@ export default function SwapPanel() {
     return "Swap";
   };
 
-  const handlePositionAddressChange = (address: string) => {
-    setPositionAddress(address as `0x${string}`);
-  };
-
   const tokenName = (address: string) => {
-    const token = tokens.find((token) => token.addresses === address);
+    const token = tokens.find((token) => token.addresses[43113] === address);
     return token?.name;
   };
 
   const tokenLogo = (address: string) => {
-    const token = tokens.find((token) => token.addresses === address);
+    const token = tokens.find((token) => token.addresses[43113] === address);
     return token?.logo;
+  };
+
+  const formatBalance = (
+    name: string,
+    tokenAddress: string,
+    decimals: number,
+    tokenBalance: number
+  ) => {
+    return (
+      <>
+        {name === tokenName(tokenAddress)
+          ? formatUnits(BigInt(tokenBalance.toString()), decimals)
+          : tokenBalance}{" "}
+        {name}
+      </>
+    );
   };
 
   return (
     <div className="max-w-md mx-auto w-full px-2 py-2">
       <div className="flex flex-row gap-2 mb-5">
-        <div className="w-full max-w-[50%]"> 
+        <div className="w-full max-w-[50%]">
           <Select onValueChange={(value) => setLpAddressSelected(value)}>
             <SelectTrigger className="truncate w-full bg-white text-blue-800 border border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-200 rounded-lg shadow-sm cursor-pointer">
               <SelectValue placeholder="Select LP Address" />
@@ -249,26 +277,29 @@ export default function SwapPanel() {
                       className="py-2 px-0 text-sm text-blue-800 hover:bg-blue-50 transition-colors"
                     >
                       <div className="flex flex-row gap-2 items-center justify-between">
-                        <div className="flex items-center gap-2 truncate">
+                        <div className="flex items-center gap-2 truncate px-3">
                           <Image
                             src={tokenLogo(lp.collateralToken) ?? ""}
                             alt={tokenName(lp.collateralToken) ?? ""}
-                            className="w-5 h-5 rounded-full text"
+                            className="size-5 rounded-full text"
                             width={10}
                             height={10}
                           />
-                          <span className="truncate">{tokenName(lp.collateralToken)}</span>
+                          <span className="truncate">
+                            {tokenName(lp.collateralToken)}
+                          </span>
                         </div>
-                        <MoveRight className="h-4 w-4 text-blue-950" />
                         <div className="flex items-center gap-2 truncate">
                           <Image
                             src={tokenLogo(lp.borrowToken) ?? ""}
                             alt={tokenName(lp.borrowToken) ?? ""}
-                            className="w-5 h-5 rounded-full"
+                            className="size-5 rounded-full"
                             width={10}
                             height={10}
                           />
-                          <span className="truncate">{tokenName(lp.borrowToken)}</span>
+                          <span className="truncate">
+                            {tokenName(lp.borrowToken)}
+                          </span>
                         </div>
                       </div>
                     </SelectItem>
@@ -283,16 +314,30 @@ export default function SwapPanel() {
           </Select>
         </div>
 
-        <div className="w-full max-w-[50%]">
-          <SelectPosition
-            positionAddress={positionAddress}
-            positionArray={positionsArray}
-            positionIndex={positionIndex}
-            setPositionAddress={setPositionAddress}
-            setPositionLength={setPositionLength}
-            setPositionsArray={setPositionsArray}
-            setPositionIndex={setPositionIndex}
-          />
+        <div
+          className={`w-full max-w-[50%] text-center px-3 py-1 rounded-lg ${
+            addressPosition &&
+            addressPosition !== "0x0000000000000000000000000000000000000000"
+              ? "bg-blue-300 hover:bg-blue-400 duration-300 border-2 border-blue-400 cursor-pointer"
+              : ""
+          }`}
+        >
+          {addressPosition &&
+          addressPosition !== "0x0000000000000000000000000000000000000000" ? (
+            <Link
+              className="flex flex-row gap-2 items-center justify-center text-blue-800 text-base text-center mt-0"
+              href={`https://testnet.snowtrace.io/address/${addressPosition}`}
+              target="_blank"
+            >
+              <Wallet2 className="size-5" />
+              View Position
+            </Link>
+          ) : (
+            <div className="text-blue-800 text-xl text-center flex flex-row gap-2 items-center justify-center">
+              <ShieldAlert className="size-5" />
+              No Position found
+            </div>
+          )}
         </div>
       </div>
 
@@ -300,50 +345,64 @@ export default function SwapPanel() {
         {/* From Token */}
         <div className="bg-white border border-blue-300 rounded-xl p-4 w-full shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between mb-5">
-            <label
-              htmlFor="fromAmount"
-              className="text-blue-800 font-medium"
-            >
+            <label htmlFor="fromAmount" className="text-blue-800 font-medium">
               From
             </label>
             <span className="text-blue-700 text-sm truncate">
               Balance:{" "}
-              {fromToken.name === tokenName(selectedCollateralToken)
-                ? formatUnits(
-                  BigInt(dynamicUserCollateral?.toString() ?? "0"),
-                  fromToken.decimals
-                )
-                : fromTokenBalance}{" "}
-              {fromToken.name}
+              {formatBalance(
+                fromToken.name,
+                fromToken.addresses[43113],
+                fromToken.decimals,
+                Number(fromTokenBalance ?? 0)
+              )}
             </span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <input
               id="fromAmount"
-              type="number"
+              type="text"
               className="w-full bg-transparent text-blue-900 text-xl focus:outline-none p-2 border-b border-blue-200"
               placeholder="0.0"
               value={fromAmount}
-              onChange={(e) => setFromAmount(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                  setFromAmount(value);
+                }
+              }}
               aria-label="Amount to swap"
             />
-            <select
-              className="bg-blue-50 text-blue-800 py-2 px-3 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors"
-              value={fromToken.address}
-              onChange={(e) =>
+            <Select
+              value={fromToken.addresses[43113]}
+              onValueChange={(value) =>
                 setFromToken(
-                  tokens.find((t) => t.addresses === e.target.value) ||
-                  tokens[0]
+                  tokens.find((t) => t.addresses[43113] === value) || tokens[0]
                 )
               }
-              aria-label="Select token to swap from"
             >
-              {tokens.map((token, index) => (
-                <option key={index} value={token.addresses}>
-                  {token.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="bg-blue-50 max-w-32 min-w-32 text-blue-800 py-2 px-3 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors cursor-pointer">
+                <SelectValue placeholder="Select token" />
+              </SelectTrigger>
+              <SelectContent>
+                {tokens.map((token, index) => (
+                  <SelectItem
+                    key={index}
+                    value={token.addresses[43113]}
+                    className="text-blue-800 flex flex-row gap-2 items-center cursor-pointer"
+                  >
+                    <Image
+                      src={tokenLogo(token.addresses[43113]) ?? ""}
+                      alt={token.name}
+                      className="size-5 rounded-full"
+                      width={10}
+                      height={10}
+                    />
+                    {token.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -368,13 +427,12 @@ export default function SwapPanel() {
             </label>
             <span className="text-blue-700 text-sm truncate">
               Balance:{" "}
-              {toToken.name === tokenName(selectedCollateralToken)
-                ? formatUnits(
-                  BigInt(dynamicUserCollateral?.toString() ?? "0"),
-                  toToken.decimals
-                )
-                : toTokenBalance}{" "}
-              {toToken.name}
+              {formatBalance(
+                toToken.name,
+                toToken.addresses[43113],
+                toToken.decimals,
+                Number(toTokenBalance ?? 0)
+              )}
             </span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -387,23 +445,36 @@ export default function SwapPanel() {
               readOnly
               aria-label="Amount to receive"
             />
-            <select
-              className="bg-blue-50 text-blue-800 py-2 px-3 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors"
-              value={toToken.address}
-              onChange={(e) =>
+            <Select
+              value={toToken.addresses[43113]}
+              onValueChange={(value) =>
                 setToToken(
-                  tokens.find((t) => t.addresses === e.target.value) ||
-                  tokens[43113]
+                  tokens.find((t) => t.addresses[43113] === value) || tokens[0]
                 )
               }
-              aria-label="Select token to receive"
             >
-              {tokens.map((token, index) => (
-                <option key={index} value={token.addresses[43113]}>
-                  {token.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="bg-blue-50 max-w-32 min-w-32 text-blue-800 py-2 px-3 rounded-lg border border-blue-200 hover:border-blue-300 transition-colors cursor-pointer">
+                <SelectValue placeholder="Select token" />
+              </SelectTrigger>
+              <SelectContent>
+                {tokens.map((token, index) => (
+                  <SelectItem
+                    key={index}
+                    value={token.addresses[43113]}
+                    className="text-blue-800 flex flex-row gap-2 items-center cursor-pointer"
+                  >
+                    <Image
+                      src={tokenLogo(token.addresses[43113]) ?? ""}
+                      alt={token.name}
+                      className="size-5 rounded-full"
+                      width={10}
+                      height={10}
+                    />
+                    {token.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -429,10 +500,11 @@ export default function SwapPanel() {
               {["0.5", "1", "2", "3"].map((value) => (
                 <button
                   key={value}
-                  className={`px-3 py-1 rounded text-sm ${slippage === value
-                    ? "bg-blue-600 text-white"
-                    : "bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
-                    }`}
+                  className={`px-3 py-1 rounded text-sm ${
+                    slippage === value
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer"
+                  }`}
                   onClick={() => setSlippage(value)}
                 >
                   {value}%
@@ -451,18 +523,25 @@ export default function SwapPanel() {
 
         {/* Swap Button */}
         <button
-          onClick={handleSwap}
-          className={`w-full py-3.5 rounded-xl font-bold transition-colors ${isLoading ||
+          onClick={() =>
+            addressPosition === "0x0000000000000000000000000000000000000000" ||
+            addressPosition === undefined
+              ? toast.error("Please select a position")
+              : handleSwap()
+          }
+          className={`w-full py-3.5 rounded-xl font-bold transition-colors ${
+            isLoading ||
             !fromAmount ||
             !toAmount ||
             !address ||
-            positionAddress === undefined ||
-            arrayLocation === -1
-            ? "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
-            : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
-            }`}
+            addressPosition === undefined ||
+            addressPosition === "0x0000000000000000000000000000000000000000"
+              ? "bg-blue-600/30 text-white shadow-md hover:shadow-lg cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer shadow-md hover:shadow-lg"
+          }`}
         >
-          {getButtonText()}
+          {getButtonText()}{" "}
+          {lpAddressSelected}
         </button>
       </div>
     </div>

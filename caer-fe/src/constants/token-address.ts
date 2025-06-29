@@ -28,7 +28,7 @@ export const tokens: Token[] = [
   {
     name: "WAVAX",
     symbol: "WAVAX",
-    logo: "/chain/avax-logo.png",
+    logo: "/token/wavax.png",
     decimals: 18,
     addresses: {
       11155111: "0x3813e82e6f7098b9583FC0F33a962D02018B6803",

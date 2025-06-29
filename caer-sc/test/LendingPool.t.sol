@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IERC20Metadata} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {LendingPoolDeployer} from "../src/LendingPoolDeployer.sol";
 import {LendingPoolFactory} from "../src/LendingPoolFactory.sol";
 import {LendingPool} from "../src/LendingPool.sol";
@@ -16,9 +15,6 @@ import {MockWAVAX} from "../src/mocks/MockWAVAX.sol";
 import {MockPEPE} from "../src/mocks/MockPEPE.sol";
 import {Helper} from "../src/Helper.sol";
 import {IsHealthy} from "../src/IsHealthy.sol";
-import {IPosition} from "../src/interfaces/IPosition.sol";
-import {IChainLink} from "../src/interfaces/IChainLink.sol";
-import {IFactory} from "../src/interfaces/IFactory.sol";
 
 contract LendingPoolFactoryTest is Test {
     IsHealthy public isHealthy;

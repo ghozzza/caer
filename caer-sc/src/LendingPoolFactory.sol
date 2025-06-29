@@ -37,7 +37,7 @@ contract LendingPoolFactory {
     }
 
     function createLendingPool(address collateralToken, address borrowToken, uint256 LTV) public returns (address) {
-        address lendingPool = ILPDeployer(lendingPoolDeployer).deployLendingPool(collateralToken, borrowToken, LTV);
+        address lendingPool = ILPDeployer(lendingPoolDeployer).deployLendingPool(collateralToken, borrowToken, address(this), LTV);
 
         pools.push(Pool(collateralToken, borrowToken, address(lendingPool)));
         poolCount++;

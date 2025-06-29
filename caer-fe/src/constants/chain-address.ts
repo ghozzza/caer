@@ -22,8 +22,8 @@ export const chains: Chain[] = [
     color: "bg-blue-600",
     destination: 1,
     contracts: {
-      lendingPool: "0x9108c9d911846e925b24Bc9a1d8Abbf965212957",
-      factory: "0xf8BaFD421BF510a492059F98e1a61F22793eb540",
+      lendingPool: "0xe10e79324c133DA09426972c9401b503a7b48186",
+      factory: "0x694B5A70f83062308aa60ecf12074Bc8f694612d",
       position: "0x1506485c87F06366b5c8148a18019f9EF11373B2",
       blockExplorer: "https://testnet.snowtrace.io",
     },

@@ -181,7 +181,19 @@ contract LendingPool is ReentrancyGuard, Helper {
         if (amount == 0) revert ZeroAmount();
         if (amount > IERC20(collateralToken).balanceOf(addressPositions[msg.sender])) revert InsufficientCollateral();
         _accrueInterest();
+        address isHealthy = IFactory(factory).isHealthy();
         IPosition(addressPositions[msg.sender]).withdrawCollateral(amount, msg.sender);
+        if (userBorrowShares[msg.sender] > 0) {
+            IIsHealthy(isHealthy)._isHealthy(
+                borrowToken,
+                factory,
+                addressPositions[msg.sender],
+                ltv,
+                totalBorrowAssets,
+                totalBorrowShares,
+                userBorrowShares[msg.sender]
+            );
+        }
     }
 
     /**
