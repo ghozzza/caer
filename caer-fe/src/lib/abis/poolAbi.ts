@@ -27,6 +27,11 @@ export const poolAbi = [
   },
   {
     inputs: [],
+    name: "InsufficientBorrowShares",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "InsufficientCollateral",
     type: "error",
   },
@@ -77,29 +82,9 @@ export const poolAbi = [
     type: "error",
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "shares",
-        type: "uint256",
-      },
-    ],
-    name: "BorrowDebt",
-    type: "event",
+    inputs: [],
+    name: "amountSharesInvalid",
+    type: "error",
   },
   {
     anonymous: false,
@@ -155,31 +140,6 @@ export const poolAbi = [
       },
     ],
     name: "CreatePosition",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "shares",
-        type: "uint256",
-      },
-    ],
-    name: "RepayDebt",
     type: "event",
   },
   {

@@ -26,7 +26,6 @@ export const useBalance = (tokenAddress: Address, decimals: number) => {
     }
   }, [data, decimals]);
 
-  // Refetch setiap 3 detik
   useEffect(() => {
     const interval = setInterval(() => {
       refetch();

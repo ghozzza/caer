@@ -3,16 +3,16 @@
 import { PrismaClient } from "@prisma/client";
 import { createPublicClient } from "viem";
 import { http } from "wagmi";
-import { pharosChain } from "@/lib/data/chain-data";
 import { poolAbi } from "@/lib/abis/poolAbi";
-import { chain_id } from "@/constants/addresses";
-import { optimismSepolia } from "viem/chains";
+import { avalancheFuji } from "viem/chains";
 const prisma = new PrismaClient();
 
 const publicClient = createPublicClient({
-  chain: chain_id === 50002 ? pharosChain : optimismSepolia,
+  chain: avalancheFuji,
   transport: http(),
 });
+
+const chain_id = avalancheFuji.id;
 
 export const createPosition = async (
   collateralToken: string,
@@ -36,18 +36,12 @@ export const createPosition = async (
       address: lpAddress as `0x${string}`,
       abi: poolAbi,
       functionName: "addressPositions",
-      args: [owner],
+      args: [owner as `0x${string}`],
     });
   } catch (error) {
     console.error("Error creating position:", error);
   }
 
-  // if (!positionAddress) {
-  //   return {
-  //     success: false,
-  //     message: "Loading...",
-  //   };
-  // }
 
   const position = await prisma.position.create({
     data: {

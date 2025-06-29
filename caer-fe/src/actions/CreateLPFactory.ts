@@ -19,9 +19,6 @@ export const createLPFactory = async (
   const borrowToken = _borrowToken;
   const ltv = _ltv;
 
-  // setTimeout(() => {
-  //   console.log("createlpfactory");
-  // }, 5000);
 
   const chain = chains.find((c) => c.id === chainId);
   if (!chain) {

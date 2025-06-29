@@ -6,7 +6,6 @@ import { useEffect } from "react";
 export const useReadUserCollateral = (collateralToken: string, lpAddress: string) => {
   const { address } = useAccount();
 
-
   const {
     data: userPostitionAddress,
     isLoading: positionLoading,
