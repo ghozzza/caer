@@ -12,7 +12,6 @@ import {MockUSDT} from "../src/mocks/MockUSDT.sol";
 import {MockWBTC} from "../src/mocks/MockWBTC.sol";
 import {MockWETH} from "../src/mocks/MockWETH.sol";
 import {MockWAVAX} from "../src/mocks/MockWAVAX.sol";
-import {MockPEPE} from "../src/mocks/MockPEPE.sol";
 import {Helper} from "../src/Helper.sol";
 import {IsHealthy} from "../src/IsHealthy.sol";
 
@@ -27,7 +26,6 @@ contract LendingPoolFactoryTest is Test {
     MockWETH public weth;
     MockUSDT public usdt;
     MockWAVAX public wavax;
-    MockPEPE public pepe;
 
     address public owner = makeAddr("owner");
 
@@ -61,7 +59,6 @@ contract LendingPoolFactoryTest is Test {
         wbtc = new MockWBTC();
         weth = new MockWETH();
         wavax = new MockWAVAX();
-        pepe = new MockPEPE();
 
         vm.startPrank(alice);
         vm.createSelectFork("https://api.avax-test.network/ext/bc/C/rpc");
