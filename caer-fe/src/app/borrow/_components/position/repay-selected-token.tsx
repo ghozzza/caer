@@ -12,19 +12,26 @@ import { Input } from "@/components/ui/input";
 import { ArrowDown, CreditCard, DollarSign, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useBorrowBalance } from "@/hooks/useBorrowBalance";
-import { useRepayLoan } from "@/hooks/useRepayLoan";
+import { useReadPositionBalance } from "@/hooks/read/useReadPositionBalance";
+import { tokens } from "@/constants/token-address";
+import { useReadBorrowToken } from "@/hooks/read/useReadBorrowToken";
+import { useReadCollateralToken } from "@/hooks/read/useReadCollateralToken";
+import { useReadTotalBorrowShares } from "@/hooks/read/useReadTotalBorrowShares";
+import { useReadUserBorrowShares } from "@/hooks/read/useReadUserBorrowShares";
+import { useReadTotalBorrowAssets } from "@/hooks/read/useReadTotalBorrowAssets";
+import { useTokenCalculator } from "@/hooks/read/useTokenCalculator";
+import { useRepayWithSelectedToken } from "@/hooks/write/useRepayWithSelectedToken";
+import { useState } from "react";
 
 const AmountInput = ({
   value,
   onChange,
   token,
+  positionToken,
+  borrowToken,
   balance,
   label,
-  price,
-  debtValue,
 }: any) => {
-  const borrowBalance = useBorrowBalance();
   return (
     <Card className="border border-gray-200 bg-white shadow-sm">
       <CardContent className="p-4">
@@ -47,23 +54,23 @@ const AmountInput = ({
           />
           <div className="flex items-center gap-1 bg-gray-200 px-3 py-1 rounded-md">
             <DollarSign className="h-4 w-4 text-gray-800" />
-            <span className="font-semibold text-gray-800">Shares</span>
+            <span className="font-semibold text-gray-800">{borrowToken}</span>
           </div>
         </div>
 
         <div className="mt-3 text-xs text-gray-500 flex items-center justify-between">
           <span>
-            Position Balance: {balance} ${token}
+            Position Balance: {balance} ${positionToken}
           </span>
           <button
             className="text-xs p-1 text-emerald-700 border border-emerald-700 rounded-md hover:bg-emerald-100 cursor-pointer"
-            onClick={() => onChange(borrowBalance)}
+            onClick={() => onChange(balance)}
           >
             max
           </button>
         </div>
         <span className="text-xs text-gray-700">
-          Amount: {((Number(value))).toFixed(5)} {token}
+          Amount: {Number(value).toFixed(5)} {borrowToken}
         </span>
       </CardContent>
     </Card>
@@ -71,26 +78,71 @@ const AmountInput = ({
 };
 
 export const RepaySelectedToken = (props: any) => {
-  const {
-    valueAmount,
-    setValueAmount,
-    isOpen,
-    setIsOpen,
-    realPrice,
-    debtEquals,
-    dynamicHandleApproveAndRepay,
-    isPending,
-  } = useRepayLoan({
-    tokenAddress: props.address,
-    arrayLocation: props.arrayLocation,
-    lpAddress: props.lpAddress,
-  });
+
+  const [valueAmount, setValueAmount] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+
+  const tokenAddress = tokens.find((token) => token.name === props.tokenName)
+    ?.addresses[43113];
+
+  const borrowTokenAddress = tokens.find(
+    (token) => token.name === props.borrowToken
+  )?.addresses[43113];
+
+  const borrowTokenDecimal = tokens.find(
+    (token) => token.name === props.borrowToken
+  )?.decimals;
+
+  const collateralTokenAddress = tokens.find(
+    (token) => token.name === props.collateralToken
+  )?.addresses[43113];
+
+  const collateralTokenDecimal = tokens.find(
+    (token) => token.name === props.collateralToken
+  )?.decimals;
+
+  const { positionBalance } = useReadPositionBalance(
+    collateralTokenAddress as `0x${string}`,
+    props.addressPosition
+  );
+
+  const { borrowToken } = useReadBorrowToken(props.lpAddress);
+  const { collateralToken } = useReadCollateralToken(props.lpAddress);
+
+  const borrowTokenName = tokens.find(
+    (token) => token.addresses[43113] === borrowToken
+  )?.name;
+
+  const collateralTokenName = tokens.find(
+    (token) => token.addresses[43113] === collateralToken
+  )?.name;
+
+  // use repay with selected token
+  const { repay } = useRepayWithSelectedToken(tokenAddress as `0x${string}`, props.lpAddress, true);
+
+  const { price } = useTokenCalculator(
+    borrowTokenAddress as `0x${string}`,
+    tokenAddress as `0x${string}`,
+    Number(valueAmount),
+    props.addressPosition
+  );
+
+  const { userBorrowShares } = useReadUserBorrowShares(props.lpAddress);
+  const { totalBorrowAssets } = useReadTotalBorrowAssets(props.lpAddress);
+  const { totalBorrowShares } = useReadTotalBorrowShares(props.lpAddress);
+
+  const userDebt = (
+    (Number(userBorrowShares) * Number(totalBorrowAssets)) /
+    Number(totalBorrowShares)
+  ).toFixed(5);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 rounded-lg cursor-pointer">
-          <ArrowDown className="mr-2 h-4 w-4" /> Repay
+          <ArrowDown className="mr-2 h-4 w-4" />
+          Repay
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md bg-white border border-gray-200 shadow-xl rounded-xl">
@@ -107,11 +159,12 @@ export const RepaySelectedToken = (props: any) => {
           <AmountInput
             value={valueAmount}
             onChange={setValueAmount}
-            token={props.name}
-            balance={props.balance}
+            token={props.borrowToken}
+            positionToken={props.tokenName}
+            borrowToken={props.borrowToken}
+            balance={props.tokenBalance}
             label="Repay Amount"
-            price={realPrice ? Number(realPrice) / 1e6 : 1}
-            debtValue={debtEquals()}
+            price={price}
           />
 
           <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
@@ -124,9 +177,13 @@ export const RepaySelectedToken = (props: any) => {
                   Debt Information
                 </h4>
                 <p className="text-xs text-emerald-700">
-                  Debt: {props.borrowBalance} Shares
+                  Debt:{" "}
+                  {(Number(userDebt) / 10 ** (borrowTokenDecimal || 0)).toFixed(
+                    5
+                  )}{" "}
+                  ${borrowTokenName}
                   <br />
-                  Equals to {(debtEquals().toFixed(4))} USDC
+                  Equals to {price.toFixed(6)} ${props.tokenName}
                 </p>
               </div>
             </div>
@@ -135,7 +192,7 @@ export const RepaySelectedToken = (props: any) => {
 
         <DialogFooter>
           <Button
-            onClick={dynamicHandleApproveAndRepay}
+            onClick={() => repay(valueAmount)}
             disabled={
               isPending || !valueAmount || Number.parseFloat(valueAmount) <= 0
             }

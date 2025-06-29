@@ -9,13 +9,14 @@ import Image from "next/image";
 import { mockUsdc } from "@/constants/addresses";
 import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
 import { useReadPositionBalance } from "@/hooks/read/useReadPositionBalance";
+import { useReadBorrowToken } from "@/hooks/read/useReadBorrowToken";
+import { useReadCollateralToken } from "@/hooks/read/useReadCollateralToken";
 
 interface PositionTokenProps {
   name: string | undefined;
   address: Address;
   decimal: number;
   addressPosition: Address | undefined;
-  arrayLocation: bigint;
   lpAddress: string | undefined;
   logo: string | undefined;
 }
@@ -25,19 +26,22 @@ const PositionToken = ({
   address,
   decimal,
   addressPosition,
-  arrayLocation,
   lpAddress,
   logo
 }: PositionTokenProps) => {
 
   const { positionBalance, isLoadingPositionBalance, refetchPositionBalance } = useReadPositionBalance(address, addressPosition as Address);
 
-  const { data: tokenBalanceUSDC } = useReadContract({
-    address: mockUsdc,
-    abi: erc20Abi,
-    functionName: "balanceOf",
-    args: [addressPosition as Address],
-  });
+  const { borrowToken } = useReadBorrowToken(lpAddress as `0x${string}`);
+  const { collateralToken } = useReadCollateralToken(lpAddress as `0x${string}`);
+
+  const borrowTokenName = tokens.find(
+    (token) => token.addresses[43113] === borrowToken
+  )?.name;
+
+  const collateralTokenName = tokens.find(
+    (token) => token.addresses[43113] === collateralToken
+  )?.name;
 
   const convertRealAmount = (amount: bigint | undefined, decimal: number) => {
     const realAmount = amount ? Number(amount) / 10 ** decimal : 0;
@@ -87,7 +91,10 @@ const PositionToken = ({
           {lpAddress && (
             <RepaySelectedToken
               lpAddress={lpAddress}
-              borrowToken={name || ""}
+              addressPosition={addressPosition as Address}
+              tokenBalance={tokenBalance}
+              borrowToken={borrowTokenName}
+              tokenName={name}
             />
           )}
         </div>
