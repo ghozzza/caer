@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { lightTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
@@ -16,12 +17,16 @@ export default function ClientProviders({
   children: React.ReactNode;
 }) {
   const [queryClient] = useState(() => new QueryClient());
+  const pathname = usePathname();
+
+  // Hide navbar on home page
+  const shouldShowNavbar = pathname !== "/";
 
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-         initialChain={pharosChain}
+          initialChain={pharosChain}
           theme={lightTheme({
             accentColor: "#141beb",
             accentColorForeground: "white",
@@ -31,10 +36,12 @@ export default function ClientProviders({
           })}
         >
           <div className="">
-            <div className="relative z-99">
-              <Navbar />
-            </div>
-            <div className="mt-5 relative z-10">
+            {shouldShowNavbar && (
+              <div className="relative z-99">
+                <Navbar />
+              </div>
+            )}
+            <div className={`relative z-10 ${shouldShowNavbar ? "mt-5" : ""}`}>
               <Providers>{children}</Providers>
             </div>
             <Toaster />
@@ -43,4 +50,4 @@ export default function ClientProviders({
       </QueryClientProvider>
     </WagmiProvider>
   );
-} 
+}

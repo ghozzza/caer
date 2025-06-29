@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   Building2,
   TrendingUp,
@@ -17,6 +18,7 @@ import {
   ExternalLink,
   BookOpen,
 } from "lucide-react";
+import { TypewriterEffectSmooth } from "./typewriter-effect";
 
 interface IconPosition {
   icon?: LucideIcon;
@@ -34,6 +36,47 @@ export default function imateBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [showButtons, setShowButtons] = useState(false);
+
+  // Words for typewriter effect
+  const words = [
+    {
+      text: "The",
+    },
+    {
+      text: "First",
+    },
+    {
+      text: "Permissionless",
+    },
+    {
+      text: "Cross-Chain",
+    },
+    {
+      text: "Lending",
+    },
+    {
+      text: "Protocol",
+    },
+    {
+      text: "Powered",
+    },
+    {
+      text: "by",
+    },
+    {
+      text: "Chainlink",
+      className: "text-blue-500 dark:text-blue-500",
+    },
+    {
+      text: "CCIP",
+      className: "text-blue-500 dark:text-blue-500",
+    },
+  ];
+
+  const handleTypewriterComplete = () => {
+    setShowButtons(true);
+  };
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -380,30 +423,56 @@ export default function imateBackground() {
 
       {/* Content overlay */}
       <div className="relative z-10 flex items-center justify-center h-full px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            The First Permissionless Cross-Chain Lending Protocol Powered by
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-              {" "}
-              Chainlink CCIP
-            </span>
-          </h1>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/earn">
-              <button className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg cursor-pointer flex items-center gap-2">
-                Get Started
-                <ExternalLink className="w-4 h-4" />
-              </button>
-            </Link>
-            <a
-              href="https://your-gitbook-url.gitbook.io/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-white text-indigo-600 rounded-lg font-semibold border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-lg cursor-pointer flex items-center gap-2"
-            >
-              <BookOpen className="w-4 h-4" />
-              Documentation
-            </a>
+        <div className="text-center max-w-6xl mx-auto w-full">
+          <div className="mb-8 px-2 max-h-48 sm:max-h-56 md:max-h-64 lg:max-h-72 overflow-hidden">
+            <TypewriterEffectSmooth 
+              words={words} 
+              className="justify-center w-full"
+              onComplete={handleTypewriterComplete}
+            />
+          </div>
+          {/* Fixed height container untuk buttons agar posisi typewriter tidak bergeser */}
+          <div className="h-20 flex items-center justify-center">
+            {showButtons && (
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.6, 
+                  ease: "easeOut",
+                  staggerChildren: 0.2
+                }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                  <Link href="/earn">
+                    <button className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-blue-500 to-indigo-600 bg-size-200 bg-pos-0 text-white rounded-lg font-semibold hover:bg-pos-100 transition-all duration-200 shadow-lg cursor-pointer flex items-center gap-2 animate-gradient">
+                      Get Started
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </Link>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                >
+                  <a
+                    href="https://your-gitbook-url.gitbook.io/docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-8 py-4 bg-white text-indigo-600 rounded-lg font-semibold border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-lg cursor-pointer flex items-center gap-2"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Documentation
+                  </a>
+                </motion.div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
@@ -417,6 +486,35 @@ export default function imateBackground() {
           50% {
             transform: translate(-50%, -50%) translateY(-10px);
           }
+        }
+        
+        @keyframes gradient {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+        
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 3s ease infinite;
+        }
+        
+        .bg-size-200 {
+          background-size: 200% 200%;
+        }
+        
+        .bg-pos-0 {
+          background-position: 0% 50%;
+        }
+        
+        .hover\\:bg-pos-100:hover {
+          background-position: 100% 50%;
         }
       `}</style>
     </div>
