@@ -47,6 +47,7 @@ export function useBorrow(
       console.log("Parsed Amount:", parsedAmount.toString());
       console.log("Chain ID:", fixedChainId); // selalu 43113
       console.log("Destination:", destination);
+      console.log("Lending Pool Address:", lpAddress);
 
       await borrowTransaction({
         address: lpAddress as `0x${string}`,

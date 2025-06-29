@@ -37,7 +37,7 @@ export default function DialogWithdraw({
 }) {
   const { address, chainId } = useAccount();
   const { userSupplySharesAmountParsed, sharesLoading, sharesError } =
-    useReadUserShares();
+    useReadUserShares(lpAddress);
   const {
     withdraw,
     txHash,

@@ -5,10 +5,9 @@ import { formatUnits } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { useEffect } from "react";
 
-export const useReadUserShares = () => {
+export const useReadUserShares = (lpAddress?: string) => {
   const { address, chainId } = useAccount();
   const currentChain = chains.find((c) => c.id === chainId);
-  const lendingPoolAddress = currentChain?.contracts.lendingPool;
 
   const usdcToken = tokens.find((t) => t.symbol === "USDC");
   const usdcAddress = usdcToken?.addresses[chainId ?? 43113];
@@ -20,7 +19,7 @@ export const useReadUserShares = () => {
     error: sharesError,
     refetch,
   } = useReadContract({
-    address: lendingPoolAddress as `0x${string}`,
+    address: lpAddress as `0x${string}`,
     abi: poolAbi,
     functionName: "userSupplyShares",
     args: [address as `0x${string}`],
@@ -43,7 +42,6 @@ export const useReadUserShares = () => {
     userSupplySharesAmountParsed,
     sharesLoading,
     sharesError,
-    lendingPoolAddress,
     usdcAddress,
   };
 };

@@ -1,26 +1,20 @@
-import { useState, useCallback, useEffect } from "react";
-import type { Address, Hash } from "viem";
+import { useCallback, useEffect, useState, useRef } from "react";
+import type { Hash } from "viem";
 import {
-  useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { poolAbi } from "@/lib/abis/poolAbi";
-import { getLendingPoolAddress } from "@/lib/util/get-lending-pool";
 import { toast } from "sonner";
 
 interface WithdrawArgs {
   amount: bigint;
-  onSuccess?: () => void;
+  onBroadcast?: (txHash: Hash) => void;
 }
 
-export function useWithdrawCollateral() {
-  const { chain } = useAccount();
-  const lendingPoolAddress = chain?.id
-    ? getLendingPoolAddress(chain.id)
-    : undefined;
-
+export function useWithdrawCollateral(lpAddress?: string) {
   const [txHash, setTxHash] = useState<Hash | undefined>();
+  const onBroadcastRef = useRef<((txHash: Hash) => void) | undefined>(undefined);
 
   const {
     writeContract,
@@ -36,63 +30,86 @@ export function useWithdrawCollateral() {
     isSuccess: isReceiptSuccess,
     isError: isReceiptError,
     error: receiptError,
-  } = useWaitForTransactionReceipt({
-    hash: txHash,
-  });
+  } = useWaitForTransactionReceipt({ hash: txHash });
 
+  // Tangkap txHash dari data write
   useEffect(() => {
-    if (writeData) setTxHash(writeData);
+    if (writeData) {
+      const hash = writeData as Hash;
+      setTxHash(hash);
+      toast.info(
+        `Transaction submitted. Hash: ${String(hash).slice(0, 10)}...`,
+        { duration: 7000 }
+      );
+      
+      // Call the onBroadcast callback if it exists
+      if (onBroadcastRef.current) {
+        onBroadcastRef.current(hash);
+        onBroadcastRef.current = undefined; // Clear the callback
+      }
+    }
   }, [writeData]);
 
+  // Tampilkan status sukses atau gagal
   useEffect(() => {
-    if (isReceiptSuccess) toast.success("Withdrawal confirmed! ✅");
-    if (isReceiptError) toast.error("Transaction reverted ❌");
+    if (isReceiptSuccess) {
+      toast.success("Withdrawal confirmed on-chain ✅");
+    }
+    if (isReceiptError) {
+      toast.error("Transaction reverted ❌");
+    }
   }, [isReceiptSuccess, isReceiptError]);
 
   const withdraw = useCallback(
-    async ({ amount, onSuccess }: WithdrawArgs) => {
-      if (!lendingPoolAddress) {
+    ({ amount, onBroadcast }: WithdrawArgs) => {
+      if (!lpAddress) {
         toast.error("Lending pool address unavailable on this network");
         return;
       }
+
       if (amount <= BigInt(0)) {
         toast.error("Amount must be greater than zero");
         return;
       }
 
+      // Store the callback for later use
+      onBroadcastRef.current = onBroadcast;
+
       try {
-        await writeContract({
-          address: lendingPoolAddress as Address,
+        writeContract({
+          address: lpAddress as `0x${string}`,
           abi: poolAbi,
           functionName: "withdrawCollateral",
           args: [amount],
         });
-
-        toast.info("Transaction submitted; awaiting confirmation…");
-        onSuccess?.();
       } catch (err) {
-        console.error("Withdrawal error:", err);
+        console.error("Withdraw error:", err);
         toast.error(
-          err instanceof Error ? err.message : "Failed to send transaction"
+          err instanceof Error
+            ? err.message
+            : "Failed to send withdraw transaction"
         );
+        onBroadcastRef.current = undefined; // Clear the callback on error
       }
     },
-    [lendingPoolAddress, writeContract]
+    [lpAddress, writeContract]
   );
+
   const reset = () => {
     resetWrite();
     setTxHash(undefined);
+    onBroadcastRef.current = undefined;
   };
 
   return {
     withdraw,
     reset,
     txHash,
-    isPending: isWritePending, 
-    isLoading: isReceiptLoading, 
-    isSuccess: isReceiptSuccess,
-    isError: isReceiptError,
-    error: writeError ?? receiptError ?? undefined,
+    isWritePending,
+    isReceiptLoading,
+    isReceiptSuccess,
+    isReceiptError,
     receipt,
+    error: writeError ?? receiptError ?? undefined,
   };
 }
