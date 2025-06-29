@@ -83,6 +83,7 @@ export interface Token {
   addresses: {
     [chainId: number]: Address;
   };
+  priceFeed: Address;
 }
 
 interface TransactionHandlerProps {
