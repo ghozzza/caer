@@ -1,12 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { positionAbi } from "@/lib/abis/positionAbi";
 import Link from "next/link";
 import { erc20Abi, type Address } from "viem";
 import { useReadContract } from "wagmi";
 import { RepaySelectedToken } from "./repay-selected-token";
 import { tokens } from "@/constants/token-address";
 import { ArrowRightLeft } from "lucide-react";
-import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import Image from "next/image";
 import { mockUsdc } from "@/constants/addresses";
 import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
@@ -18,7 +16,7 @@ interface PositionTokenProps {
   decimal: number;
   addressPosition: Address | undefined;
   arrayLocation: bigint;
-  lpAddress: Address | undefined;
+  lpAddress: string | undefined;
   logo: string | undefined;
 }
 
@@ -86,14 +84,12 @@ const PositionToken = ({
         </Link>
 
         <div className="text-black">
-          <RepaySelectedToken
-            name={name}
-            balance={tokenBalance}
-            address={address}
-            decimal={getDecimal(address)}
-            arrayLocation={arrayLocation}
-            lpAddress={lpAddress}
-          />
+          {lpAddress && (
+            <RepaySelectedToken
+              lpAddress={lpAddress}
+              borrowToken={name || ""}
+            />
+          )}
         </div>
       </div>
     </div>

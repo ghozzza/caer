@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import { CircleDollarSign } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect } from "react";

@@ -2,25 +2,17 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import {
-  ChevronUp,
-  ChevronDown,
   Wallet,
   HandCoins,
   TrendingUp,
-  Plus,
   Loader2,
   CreditCard,
   SquareArrowOutUpRight,
 } from "lucide-react";
 import {
-  mockBnvda,
-  mockPaxg,
-  mockSaapl,
+
   mockUsdc,
-  mockUsdt,
-  mockWbtc,
   mockWeth,
 } from "@/constants/addresses";
 import type { Address } from "viem";
@@ -28,7 +20,6 @@ import { tokens } from "@/constants/token-address";
 import PositionToken from "./position-token";
 import { useAccount, useWriteContract } from "wagmi";
 import { poolAbi } from "@/lib/abis/poolAbi";
-import SelectPosition from "./selectPosition";
 import {
   getAllLPFactoryData,
   getSelectedLPFactoryByAddress,
@@ -138,7 +129,6 @@ const PositionCard = () => {
 
   const handleAddPosition = async (address: string) => {
     try {
-      // Start the transaction
       createPositionTransaction({
         address: address as `0x${string}`,
         abi: poolAbi,
@@ -220,7 +210,7 @@ const PositionCard = () => {
       <div className="flex flex-col items-center gap-2">
         <div className="flex items-center gap-2 text-gray-500">
           <CreditCard className="size-5" />
-          <span className="text-lg">Your position:</span>
+          <span className="text-lg">Your position: </span>
         </div>
         <div>
           <Link href={`https://testnet.snowtrace.io/address/${addressPosition}`}
