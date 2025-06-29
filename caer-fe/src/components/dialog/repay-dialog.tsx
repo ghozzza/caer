@@ -180,7 +180,7 @@ export const RepayDialog = () => {
             ) : (
               <ArrowDown className="mr-2 h-5 w-5" />
             )}{" "}
-            Repay
+            
           </Button>
         </DialogFooter>
       </DialogContent>
