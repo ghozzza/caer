@@ -15,13 +15,14 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useBalance } from "@/hooks/useBalance";
-import { useSupplyCollateral } from "@/hooks/write/useSupplyCollateral";
+import { useSupplyCollateral, useApproveCollateral } from "@/hooks/write/useSupplyCollateral";
 import { tokens } from "@/constants/token-address";
 import { createPosition } from "@/actions/CreatePosition";
 import { useAccount } from "wagmi";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from 'lucide-react';
+import { toast } from "sonner";
 
 interface SupplyCollateralSectionProps {
   collateralToken: string;
@@ -42,6 +43,8 @@ const SupplyCollateralSection = ({
   const [showSuccessState, setShowSuccessState] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
+  const [inputError, setInputError] = useState("");
+  const [currentStep, setCurrentStep] = useState<"idle" | "approving" | "supplying" | "success">("idle");
 
   const tokenInfo = tokens.find(
     (token) => token.name === collateralToken && token.addresses[CHAIN_ID]
@@ -50,26 +53,90 @@ const SupplyCollateralSection = ({
   const tokenDecimals = tokenInfo?.decimals ?? 18;
 
   const { address } = useAccount();
+
+  // Approval hook
+  const {
+    approve,
+    hash: approveHash,
+    isPending: isApprovePending,
+    isLoading: isApproveLoading,
+    isSuccess: isApproveSuccess,
+    error: approveError,
+    reset: resetApprove,
+  } = useApproveCollateral(tokenAddress, lpAddress);
+
+  // Supply hook
   const {
     supply,
-    isApprovePending,
-    isSupplyPending,
-    isApproveLoading,
-    isSupplyLoading,
-    isProcessing,
-    error,
-    isSuccess,
-    approveHash,
-    supplyHash,
-    currentStep,
-    isApproveSuccess,
-  } = useSupplyCollateral(CHAIN_ID, tokenAddress, lpAddress);
+    hash: supplyHash,
+    isPending: isSupplyPending,
+    isLoading: isSupplyLoading,
+    isSuccess: isSupplySuccess,
+    error: supplyError,
+    reset: resetSupply,
+  } = useSupplyCollateral(tokenAddress, lpAddress);
 
   const tokenBalance = useBalance(tokenAddress, tokenDecimals);
+  const maxBalance = Number.parseFloat(tokenBalance.balance) || 0;
 
-  const handleSupply = async () => {
-    if (!amount || isNaN(Number(amount))) return;
-    await supply(amount);
+  const isTransactionPending = isApprovePending || isSupplyPending || isApproveLoading || isSupplyLoading;
+
+  // Update current step based on hook states
+  useEffect(() => {
+    if (isApprovePending || isApproveLoading) {
+      setCurrentStep("approving");
+    } else if (isSupplyPending || isSupplyLoading) {
+      setCurrentStep("supplying");
+    } else if (isApproveSuccess || isSupplySuccess) {
+      // Keep current step until reset
+    } else {
+      setCurrentStep("idle");
+    }
+  }, [
+    isApprovePending,
+    isApproveLoading,
+    isSupplyPending,
+    isSupplyLoading,
+    isApproveSuccess,
+    isSupplySuccess,
+  ]);
+
+  const validateAmount = (value: string): string => {
+    if (!value || value === "0") return "Amount is required";
+    const numValue = Number.parseFloat(value);
+    if (isNaN(numValue) || numValue <= 0) return "Invalid amount";
+    if (numValue > maxBalance) return "Insufficient balance";
+    return "";
+  };
+
+  const handleAmountChange = (value: string) => {
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setAmount(value);
+      setInputError(validateAmount(value));
+    }
+  };
+
+  const handleMaxClick = () => {
+    const maxAmount = String(maxBalance);
+    setAmount(maxAmount);
+    setInputError(validateAmount(maxAmount));
+  };
+
+  const handleAction = () => {
+    const error = validateAmount(amount);
+    if (error) {
+      setInputError(error);
+      toast.error(error);
+      return;
+    }
+
+    // If approval is successful, proceed to supply
+    if (isApproveSuccess && currentStep !== "supplying") {
+      supply(amount);
+    } else {
+      // Otherwise, start with approval
+      approve(amount);
+    }
   };
 
   const handleRefetch = async () => {
@@ -88,6 +155,10 @@ const SupplyCollateralSection = ({
   const handleNewSupply = () => {
     setShowSuccessState(false);
     setAmount("");
+    setInputError("");
+    setCurrentStep("idle");
+    resetApprove();
+    resetSupply();
   };
 
   const getProgressValue = () => {
@@ -116,8 +187,39 @@ const SupplyCollateralSection = ({
     }
   };
 
+  const getButtonText = () => {
+    if (isTransactionPending) {
+      if (currentStep === "approving") {
+        return isApprovePending ? "Confirm Approval..." : "Approving Token...";
+      }
+      if (currentStep === "supplying") {
+        return isSupplyPending ? "Confirm Supply..." : "Supplying Collateral...";
+      }
+      return "Processing Transaction...";
+    }
+
+    if (isApproveSuccess && !isSupplySuccess) {
+      return `Supply ${collateralToken} as Collateral`;
+    }
+
+    return `Approve ${collateralToken}`;
+  };
+
+  const getStepBadge = () => {
+    if (currentStep === "approving") {
+      return "Step 1/2: Approving";
+    }
+    if (currentStep === "supplying") {
+      return "Step 2/2: Supplying";
+    }
+    if (isApproveSuccess && !isSupplySuccess) {
+      return "Step 1/2: Approved ✓";
+    }
+    return null;
+  };
+
   useEffect(() => {
-    if (isSuccess && tokenAddress) {
+    if (isSupplySuccess && tokenAddress) {
       createPosition(
         collateralToken,
         borrowToken,
@@ -132,7 +234,7 @@ const SupplyCollateralSection = ({
       }, 2000);
     }
   }, [
-    isSuccess,
+    isSupplySuccess,
     tokenAddress,
     collateralToken,
     borrowToken,
@@ -152,7 +254,7 @@ const SupplyCollateralSection = ({
   }
 
   // Success State
-  if (showSuccessState && isSuccess) {
+  if (showSuccessState && isSupplySuccess) {
     return (
       <>
         <div className="space-y-6 py-4">
@@ -226,93 +328,63 @@ const SupplyCollateralSection = ({
     );
   }
 
+  // Input State
   return (
     <>
       <div className="space-y-6 py-4">
-        {/* Progress Indicator */}
-        {isProcessing && (
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-3 mb-3">
-              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-              <span className="text-sm font-medium text-blue-800">
-                {getStepText()}
-              </span>
-            </div>
-            <Progress value={getProgressValue()} className="h-2" />
-            <div className="mt-2 text-xs text-blue-600">
-              Step{" "}
-              {currentStep === "approving"
-                ? "1"
-                : currentStep === "supplying"
-                ? "2"
-                : "2"}{" "}
-              of 2
-            </div>
-          </div>
-        )}
-
-        {/* Error Alert */}
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         <Card className="border border-slate-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-sm font-medium text-slate-700">
                 Supply Amount
               </h3>
-              <Badge
-                variant="outline"
-                className="bg-purple-50 text-purple-700 border-purple-200"
-              >
-                Collateral
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="bg-purple-50 text-purple-700 border-purple-200"
+                >
+                  Collateral
+                </Badge>
+                {getStepBadge() && (
+                  <Badge variant="secondary" className="text-xs">
+                    {getStepBadge()}
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
               <Input
                 placeholder={`Enter amount of ${collateralToken} to supply`}
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                disabled={isTransactionPending}
                 type="number"
                 min="0"
                 step="0.01"
-                disabled={isProcessing}
                 className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-lg font-medium"
               />
               <div className="flex items-center gap-1 bg-slate-200 px-3 py-1 rounded-md">
-                <span className="font-semibold text-slate-700">
-                  {collateralToken}
-                </span>
+                <span className="font-semibold text-slate-700">{collateralToken}</span>
               </div>
             </div>
 
-            <div className="mt-3 text-xs text-slate-500 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span>Your Balance:</span>
-                <Button
-                  onClick={handleRefetch}
-                  disabled={isRefetching}
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0"
-                >
-                  <RefreshCw
-                    className={`h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
-                  />
-                </Button>
+            {inputError && (
+              <div className="flex items-center gap-1 text-sm text-red-500 mt-2">
+                <AlertCircle className="h-3 w-3" />
+                {inputError}
               </div>
+            )}
+
+            <div className="mt-3 text-xs text-slate-500 flex justify-between items-center">
+              <span className="mr-1">Your Balance:</span>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-700 mx-2">
                   {tokenBalance.balance} {collateralToken}
                 </span>
                 <button
-                  onClick={() => setAmount(tokenBalance.balance)}
-                  disabled={isProcessing}
+                  onClick={handleMaxClick}
+                  disabled={maxBalance === 0 || isTransactionPending}
                   className="text-xs p-0.5 border border-purple-500 rounded-md text-purple-500 hover:bg-purple-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Max
@@ -322,83 +394,92 @@ const SupplyCollateralSection = ({
           </CardContent>
         </Card>
 
-        {/* Transaction Hashes During Processing */}
-        {(approveHash || supplyHash) && !showSuccessState && (
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">
-              Transaction Status
-            </h4>
-
-            {approveHash && (
-              <div className="mb-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      isApproveSuccess ? "bg-green-500" : "bg-yellow-500"
-                    }`}
-                  />
-                  <span className="text-xs text-gray-600">
-                    Approval Transaction
-                  </span>
-                </div>
-                <a
-                  href={`https://testnet.snowtrace.io/tx/${approveHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-mono text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1"
-                >
-                  {approveHash.slice(0, 20)}...{approveHash.slice(-10)}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+        {/* Approval Success Message */}
+        {isApproveSuccess && !isSupplySuccess && (
+          <Card className="border border-green-200 bg-green-50 shadow-sm">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-sm text-green-600">
+                <CheckCircle className="h-4 w-4" />
+                <span>
+                  Token approval successful! You can now supply your {collateralToken} as collateral.
+                </span>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
 
-            {supplyHash && (
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      isSuccess ? "bg-green-500" : "bg-yellow-500"
-                    }`}
-                  />
-                  <span className="text-xs text-gray-600">
-                    Supply Transaction
-                  </span>
-                </div>
-                <a
-                  href={`https://testnet.snowtrace.io/tx/${supplyHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-mono text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1"
-                >
-                  {supplyHash.slice(0, 20)}...{supplyHash.slice(-10)}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+        {/* Error Display */}
+        {(approveError || supplyError) && (
+          <Card className="border border-red-200 bg-red-50 shadow-sm">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <AlertCircle className="h-4 w-4" />
+                <span>
+                  {(approveError || supplyError)?.message || "Transaction failed"}
+                </span>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Transaction Progress */}
+        {isTransactionPending && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-600">Transaction Progress</span>
+              <span className="text-slate-500">{getStepText()}</span>
+            </div>
+            <Progress value={getProgressValue()} className="h-2" />
+          </div>
+        )}
+
+        {/* Transaction Hash */}
+        {(approveHash || supplyHash) && !isSupplySuccess && (
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isSupplySuccess ? "bg-green-500" : "bg-yellow-500"
+                }`}
+              />
+              <span className="text-xs text-gray-600">
+                {currentStep === "approving" ? "Approval" : "Supply"} Transaction
+              </span>
+            </div>
+            <a
+              href={`https://testnet.snowtrace.io/tx/${currentStep === "approving" ? approveHash : supplyHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-mono text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1"
+            >
+              {(currentStep === "approving" ? approveHash : supplyHash)?.slice(0, 20)}...{(currentStep === "approving" ? approveHash : supplyHash)?.slice(-10)}
+              <ExternalLink className="h-3 w-3" />
+            </a>
           </div>
         )}
       </div>
 
       <DialogFooter>
         <Button
-          onClick={handleSupply}
-          disabled={isProcessing || !amount || Number(amount) <= 0}
+          onClick={handleAction}
+          disabled={!amount || Number(amount) <= 0 || isTransactionPending || !!inputError}
           className={`w-full h-12 text-base font-medium rounded-lg duration-300 transition-colors ${
-            isProcessing
-              ? "bg-slate-200 text-slate-500"
-              : "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg cursor-pointer"
+            !amount || Number(amount) <= 0 || isTransactionPending || !!inputError
+              ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+              : isApproveSuccess && !isSupplySuccess
+              ? "bg-gradient-to-r from-[#01ECBE] to-[#141beb] hover:from-[#141beb] hover:to-[#01ECBE] text-white font-medium shadow-md hover:shadow-lg cursor-pointer"
+              : "bg-gradient-to-r from-blue-500 to-indigo-400 hover:from-blue-600 hover:to-indigo-500 text-white shadow-md hover:shadow-lg"
           }`}
         >
-          {isProcessing ? (
+          {isTransactionPending ? (
             <div className="flex items-center justify-center">
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              <span>{getStepText()}</span>
+              <span>{getButtonText()}</span>
             </div>
           ) : (
             <div className="flex items-center justify-center">
               <Shield className="mr-2 h-5 w-5" />
-              <span>{`Supply ${collateralToken} as Collateral`}</span>
+              <span>{getButtonText()}</span>
             </div>
           )}
         </Button>
@@ -408,3 +489,4 @@ const SupplyCollateralSection = ({
 };
 
 export default SupplyCollateralSection;
+
