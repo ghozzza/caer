@@ -15,11 +15,10 @@ const DesktopNavigation: React.FC = () => {
       <NavLink href="/trade">
         <span>Swap</span>
       </NavLink>
-      <div className="hidden">
-        <NavLink href="/faucets">
-          <span>Faucets</span>
-        </NavLink>
-      </div>
+
+      <NavLink href="/faucets">
+        <span>Faucets</span>
+      </NavLink>
     </div>
   );
 };
