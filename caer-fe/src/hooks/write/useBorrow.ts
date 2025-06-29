@@ -30,14 +30,13 @@ export function useBorrow(
     hash: borrowHash,
   });
 
-  const [isOpen, setIsOpen] = useState(false);
-
   const handleBorrow = async () => {
     try {
       if (!amount || Number.parseFloat(amount) <= 0) {
         toast.error("Please enter a valid borrow amount");
         return;
       }
+
       const parsedAmount = parseUnits(amount, decimal);
 
       const destination = chains.find((c) => c.id === destinationChainId)?.destination;
@@ -56,28 +55,17 @@ export function useBorrow(
         args: [parsedAmount, BigInt(fixedChainId), Number(destination)],
       });
 
-      toast.info("Transaction sent, waiting for confirmation...");
     } catch (error: any) {
       toast.error(error?.message || "Borrow transaction failed");
     }
   };
 
-  useEffect(() => {
-    if (isSuccess && borrowHash) {
-      toast.success("Borrow successful. See transaction on explorer.");
-      setIsOpen(false);
-    }
-  }, [isSuccess, borrowHash]);
-
   const isProcessing = isBorrowPending || isBorrowLoading;
 
   return {
-    isOpen,
-    setIsOpen,
     handleBorrow,
     isProcessing,
     borrowHash,
     isSuccess,
-    borrowError,
   };
 }

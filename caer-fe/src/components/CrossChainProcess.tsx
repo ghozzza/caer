@@ -42,9 +42,9 @@ export default function CrossChainProcess() {
   const features = [
     {
       title: "Multi-Chain Support",
-      description: "Support for Ethereum, Arbitrum, Base, Optimism, and more",
+      description: "Support for Ethereum, Avalance, Arbitrum, and Base",
       icon: Globe,
-      chains: ["/chain/base.png", "/chain/arbitrum.png", "/optimism.jpg", "/eth2.jpg"]
+      chains: ["/eth2.jpg", "/chain/avax-logo.png", "/chain/arbitrum.png", "/chain/base.png"]
     },
     {
       title: "Instant Settlements",

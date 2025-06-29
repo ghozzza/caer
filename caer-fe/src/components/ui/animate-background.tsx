@@ -66,11 +66,11 @@ export default function imateBackground() {
     },
     {
       text: "Chainlink",
-      className: "text-blue-500 dark:text-blue-500",
+      className: "text-indigo-500 dark:text-indigo-500",
     },
     {
       text: "CCIP",
-      className: "text-blue-500 dark:text-blue-500",
+      className: "text-indigo-500 dark:text-indigo-500",
     },
   ];
 
@@ -208,11 +208,11 @@ export default function imateBackground() {
         connectedPoints.add(end);
       });
 
-      ctx.fillStyle = "#1D4ED8"; // Blue-600 to match moving dots
+      ctx.fillStyle = "#1D4ED8"; 
       points.forEach((point, index) => {
         if (connectedPoints.has(index)) {
           ctx.beginPath();
-          const pointSize = dimensions.width < 768 ? 1 : 1.5;
+          const pointSize = dimensions.width < 768 ? 1 : 2;
           ctx.arc(point.x, point.y, pointSize, 0, Math.PI * 2);
           ctx.fill();
         }
@@ -319,7 +319,7 @@ export default function imateBackground() {
         border: true,
       },
       {
-        image: "/optimism.jpg",
+        image: "/chain/avax-logo.png",
         x: width * 0.65,
         y: height * 0.75,
         bg: "bg-white",
@@ -447,10 +447,10 @@ export default function imateBackground() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
+                  transition={{ duration: 1.3, delay: 0 }}
                 >
                   <Link href="/earn">
-                    <button className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-blue-500 to-indigo-600 bg-size-200 bg-pos-0 text-white rounded-lg font-semibold hover:bg-pos-100 transition-all duration-200 shadow-lg cursor-pointer flex items-center gap-2 animate-gradient">
+                    <button className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 bg-size-200 bg-pos-0 text-white rounded-lg font-semibold hover:bg-pos-100 transition-all duration-200 shadow-lg cursor-pointer flex items-center gap-2 animate-gradient">
                       Get Started
                       <ExternalLink className="w-4 h-4" />
                     </button>
@@ -462,7 +462,7 @@ export default function imateBackground() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                 >
                   <a
-                    href="https://your-gitbook-url.gitbook.io/docs"
+                    href="https://caer-finance-ccip.gitbook.io/caer-finance-docs/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-8 py-4 bg-white text-indigo-600 rounded-lg font-semibold border border-indigo-200 hover:bg-indigo-50 transition-colors shadow-lg cursor-pointer flex items-center gap-2"
