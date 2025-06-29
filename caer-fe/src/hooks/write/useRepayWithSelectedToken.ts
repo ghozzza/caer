@@ -22,7 +22,7 @@ const getTokenDecimals = (borrowToken?: string): number => {
 };
 
 export const useRepayWithSelectedToken = (
-  borrowToken?: string,
+  tokenAddress?: string,
   lpAddress?: string,
   condition?: boolean
 ) => {
@@ -57,14 +57,11 @@ export const useRepayWithSelectedToken = (
   ) => {
     setError(null);
 
-    const tokenAddress = getTokenAddress(borrowToken);
-
     if (!tokenAddress || !lpAddress) {
       const error = new Error("Missing token or pool address");
       console.error("❌ Repay error:", error.message, {
         tokenAddress,
         lpAddress,
-        borrowToken,
       });
       setError(error);
       return;
@@ -77,7 +74,7 @@ export const useRepayWithSelectedToken = (
       return;
     }
 
-    const decimals = getTokenDecimals(borrowToken);
+    const decimals = getTokenDecimals(tokenAddress);
     const userAmount = Number(amount) * 10 ** Number(decimals);
     const userShares = Math.round(
       (Number(userAmount) * Number(totalBorrowAssets)) /

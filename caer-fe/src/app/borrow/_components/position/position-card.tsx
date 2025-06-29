@@ -326,7 +326,6 @@ const PositionCard = () => {
                             logo={token.logo as string}
                             decimal={token.decimals}
                             addressPosition={addressPosition as `0x${string}`}
-                            arrayLocation={BigInt(0)}
                             lpAddress={lpAddress as `0x${string}`}
                           />
                         ))}
