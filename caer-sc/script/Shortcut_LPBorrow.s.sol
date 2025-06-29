@@ -9,9 +9,9 @@ import {ILendingPool} from "../src/interfaces/ILendingPool.sol";
 
 contract LPBorrowScript is Script, Helper {
     // --------- FILL THIS ----------
-    address public lpAddress = 0x024F057D80a37416D4997f1Da2dA1Bf07cb9980E;
+    address public lpAddress = 0x555470763e6B257C95B32A4D79BE64f4268569b7;
     address public yourWallet = 0x597c129eE29d761f4Add79aF124593Be5E0EB77e;
-    uint256 public amount = 500;
+    uint256 public amount = 1;
     // ----------------------------
 
     address public linkToken = 0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846;
@@ -52,8 +52,4 @@ contract LPBorrowScript is Script, Helper {
     }
     // RUN
     // forge script LPBorrowScript -vvv --broadcast
-
-    // LP = 0x8D6A4a325DE525A85eBdb0ddFfD514209deB25B2
-    // basicTokenSender = 0x174Ec8bAD0CDc86B0b09d2fF821F4DbD6e3a0a58
-    // mockUsdc = 0xC014F158EbADce5a8e31f634c0eb062Ce8CDaeFe
 }

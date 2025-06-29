@@ -8,9 +8,9 @@ import {ITokenSwap} from "../src/interfaces/ITokenSwap.sol";
 
 contract FaucetsScript is Script, Helper {
     // ------- FILL THIS ----------
-    address public claimToken = AVAX_WETH;
+    address public claimToken = AVAX_WBTC;
     address public claimAddress = 0x597c129eE29d761f4Add79aF124593Be5E0EB77e;
-    uint256 public amount = 1;
+    uint256 public amount = 10;
     // ----------------------------
 
     function setUp() public {

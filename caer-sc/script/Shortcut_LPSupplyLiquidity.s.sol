@@ -9,9 +9,9 @@ import {ILendingPool} from "../src/interfaces/ILendingPool.sol";
 
 contract LPSupplyLiquidityScript is Script, Helper {
     // --------- FILL THIS ----------
-    address public lpAddress = 0x024F057D80a37416D4997f1Da2dA1Bf07cb9980E;
+    address public lpAddress = 0x555470763e6B257C95B32A4D79BE64f4268569b7;
     address public yourWallet = 0x597c129eE29d761f4Add79aF124593Be5E0EB77e;
-    uint256 public amount = 1_000;
+    uint256 public amount = 1;
     // ----------------------------
 
     function setUp() public {
