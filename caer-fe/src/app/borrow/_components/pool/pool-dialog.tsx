@@ -16,11 +16,11 @@ import { ArrowBigRight, ChevronDown } from "lucide-react";
 import { useReadLendingData } from "@/hooks/read/useReadLendingData";
 import { useAccount } from "wagmi";
 import SupplyCollateralSection from "./supply-collateral-section";
-import WithdrawCollateralSection from "./withdraw-collateral-section";
 import BorrowSection from "./borrow-section";
 import { RepaySection } from "./repay-section";
 import ButtonConnectWallet from "@/components/navbar/button-connect-wallet";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import WithdrawCollateralDialog from "@/components/dialog/withdraw-collateral-dialog";
 
 interface PoolDialogProps {
   isOpen?: boolean;
@@ -148,7 +148,7 @@ const PoolDialog = ({
                       />
                     )}
                     {tab === "withdraw" && (
-                      <WithdrawCollateralSection
+                      <WithdrawCollateralDialog
                         collateralToken={collateralToken}
                         lpAddress={lpAddress}
                         onSuccess={handleSuccess}

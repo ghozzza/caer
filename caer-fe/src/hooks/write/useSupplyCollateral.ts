@@ -22,7 +22,6 @@ export const useSupplyCollateral = (chainId: number, borrowToken?: string, lpAdd
   const [pendingAmount, setPendingAmount] = useState<string>("")
 
   const decimals = getTokenDecimals(borrowToken)
-  const lendingPool = lpAddress as `0x${string}`
 
   const { data: approveHash, isPending: isApprovePending, writeContract: approveTransaction } = useWriteContract()
 
@@ -52,7 +51,7 @@ export const useSupplyCollateral = (chainId: number, borrowToken?: string, lpAdd
 
           await supplyTransaction({
             abi: poolAbi,
-            address: lendingPool!,
+            address: lpAddress as `0x${string}`,
             functionName: "supplyCollateral",
             args: [supplyAmountBigInt],
           })
@@ -69,7 +68,7 @@ export const useSupplyCollateral = (chainId: number, borrowToken?: string, lpAdd
     }
 
     handleApprovalSuccess()
-  }, [isApproveSuccess, currentStep, pendingAmount, lendingPool, supplyTransaction])
+  }, [isApproveSuccess, currentStep, pendingAmount, lpAddress, supplyTransaction])
 
   // Handle supply success
   useEffect(() => {
@@ -95,7 +94,7 @@ export const useSupplyCollateral = (chainId: number, borrowToken?: string, lpAdd
       return
     }
 
-    if (!lendingPool || !borrowToken) {
+    if (!lpAddress || !borrowToken) {
       setError("Missing token or pool address")
       setIsProcessing(false)
       setCurrentStep("idle")
@@ -112,7 +111,7 @@ export const useSupplyCollateral = (chainId: number, borrowToken?: string, lpAdd
         abi: mockErc20Abi,
         address: borrowToken as `0x${string}`,
         functionName: "approve",
-        args: [lendingPool, supplyAmountBigInt],
+        args: [lpAddress as `0x${string}`, supplyAmountBigInt],
       })
 
       console.log("✅ Approval transaction sent!")
