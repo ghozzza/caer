@@ -210,11 +210,11 @@ These tokens are used for cross-chain lending, borrowing, and collateral swaps o
 ## 🔗 Links
 
 - 🌐 Website: [https://caerfi.vercel.app](https://caerfi.vercel.app/)
-- X [https://x.com/caerfinance] (https://x.com/caerfinance)
+- X [https://x.com/caerfinance](https://x.com/caerfinance)
 - 📚 Documentation: [https://caer-finance-ccip.gitbook.io/](https://caer-finance-ccip.gitbook.io/)
 - 🏢 Organization: [https://github.com/ghozzza/caer](https://github.com/ghozzza/caer)
 - Demo Video [https://www.youtube.com/watch?v=NI6Idm1UshY](https://www.youtube.com/watch?v=NI6Idm1UshY)
-- Presentation [prentation-slide] (https://www.canva.com/design/DAGrMZrSlpk/H4G6irD6k-M8E3JTG7TYtw/edit?utm_content=DAGrMZrSlpk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+- Presentation [prentation-slide](https://www.canva.com/design/DAGrMZrSlpk/H4G6irD6k-M8E3JTG7TYtw/edit?utm_content=DAGrMZrSlpk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 ---
 
