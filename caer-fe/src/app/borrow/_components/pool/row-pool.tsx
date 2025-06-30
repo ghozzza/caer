@@ -45,15 +45,22 @@ const RowPool = ({
     lpAddress: lpAddress,
   });
 
- const convertLtv = (ltv: string) => {
-  const ltvNumber = Number(ltv);
-  return `${ltvNumber.toFixed(2)}%`;
-};
+  const convertLtv = (ltv: string) => {
+    const ltvNumber = Number(ltv);
+    return `${ltvNumber.toFixed(2)}%`;
+  };
 
+  const formatCurrency = (amount: number, locale: string, currencyCode: string) => {
+    const formattedNumber = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 5,
+    }).format(amount);
+    return formattedNumber;
+  };
 
   const liquidityFormatted =
     typeof supplyLiquidity === "number"
-      ? supplyLiquidity.toFixed(2)
+      ? formatCurrency(supplyLiquidity, "en-US", "USD")
       : supplyLiquidity;
 
   return (
