@@ -24,6 +24,14 @@ const RowTable = ({
   const tokenData = getTokenInfo(borrowToken, TARGET_CHAIN_ID);
   const collateralData = getTokenInfo(collateralToken, TARGET_CHAIN_ID);
 
+  const formatCurrency = (amount: number) => {
+    const formattedNumber = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 5,
+    }).format(amount);
+    return formattedNumber;
+  };
+
   const { supplyLiquidity } = useReadSupplyLiquidity({
     tokenAddress: borrowToken,
     chainId: TARGET_CHAIN_ID,
@@ -57,7 +65,7 @@ const RowTable = ({
 
       <td className="p-4 text-gray-500">
         <div className="font-medium max-w-[300px] truncate">
-          {supplyLiquidity} ${tokenData.name}
+          {formatCurrency(Number(supplyLiquidity))} ${tokenData.name}
         </div>
       </td>
 

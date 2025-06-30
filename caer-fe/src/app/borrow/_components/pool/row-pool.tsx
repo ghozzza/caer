@@ -50,7 +50,7 @@ const RowPool = ({
     return `${ltvNumber.toFixed(2)}%`;
   };
 
-  const formatCurrency = (amount: number, locale: string, currencyCode: string) => {
+  const formatCurrency = (amount: number) => {
     const formattedNumber = new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 5,
@@ -60,7 +60,7 @@ const RowPool = ({
 
   const liquidityFormatted =
     typeof supplyLiquidity === "number"
-      ? formatCurrency(supplyLiquidity, "en-US", "USD")
+      ? formatCurrency(supplyLiquidity)
       : supplyLiquidity;
 
   return (
