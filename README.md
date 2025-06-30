@@ -160,8 +160,9 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
     - Factory: `0x694B5A70f83062308aa60ecf12074Bc8f694612d`
     - Position: `0x9ee9F9158b872fe812C3F2204588dfc8b0FC4Eda`
     - Block Explorer: `https://testnet.snowtrace.io`
+  - **Destination ID**: 1
 
-
+## Token configuration
 - **WETH**
   - **Addresses**:
     - Ethereum Sepolia (11155111): `0x89d3acb10fc9f9bee444c05e1363e514e8a748da`
