@@ -27,13 +27,15 @@ const PositionToken = ({
   decimal,
   addressPosition,
   lpAddress,
-  logo
+  logo,
 }: PositionTokenProps) => {
-
-  const { positionBalance, isLoadingPositionBalance, refetchPositionBalance } = useReadPositionBalance(address, addressPosition as Address);
+  const { positionBalance, isLoadingPositionBalance, refetchPositionBalance } =
+    useReadPositionBalance(address, addressPosition as Address);
 
   const { borrowToken } = useReadBorrowToken(lpAddress as `0x${string}`);
-  const { collateralToken } = useReadCollateralToken(lpAddress as `0x${string}`);
+  const { collateralToken } = useReadCollateralToken(
+    lpAddress as `0x${string}`
+  );
 
   const borrowTokenName = tokens.find(
     (token) => token.addresses[43113] === borrowToken
@@ -53,8 +55,10 @@ const PositionToken = ({
     return token?.decimals;
   };
 
-  const tokenBalance = convertRealAmount(positionBalance as bigint, decimal).toFixed(5);
-
+  const tokenBalance = convertRealAmount(
+    positionBalance as bigint,
+    decimal
+  ).toFixed(5);
 
   const findLogoToken = (address: Address) => {
     const token = tokens.find((asset) => asset.addresses === address);
@@ -81,9 +85,9 @@ const PositionToken = ({
 
       <div className="flex justify-center gap-2">
         <Link href="/trade">
-          <Button className="bg-emerald-500 hover:bg-emerald-600 cursor-pointer">
-            <ArrowRightLeft className="h-3.5 w-3.5 mr-1" />
-            <span className="text-xs">Trade</span>
+          <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 rounded-lg cursor-pointer">
+            <ArrowRightLeft className="size-4 mr-2" />
+            Trade
           </Button>
         </Link>
 

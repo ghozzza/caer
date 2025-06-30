@@ -220,7 +220,7 @@ const DialogSupply = ({
               }
               setIsOpen(true);
             }}
-            className="bg-gradient-to-r from-indigo-400 to-blue-600 text-white shadow-md hover:shadow-lg"
+            className="bg-gradient-to-r from-indigo-400 to-blue-600 text-white shadow-md hover:shadow-lg cursor-pointer"
           >
             Supply
           </Button>

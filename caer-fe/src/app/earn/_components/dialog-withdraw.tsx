@@ -122,7 +122,7 @@ export default function DialogWithdraw({
             }
             setIsOpen(true);
           }}
-          className="bg-gradient-to-r from-red-500 to-orange-600 text-white shadow-md hover:shadow-lg"
+          className="bg-gradient-to-l from-indigo-400 to-blue-600 text-white shadow-md hover:shadow-lg cursor-pointer"
         >
           Withdraw
         </Button>

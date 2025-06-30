@@ -64,7 +64,7 @@ const AmountInput = ({
           />
           <div className="flex items-center gap-1 bg-slate-200 px-3 py-1 rounded-md">
             <DollarSign className="h-4 w-4 text-slate-700" />
-            <span className="font-semibold text-slate-700">Shares</span>
+            <span className="font-semibold text-slate-700">{token}</span>
           </div>
         </div>
 
@@ -98,7 +98,6 @@ export const RepaySection = ({
   onSuccess: () => void;
 }) => {
   const tokenData = tokens.find((t) => t.name === borrowToken);
-  const tokenAddress = tokenData?.addresses;
   const tokenDecimal = tokenData?.decimals;
 
   const [amount, setAmount] = useState("");
@@ -414,15 +413,7 @@ export const RepaySection = ({
                 Repayment Information
               </h4>
               <p className="text-xs text-blue-600">
-                Debt:{" "}
-                {(
-                  Number(userBorrowShares) /
-                  10 ** Number(tokenDecimal)
-                ).toFixed(5)}{" "}
-                Shares
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Equals to {equalsToToken()} {borrowToken}
+                Debt: {equalsToToken()} {borrowToken}
               </p>
             </div>
           </div>
@@ -487,21 +478,14 @@ export const RepaySection = ({
               </span>
             </div>
             <a
-              href={`https://testnet.snowtrace.io/tx/${
-                currentStep === "approving" ? approveHash : repayHash
-              }`}
+              href={`https://testnet.snowtrace.io/tx/${approveHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-mono text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1"
             >
-              {(currentStep === "approving" ? approveHash : repayHash)?.slice(
-                0,
-                20
-              )}
+              {approveHash?.slice(0, 20)}
               ...
-              {(currentStep === "approving" ? approveHash : repayHash)?.slice(
-                -10
-              )}
+              {approveHash?.slice(-10)}
               <ExternalLink className="h-3 w-3" />
             </a>
           </div>
