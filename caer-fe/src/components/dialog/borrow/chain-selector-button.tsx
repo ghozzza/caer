@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { ArrowRight, ArrowRightLeft, ChevronDown } from "lucide-react";
 import type { Chain } from "@/types/type";
-import ChainSelector from "@/components/chain-selector";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { chains } from "@/constants/chain-address";
 import {
@@ -131,11 +130,6 @@ export default function ChainSelectorButton({
           <DialogTitle className="sr-only">
             Select Destination Chain
           </DialogTitle>
-          {/* <ChainSelector
-            onSelect={handleChainSelect}
-            onClose={() => setIsChainSelectorOpen(false)}
-            selectorType={activeSelectorType}
-          /> */}
         </DialogContent>
       </Dialog>
     </>
