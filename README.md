@@ -1,201 +1,131 @@
 # Caér Finance
 
-## Project Demo
-[Go to site](https://caerfinance.vercel.app/)
+# Overview
 
-![Project Screenshot](https://github.com/ghozzza/caer-finance/blob/main/caer-fe/public/caer-fi-home.png)
+## Introduction to Caér Finance
 
----
+Welcome to Caér Finance, a permissionless cross-chain lending and borrowing protocol seamlessly integrated with Chainlink CCIP and Chainlink Data Streams.
 
-## Overview
-
-### Introduction to Caér Finance
-
-Welcome to **Caér Finance**, a cross-chain lending and borrowing protocol built to deliver seamless DeFi experiences across multiple blockchain networks using Chainlink CCIP (Cross-Chain Interoperability Protocol).
-
-Caér enables users to supply collateral and borrow assets across different chains, unlocking capital efficiency while minimizing risk exposure. By leveraging Chainlink CCIP, Caér ensures secure, reliable, and decentralized cross-chain messaging and token transfers.
-
-### Powered by Chainlink CCIP
-
-With CCIP, Caér Finance achieves:
-
-- Trust Minimized messaging between chains.
-- Programmable token tranfers
-- Defense-in-depth security via Chainlink's Decentralized Oracle Networks and risk management systems
-
-This infrastructure enables secure burn-and-mint token mechanics, real-time collateral verification, and robust cross-chain accounting. All while maintaining user control over assets.
-
----
-
-## What is Caér Finance?
-
-**Caér Finance** is a next-generation cross-chain lending and borrowing protocol designed to be a foundational decentralized finance (DeFi) primitive across multiple blockchain networks. Caér enables users to supply collateral on one chain and borrow assets on another, creating seamless capital access without relying on centralized custodians or traditional bridge infrastructures.
-
-At the core of Caér lies Chainlink’s Cross-Chain Interoperability Protocol (CCIP), which powers secure and programmable messaging and token transfers between supported blockchains. By leveraging CCIP’s decentralized oracle network (DONs) and modular infrastructure, Caér ensures trust-minimized communication, robust cross-chain accounting, and reliable execution of financial operations.
-
-Instead of building a custom messaging or sequencing layer, Caér uses Chainlink CCIP to:
-
-- Transmit collateral information between chains in a verifiable and decentralized manner
-- Execute burn-and-mint token mechanics to enable efficient cross-chain borrowing
-- Protect protocol operations with built-in security features like the Risk Management Network
-
-This architecture enables Caér to maintain transaction integrity, fast settlement, and high composability, while fully adhering to decentralization principles.
-
-With a focus on decentralization, capital efficiency, and user sovereignty, Caér represents a new standard in interoperable DeFi infrastructure. Unlocking the full potential of multi-chain liquidity and lending.
-
----
+Caér addresses a key limitation in DeFi by enabling users to deposit collateral on one blockchain and borrow assets on another, leveraging Chainlink’s secure cross-chain infrastructure.michael This approach eliminates the need for centralized bridges or custodial intermediaries.
 
 ## Key Features
 
-- **Chainlink CCIP-Powered Cross-Chain Messaging**  
-  Utilizes Chainlink’s Cross-Chain Interoperability Protocol (CCIP) to securely transmit messages and token transfers between blockchains—enabling seamless coordination of lending, borrowing, and collateral operations across chains.
-  
-- **Programmable Token Transfers**  
-  Enables native cross-chain asset flows via programmable token transfers, supporting burn-and-mint mechanisms without relying on centralized bridges.
+### Permissionless Cross-Chain Lending & Borrowing
 
-- **Seamless Cross-Chain Lending and Borrowing**  
-  Users can supply collateral on one chain and borrow assets on another through a unified and intuitive interface, expanding access to liquidity and maximizing capital efficiency.
+Caér Finance allows decentralized lending and borrowing across multiple blockchain networks without intermediaries. Users can supply collateral on one chain and borrow assets on another, promoting financial inclusion and maintaining full custody over assets.
 
-- **Trustless and Transparent Execution**  
-  All protocol operations are executed through fully on-chain smart contracts, with cross-chain communication securely coordinated by decentralized oracle networks (DONs). This architecture ensures verifiability, preserves user autonomy, and upholds the integrity of the system without reliance on centralized intermediaries.
+### Secure Cross-Chain Messaging Powered by Chainlink CCIP
+
+Utilizing Chainlink Cross-Chain Interoperability Protocol (CCIP), Caér ensures secure and atomic cross-chain transactions through a burn-and-mint model. This mechanism guarantees supply consistency and reduces systemic risk across blockchain environments.
+
+### Real-Time Collateral Valuation via Chainlink Data Streams
+
+Integrating Chainlink Data Streams provides Caér with real-time price updates, enabling accurate loan-to-value (LTV) assessments and transparent risk management. These data feeds enhance user transparency and support future risk-based features.
+
+### Native Collateral Swap Mechanism
+
+Caér includes a native collateral swap feature, allowing users to adjust collateral compositions without closing positions. Integrated with Chainlink Data Streams, this feature ensures swaps are executed at fair market values based on current pricing data.
+
+## Join Us
+
+Caér Finance is built on Chainlink’s robust infrastructure, leveraging CCIP for secure cross-chain interoperability and Data Streams for real-time market data. Join us in building the future of cross-chain DeFi—where liquidity, security, and usability transcend single-chain limitations.
+
+Explore how Caér can empower developers and users alike to unlock cross-chain capital efficiency in a permissionless ecosystem. Let’s build a more connected DeFi together.
+
+Powered by Chainlink.
+
+---
+# Problems and Solutions
+
+In building a permissionless cross-chain lending protocol, we identified the most pressing challenges in multichain DeFi and designed focused solutions through our integration with Chainlink’s decentralized infrastructure.
+
+## Fragmented Liquidity Across Chains
+
+**Problem**: DeFi users are often constrained by isolated liquidity pools on individual blockchains, limiting access to optimal borrowing or lending opportunities.
+
+**Caér Finance's Solution**: Caér Finance solves this through secure cross-chain functionality powered by Chainlink CCIP, enabling users to deposit collateral on one chain and borrow on another without relying on centralized bridges or wrapped assets. This unlocks multichain capital access and improves capital efficiency across ecosystems.
+
+## Delayed Price Feeds
+
+**Problem**: Traditional oracles often suffer from latency or low update frequency, resulting in outdated collateral pricing, miscalculated LTV ratios, and increased exposure to market volatility.
+
+**Caér Finance's Solution**: By integrating Chainlink Data Streams, Caér accesses sub-second, real-time price data on-chain. This ensures up-to-date collateral valuations and dynamic loan tracking, empowering users with accurate, real-time position insights.
+
+## Closed and Restrictive Protocols Hinder Broader Participation
+
+**Problem**: A significant number of lending platforms operate within closed ecosystems, relying on mechanisms such as whitelisting, centralized governance, or limited collateral support. These restrictions reduce accessibility, limit user autonomy, and compromise the principles of transparency and decentralization.
+
+**Caér Finance's Solution**: Caér Finance is designed as a fully permissionless protocol, enabling any user to engage in lending or borrowing activities without the need for prior approval or reliance on centralized intermediaries. This open-access architecture fosters inclusivity, enhances transparency, and aligns with the core ethos of decentralized finance by supporting unrestricted global participation.
+
+## Collateral Management is Inflexible
+
+**Problem**: Other lending protocols require users to exit positions to adjust their collateral, incurring costs and friction during portfolio adjustments.
+
+**Caér Finance's Solution**: Caér introduces a native in-protocol collateral swap mechanism, allowing users to seamlessly change their collateral type without closing positions. This feature is supported by Chainlink Data Streams, ensuring accurate pricing during swaps and enabling more agile, responsive portfolio management.
 
 ---
 
-## Why Caér Finance?
+# Challenges
 
-- **True Cross-Chain Lending & Borrowing**  
-  Trust-minimized, native cross-chain liquidity access without reliance on third-party interoperability.
+## Challenges Faced by Caér Finance
 
-- **Secure and Timely Transaction Finality**  
-  Fast confirmations via Espresso finality layer for safe and efficient market participation.
+### Secure Cross-Chain Messaging Without Centralization
 
-- **Trustless Execution via Application-Specific Sequencer (ASS)**  
-  Decentralized infrastructure ensuring robust and accurate coordination.
+**Challenge**: Implementing cross-chain functionality in DeFi often relies on custodial bridges or wrapped assets, which introduce significant security risks and systemic vulnerabilities. Caér’s challenge was to deliver secure and verifiable cross-chain communication without compromising decentralization. By integrating Chainlink CCIP, Caér had to ensure not only the integrity of cross-chain token transfers but also the safe orchestration of protocol logic across multiple blockchain environments. This required careful handling of message validation, failure recovery, and trust minimization throughout the system.
 
-- **Capital-Efficient Liquidity Aggregation**  
-  Enables advanced strategies and maximizes utility of idle capital.
+### Real-Time Price Delivery and On-Chain Integration
 
-- **Modular, Scalable, and Ecosystem-Ready**  
-  Composable with other dApps and built for long-term utility on Pharos.
+**Challenge**: Other lending protocols can function with delayed price updates, but in a cross-chain setting, real-time valuation is essential. Caér’s integration of Chainlink Data Streams introduces technical challenges related to on-chain data consumption, synchronization across chains, and oracle update frequency. Ensuring that these real-time data feeds are efficiently integrated, cost-effective, and robust against volatility or rapid price swings is critical to maintaining accurate collateral tracking and user confidence in borrowing limits.
 
----
+### Maintaining Protocol Resilience Against Oracle Manipulation
 
-## Problem
+**Challenge**: Relying on a single source of truth can expose lending protocols to manipulation or failure. Even with Chainlink’s decentralized architecture, integrating Data Streams into core protocol operations requires rigorous safeguards, such as deviation thresholds, update throttling, and fallback pricing logic. Caér must ensure that its reliance on external data sources does not introduce fragility or open attack vectors, especially when these prices are used for critical operations like collateral adjustment or eligibility verification.
 
-### Problems Caér Finance Solves
+### Operational Coordination Across Multiple Chain Environments
 
-- **Fragmented Liquidity**  
-  Combines liquidity across chains, overcoming the limitations of siloed lending markets.
+**Challenge**: Running a protocol that operates across chains using CCIP introduces operational and infrastructure complexity. Caér must account for chain-specific behavior, gas costs, execution timing, and differences in token standards. Coordinating token burns, message confirmations, and mints across heterogeneous networks while maintaining consistent user experience requires both technical precision and robust testing frameworks. Leveraging Chainlink CCIP’s capabilities demands rigorous adherence to cross-chain standards and careful monitoring of interchain message flow to ensure system integrity.
 
-- **Slow & Inefficient Liquidations Cross-Chain**  
-  Uses ASS and Espresso to execute fast and secure liquidations across different ecosystems.
+# How We Achieve Cross-Chain Capability
+![Flowchart Screenshot](https://caer-finance-ccip.gitbook.io/caer-finance-docs/~gitbook/image?url=https%3A%2F%2F172083510-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FVsNKiGOr7l1Swz9iRDmK%252Fuploads%252FCwxTYAcXnpfSbezsGmvh%252Fcaernewlendbor.gif%3Falt%3Dmedia%26token%3D4efab80d-3125-4a66-b8c8-39f1c2d9cd0b&width=768&dpr=4&quality=100&sign=e1cb7b1b&sv=2)
+Caér Finance achieves secure and verifiable cross-chain lending by leveraging Chainlink’s Cross-Chain Interoperability Protocol (CCIP) to facilitate communication and token transfer between blockchain networks. The protocol enables users to deposit collateral on one chain and borrow stablecoins on another without relying on centralized bridges or wrapped assets by utilizing a secure burn-and-mint mechanism.
 
-- **Security Risks in Cross-Chain Interactions**  
-  Reduces vulnerabilities associated with centralized bridges and unverified data transmission.
+In our current architecture, as illustrated:
 
-- **Isolated Liquidity Pools**  
-  Aggregates capital into a shared liquidity layer, increasing usability and returns.
+- On the **Source Chain (Avalanche Fuji)**, users deposit collateral (e.g., MockWAVAX) into the Caér Liquidity Pool. The deposited tokens are handled by `BasicTokenSender.sol`, which interacts with the Chainlink CCIP Router. This Router prepares a cross-chain message, processes transaction fees (in LINK or AVAX), and initiates a burn operation of the deposited tokens, removing them from circulation and preventing supply duplication.
 
-- **Bootstrap Challenges in New Chain Deployments**  
-  Supports new chains like Pharos with incentives and infrastructure that foster adoption.
+- The burn-and-mint method, native to Chainlink CCIP’s token pool mechanism, ensures that tokens exist on only one chain at any time. The burn event is cryptographically verified and transmitted by Chainlink’s decentralized oracle network (DON), forming a secure proof of collateral transfer.
 
----
+- Once received on the **Destination Chain (Arbitrum Sepolia)**, the corresponding CCIP Router invokes the `LendingPool.sol` contract. This contract verifies the message and proof, and accordingly credits the user with the right to borrow stablecoins (e.g., MockUSDC), which are minted or released from liquidity on the destination chain.
 
-## Challenges
+- Both MockWAVAX and MockUSDC are continuously priced using Chainlink Data Streams, a low-latency oracle feed that ensures accurate and high-frequency pricing. These feeds are crucial for determining borrowing capacity, monitoring risk exposure, and enabling dynamic collateral swap logic within the protocol.
 
-### Challenges Faced by Caér Finance
-
-- **Technological Complexity**  
-  Integrating ASS, Espresso, and solver logic while ensuring security and performance is a non-trivial engineering task.
-
-- **Cross-Chain Liquidity Management**  
-  Real-time coordination of liquidity and rates across independent networks is essential and challenging.
-
-- **Security & Smart Contract Risks**  
-  Mitigated through on-chain, verifiable, and decentralized execution.
-
-- **Ecosystem Onboarding and Bootstrap Challenges**  
-  Caér must bootstrap user adoption and composability early to become a viable DeFi foundation.
-
----
-
-## How We Achieve Cross-Chain Capability
-![Flowchart Screenshot](https://caer-fi.gitbook.io/~gitbook/image?url=https%3A%2F%2F1010550430-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FxRSOS0hj1VBPl9GetrLn%252Fuploads%252FkdSU02m0gVfJffuEYOO5%252FNetwork%2520A.png%3Falt%3Dmedia%26token%3Db86b0df4-40d0-4caf-a51a-93b9c87d3d3e&width=768&dpr=2&quality=100&sign=aac57a0c&sv=2)
-This diagram illustrates the cross-chain lending and borrowing mechanism in Caér, powered by the Pharos and Arbitrum networks. The system ensures trustless execution, fast finality, and secure interoperability using Application-Specific Sequencer (ASS), Espresso Finality, Solvers, and Supra Oracle.
-
-### Cross-Chain Lending Workflow
-
-1. **User Collateral Deposit**  
-   The user deposits 1 PAXG (tokenized gold) as collateral on Chain A (Pharos).
-
-2. **User Loan Request**  
-   The user initiates a request to borrow 100 USDC on Chain B (Arbitrum).
-
-3. **Oracle Price Feed (via Supra Oracle)**  
-   Before processing the loan, Supra Oracle provides the real-time USD value of 1 PAXG, ensuring that the collateral meets the required Loan-to-Value (LTV) ratio.
-
-4. **ASS Verification**  
-   ASS verifies the deposit on Chain A and uses the price data from Supra to confirm the user's collateral is sufficient. The ASS cross-checks the deposit and price status before approving the loan request.
-
-5. **Espresso Confirmation & ASS Signature Generation**
-   The sequencer leverages Espresso confirmations to ensure transaction finality within sub-15 seconds.Once confirmed, ASS generates a signature, verifying that the deposit exists, the price is valid, and the loan request is approved.
-
-6. **Transaction Processing**  
-   The generated ASS signature is embedded into the transaction, enabling secure execution on Chain B.
-
-7. **Solver Loan Execution**  
-   The solver, upon receiving the verified ASS signature, releases 100 USDC to the user's address on Chain B. By integrating ASS, Supra, and Espresso, Caér ensures trustless execution, accurate collateral valuation, and fast cross-chain finality—making lending and borrowing secure, scalable, and RWA-friendly.
-
-> **Note:**  
-> For the purposes of this hackathon, we are using mock tokens to simulate transactions and interactions within the platform. Additionally, the platform is operating on a testnet environment.
+By combining CCIP and Data Streams, Caér Finance unlocks native cross-chain borrowing with high levels of security, precision, and capital efficiency without relying on wrapped tokens or centralized liquidity hubs. This positions Caér as a modular, interoperable DeFi primitive ready to scale across blockchain ecosystems.
 
 ---
 
 ## Swap
-![Swap Screenshot](https://caer-fi.gitbook.io/~gitbook/image?url=https%3A%2F%2F1010550430-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FxRSOS0hj1VBPl9GetrLn%252Fuploads%252FtOe2xPpbATOlwH7fvaLw%252FNetwork%2520A%2520%281%29.png%3Falt%3Dmedia%26token%3Ddaeceee6-d06c-44e7-820c-78c94c1b5e31&width=768&dpr=2&quality=100&sign=7966739b&sv=2)
-Caér implements a decentralized swap mechanism inspired by Automated Market Maker (AMM) models, enabling seamless token exchanges within the Caér Pool. The workflow below describes the process of token swapping and liquidity provision on the platform. But how does Caér’s swap system enhance the lending and borrowing experience? Unlike traditional swaps, Caér’s decentralized swap mechanism is designed specifically to trade collateral assets. This means users must hold an active lending or borrowing position to access swap functionalities, ensuring capital efficiency and seamless liquidity management.
+![Swap Screenshot](https://caer-finance-ccip.gitbook.io/caer-finance-docs/~gitbook/image?url=https%3A%2F%2F172083510-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FVsNKiGOr7l1Swz9iRDmK%252Fuploads%252F7iRgTFqsZUbxsYM7110s%252Fswapcolcaer.png%3Falt%3Dmedia%26token%3Da1503862-6024-4f1a-9c09-1b716d8f2e7f&width=768&dpr=4&quality=100&sign=51a3ea27&sv=2)
+Caér Finance incorporates a purpose-built collateral swap mechanism that enables users to modify their collateral composition directly within the protocol without exiting lending or borrowing positions. Inspired by the architecture of Automated Market Makers (AMM), the system is tightly integrated into the Caér Pool to facilitate real-time, on-chain token exchange with minimal friction.
 
+## 1. Liquidity Provision and Pool Structure
+Liquidity Providers (LPs) contribute token pairs such as Token A and Token B into the Caér Pool, which serves as the central liquidity reserve for swap operations. In return, LPs receive Pool Tokens, representing their proportional ownership and entitling them to a share of the accrued transaction fees from swaps.
 
-### 1. Liquidity Provider 💧
-Liquidity Providers (LPs) deposit pairs of tokens (e.g., Token A and Token B) into the **Caér Pool**.
+The Caér Pool maintains segregated reserves for each token and continuously adjusts these balances as swaps are executed.
 
-In return, LPs receive **Pool Tokens**, which represent their share of the liquidity pool and entitle them to a proportion of the transaction fees generated from swaps.
+## 2. Swap Execution
+Only users with active lending or borrowing positions are permitted to access the swap functionality. This requirement ensures that all swap operations are tied directly to collateral management, thereby improving capital efficiency and reducing unnecessary speculative activity.
 
-### 2. Caér Pool Management 🗃️
-The **Caér Pool** maintains reserves of the deposited tokens and continuously updates balances as users perform swap operations.
+When a user initiates a swap, such as swapping Token A for Token B, the swap logic references current reserve ratios and applies an AMM pricing formula (e.g., constant product model) to calculate the output amount. The system also integrates with Chainlink Data Streams to fetch real-time price references, ensuring fair execution and slippage protection.
 
-These reserves are used to facilitate trades between Token A and Token B **without relying on external order books**.
+## 3. Oracle Integration for Price Validation
+To maintain accurate valuation of the swapped collateral, Caér utilizes Chainlink Oracles. These oracles deliver tamper-proof, real-time price feeds for all supported tokens, ensuring that each swap maintains alignment with market value. This is critical for maintaining healthy collateralization ratios and reducing systemic risk across lending positions.
 
-### 3. Swap Mechanism 🔄
-Traders initiate swaps through the **Caér Swap** interface by selecting the tokens they wish to exchange — such as swapping Token A for Token B.
-
-**What makes Caér unique:**
-
-To access swap functionalities, users **must hold an active lending or borrowing position**.  
-This ensures that swaps are **directly integrated with the lending and borrowing protocol**, enabling **capital efficiency** and **enhanced liquidity management**.
-
-The swap functionality applies an **Automated Market Maker (AMM)** formula to determine the exchange rate, considering the current reserves of the involved tokens.
-
-Upon successful execution, the **Caér Pool** updates the reserves accordingly.
-
-
-### 4. Transaction Fees 💸
-A small fee is applied to each swap, **distributed to Liquidity Providers based on their share of the pool**.
-
-These fees **incentivize LPs to maintain liquidity** within the pool, enhancing platform efficiency and accessibility.
-
-### 5. Liquidity Withdrawal 📤
-LPs can withdraw their liquidity at any time by **redeeming their Pool Tokens**.
-
-Upon withdrawal, the provider receives their **proportional share of the pool’s reserves** along with any **accumulated fees**.
-
-
-> **Note:**  
-> For the purposes of this hackathon, we are using **mock tokens** to simulate transactions and interactions within the platform.  
-> Additionally, the platform is operating on a **testnet environment**.
-
+## 4. Incentivization through Fees
+Each swap transaction incurs a small liquidity fee, which is distributed among active LPs based on their share of the pool. This fee structure incentivizes continued liquidity provision and supports the long-term sustainability of the swap module.
 
 ---
+
+
 
 ## 🔗 Links
 
