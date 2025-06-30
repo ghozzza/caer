@@ -1,5 +1,11 @@
 # Caér Finance
 
+## Project Demo
+[Go to site](https://caerfi.vercel.app/)
+
+![Project Screenshot](https://github.com/ghozzza/caer/blob/main/caer-fe/public/caercciphomegif.gif)
+
+---
 # Overview
 
 ## Introduction to Caér Finance
@@ -125,57 +131,38 @@ Each swap transaction incurs a small liquidity fee, which is distributed among a
 
 ---
 
+Chainlink Integrations in Caér Finance
+Caér Finance leverages industry-leading oracle infrastructure from Chainlink to enable secure, real-time, and trust-minimized cross-chain lending. Two core Chainlink services, CCIP (Cross-Chain Interoperability Protocol) and Data Streams, form the foundation of Caér’s decentralized architecture.
+1. Chainlink CCIP: Secure Cross-Chain Messaging
+To support native cross-chain lending and borrowing, Caér integrates Chainlink CCIP, a generalized interoperability protocol that enables smart contracts on different chains to securely communicate and transfer data
+When a user deposits collateral on a source chain (e.g., Avalanche Fuji) and initiates a borrow on a destination chain (e.g., Arbitrum Sepolia), CCIP executes a burn-and-mint mechanism. The token is burned on the origin chain, and a CCIP Router relays a cryptographically verifiable message to the destination chain. Upon verification, equivalent value is minted or registered, enabling the borrow transaction without reliance on centralized bridges or wrapped assets.
+3. Chainlink Data Streams: Real-Time Price Feeds
+In addition to cross-chain messaging, Caér uses Chainlink Data Streams to power its real-time pricing and risk assessment infrastructure. Data Streams provide high-frequency, low-latency market data sourced from multiple institutional-grade providers and updated directly on-chain.
+This integration enables Caér to:
+
+Monitor collateral valuation with sub-second latency
+Perform accurate borrowing limit calculations (e.g., LTV (Loan-to-Value))
+Support collateral swap operations with live price validation
+Mitigate manipulation through multi-source aggregation
+Maintain transparency and determinism for all economic actions
+
+By combining CCIP and Data Streams, Caér achieves a robust and composable infrastructure for permissionless lending across chains. The synergy of these technologies ensures users enjoy a seamless, secure, and real-time DeFi experience without sacrificing decentralization, speed, or integrity.
+
+---
+
 
 
 ## 🔗 Links
 
-- 🌐 Website: [https://caerfinance.vercel.app](https://caerfinance.vercel.app/)
-- 📚 Documentation: [https://caer-fi.gitbook.io/caer-finance-docs](https://caer-fi.gitbook.io/caer-finance-docs)
-- 🏢 Organization: [https://github.com/ghozzza/caer-finance](https://github.com/ghozzza/caer-finance)
-- 🎥 Video Demo Application: [Demo Apps] (https://youtu.be/xCRaanzcTPc)
-- 🧑‍🏫 CAÉR Pitch Deck: [Presentation Deck] (https://youtu.be/Zmb6NwXq66g)
-- 🖥️ Presentation Slides: [Canva Slides](https://www.canva.com/design/DAGleoJZCII/DhRV5oVDS5hdOlPlwkqhig/edit?utm_content=DAGleoJZCII&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+- 🌐 Website: [https://caerfi.vercel.app](https://caerfi.vercel.app/)
+- 📚 Documentation: [https://caer-finance-ccip.gitbook.io/](https://caer-finance-ccip.gitbook.io/)
+- 🏢 Organization: [https://github.com/ghozzza/caer](https://github.com/ghozzza/caer)
+- 🎥 Video Demo Application: [Demo Apps] ()
+- 🧑‍🏫 CAÉR Pitch Deck: [Presentation Deck] ()
+- 🖥️ Presentation Slides: [Canva Slides]()
 
 ---
-## 🔗 Smart Contracts 
-### LendingPool ‼Deployed on Pharos Devnet
-- **Contract Name:** LendingPool
-- **Contract Address:** 0x9F19f49DA9D24382892a78D8d966441DCc4ee89b
 
-### LendingPoolSequencer ‼Deployed on Arbitrum Sepolia
-- **Contract Name:** LendingPoolSequencer
-- **Contract Address:** 0x4CA9964bA32016F6Ba043Bfefc17BFf45E73469e
-
-### MockUSDC ‼Import Token Contract Address to Your Wallet
-- **Contract Name:** MockUSDC (Pharos Devnet)
-- **Contract Address:** 0x42260072BbfaD1b50AD01C8aAdeA5dE345f2E752
-- **Contract Name:** MockUSDC (Arbitrum Sepolia)
-- **Contract Address:** 0xB55061A1c2dC4E5da0626371f3Bcd322d94aFE7a
-
-### MockWETH ‼Import Token Contract Address to Your Wallet
-- **Contract Name:** MockWETH (Pharos Devnet)
-- **Contract Address:** 0x18858A62e46DCb501F1c69893ee0f7F2323581a5
-- **Contract Name:** MockWETH (Arbitrum Sepolia)
-- **Contract Address:** 0x2c2e865b4F45A3c5540e51088a3232828C8cc7Ed
-
-### MockWBTC ‼Import Token Contract Address to Your Wallet
-- **Contract Name:** MockWBTC (Pharos Devnet)
-- **Contract Address:** 0xa0624E61a525Ba2A71B793413a89F9a624646081
-- **Contract Name:** MockWBTC (Arbitrum Sepolia)
-- **Contract Address:** 0x8Aa245cf3ad6dc239AfaA3B7498B378354a49D56
-
-## 🔗 API
-- **Sequencer:** https://caerfi-solver.vercel.app/api/borrow
-
-## Pharos Devnet
-- **RPC URL:** https://devnet.dplabs-internal.com/
-- **Chain ID:** 50002
-- **Blockexplorer:** https://pharosscan.xyz/
-  
-## Arbitrum Sepolia
-- **RPC URL:** https://sepolia-rollup.arbitrum.io/rpc
-- **Chain ID:** 421614
-- **Blockexplorer:** https://sepolia.arbiscan.io/
 
 ## License
 
