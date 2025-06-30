@@ -50,7 +50,7 @@ const CollateralSection = ({
           <div className="flex items-center gap-2 ml-4">
             <Select value={lpAddress} onValueChange={handleLpChange}>
               <SelectTrigger className="w-full bg-white text-gray-800 border border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-emerald-200 rounded-lg shadow-sm cursor-pointer">
-                <SelectValue placeholder="Select a collateral token" />
+                <SelectValue placeholder="Select Lending Pool" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-gray-300 rounded-lg shadow-md">
                 <SelectGroup>

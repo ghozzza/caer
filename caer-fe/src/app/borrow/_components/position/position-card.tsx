@@ -10,11 +10,7 @@ import {
   CreditCard,
   SquareArrowOutUpRight,
 } from "lucide-react";
-import {
-
-  mockUsdc,
-  mockWeth,
-} from "@/constants/addresses";
+import { mockUsdc, mockWeth } from "@/constants/addresses";
 import type { Address } from "viem";
 import { tokens } from "@/constants/token-address";
 import PositionToken from "./position-token";
@@ -115,14 +111,23 @@ const PositionCard = () => {
     lpAddress as `0x${string}`
   );
 
-  const { userBorrowShares, isLoadingUserBorrowShares, refetchUserBorrowShares } =
-    useReadUserBorrowShares(lpAddress as `0x${string}`);
+  const {
+    userBorrowShares,
+    isLoadingUserBorrowShares,
+    refetchUserBorrowShares,
+  } = useReadUserBorrowShares(lpAddress as `0x${string}`);
 
-  const { totalBorrowAssets, isLoadingTotalBorrowAssets, refetchTotalBorrowAssets } =
-    useReadTotalBorrowAssets(lpAddress as `0x${string}`);
+  const {
+    totalBorrowAssets,
+    isLoadingTotalBorrowAssets,
+    refetchTotalBorrowAssets,
+  } = useReadTotalBorrowAssets(lpAddress as `0x${string}`);
 
-  const { totalBorrowShares, isLoadingTotalBorrowShares, refetchTotalBorrowShares } =
-    useReadTotalBorrowShares(lpAddress as `0x${string}`);
+  const {
+    totalBorrowShares,
+    isLoadingTotalBorrowShares,
+    refetchTotalBorrowShares,
+  } = useReadTotalBorrowShares(lpAddress as `0x${string}`);
 
   const { addressPosition, isLoadingAddressPosition, refetchAddressPosition } =
     useReadAddressPosition(lpAddress as `0x${string}`);
@@ -165,9 +170,11 @@ const PositionCard = () => {
       return (
         <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-xl duration-1300" />
       );
-    if (!lpAddress) return "Select position address";
-    return `${
-      (Number(userCollateral) / 10 ** Number(getDecimal(String(collateralToken)))).toFixed(5)} $${findNameToken(collateralToken)}`;
+    if (!lpAddress) return "Choose Your Lending Pool";
+    return `${(
+      Number(userCollateral) /
+      10 ** Number(getDecimal(String(collateralToken)))
+    ).toFixed(5)} $${findNameToken(collateralToken)}`;
   };
   const formatCollateralAmount = () => {
     if (isLoading)
@@ -186,14 +193,21 @@ const PositionCard = () => {
     refetchUserBorrowShares();
     refetchTotalBorrowAssets();
     refetchTotalBorrowShares();
-    if (isLoadingUserBorrowShares || isLoadingTotalBorrowAssets || isLoadingTotalBorrowShares || isLoading)
+    if (
+      isLoadingUserBorrowShares ||
+      isLoadingTotalBorrowAssets ||
+      isLoadingTotalBorrowShares ||
+      isLoading
+    )
       return (
         <div className="flex justify-center">
           <Loader2 className="size-8 animate-spin duration-1000" />
         </div>
       );
 
-    const userDebt = Number(userBorrowShares) * Number(totalBorrowAssets) / Number(totalBorrowShares)
+    const userDebt =
+      (Number(userBorrowShares) * Number(totalBorrowAssets)) /
+      Number(totalBorrowShares);
     const amount = convertRealAmount(
       Number(userDebt),
       10 ** Number(getDecimal(String(borrowToken)))
@@ -203,25 +217,32 @@ const PositionCard = () => {
 
   const formatAddressPosition = () => {
     if (isLoadingAddressPosition)
-      return <div className="flex justify-center">
-        <Loader2 className="size-8 animate-spin duration-1000" />
-      </div>
+      return (
+        <div className="flex justify-center">
+          <Loader2 className="size-8 animate-spin duration-1000" />
+        </div>
+      );
     return addressPosition != "0x0000000000000000000000000000000000000000" ? (
       <div className="flex flex-col items-center gap-2">
         <div className="flex items-center gap-2 text-gray-500">
           <CreditCard className="size-5" />
-          <span className="text-lg">Your position: </span>
+          <span className="text-lg">Your Position Address: </span>
         </div>
         <div>
-          <Link href={`https://testnet.snowtrace.io/address/${addressPosition}`}
-            className="text-lg text-gray-500 flex items-center gap-1 hover:text-blue-400 duration-300" target="_blank">
+          <Link
+            href={`https://testnet.snowtrace.io/address/${addressPosition}`}
+            className="text-lg text-gray-500 flex items-center gap-1 hover:text-blue-400 duration-300"
+            target="_blank"
+          >
             {addressPosition}
             <SquareArrowOutUpRight className="size-4" />
           </Link>
         </div>
       </div>
-    ) : "";
-  }
+    ) : (
+      ""
+    );
+  };
   const formatRate = () => {
     if (isLoading)
       return (
@@ -261,7 +282,7 @@ const PositionCard = () => {
                   <div className="space-y-2 text-center">
                     <div className="text-xs md:text-sm text-blue-600 flex items-center justify-center gap-1 font-medium">
                       <Wallet className="h-3.5 w-3.5 text-blue-600" />
-                      Collateral
+                      Total Collateral
                     </div>
                     <div className="text-base md:text-lg font-medium text-gray-800">
                       <span className="text-emerald-600">
@@ -272,7 +293,7 @@ const PositionCard = () => {
                   <div className="space-y-2 text-center">
                     <div className="text-xs md:text-sm text-blue-600 flex items-center justify-center gap-1 font-medium">
                       <HandCoins className="h-3.5 w-3.5 text-rose-500" />
-                      Debt
+                      Your Debt
                     </div>
                     <div className="text-base md:text-lg font-medium text-gray-800">
                       <span className="text-emerald-600">
@@ -283,7 +304,7 @@ const PositionCard = () => {
                   <div className="space-y-2 text-center">
                     <div className="text-xs md:text-sm text-blue-600 flex items-center justify-center gap-1 font-medium">
                       <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-                      Rate
+                      Interest Rate
                     </div>
                     <div className="text-base md:text-lg font-medium text-emerald-600">
                       {formatRate()}
@@ -294,28 +315,29 @@ const PositionCard = () => {
                   <div>{formatAddressPosition()}</div>
                 </div>
                 <div className="overflow-x-auto rounded-lg border border-blue-100 shadow-sm">
-                  {addressPosition === "0x0000000000000000000000000000000000000000" ? (
+                  {addressPosition ===
+                  "0x0000000000000000000000000000000000000000" ? (
                     <div className="flex flex-col items-center justify-center gap-4 p-8 text-center bg-white">
                       <div className="bg-blue-100 p-4 rounded-full">
                         <Wallet className="h-10 w-10 text-blue-600" />
                       </div>
                       <span className="text-xl md:text-2xl text-gray-800">
                         {positionLength === 0
-                          ? "No positions available"
-                          : "Select position address"}
+                          ? "Ready to Start Lending?"
+                          : "Connect Your Position"}
                       </span>
                       <p className="text-sm text-gray-500 max-w-md">
                         {positionLength === 0
-                          ? "You don't have any active positions. Start by supplying collateral and borrowing assets."
-                          : "Select a position address to view your position."}
+                          ? "Begin your DeFi journey by creating your first lending position. Supply collateral and start earning while borrowing assets."
+                          : "Select your position to manage your lending portfolio and track your assets."}
                       </p>
                     </div>
                   ) : (
                     <div>
                       <div className="grid grid-cols-3 gap-2 p-3 text-sm font-medium text-blue-700 bg-blue-50">
                         <div className="pl-4">Assets</div>
-                        <div className="text-center">Value</div>
-                        <div className="text-center">Actions</div>
+                        <div className="text-center">Current Balance</div>
+                        <div className="text-center">Quick Actions</div>
                       </div>
                       <div className="divide-y divide-blue-100">
                         {tokens.map((token) => (
@@ -340,7 +362,13 @@ const PositionCard = () => {
                   <div className="bg-blue-100 p-4 rounded-full">
                     <Wallet className="h-10 w-10 text-blue-600" />
                   </div>
-                  <span className="text-xl md:text-2xl text-gray-800">Select Lending Pool</span>
+                  <span className="text-xl md:text-2xl text-gray-800">
+                    Select Your Lending Pool
+                  </span>
+                  <p className="text-sm text-gray-500 max-w-md">
+                    Choose a lending pool to view your positions and manage your
+                    DeFi portfolio
+                  </p>
                 </div>
               </div>
             )}
