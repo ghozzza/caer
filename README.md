@@ -150,7 +150,7 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
 
 ---
 
-# Caér Finance Token Configuration
+# Caér Finance Contract Token Configuration
 ## Lending Pools
 
 - **Avalanche Fuji**
@@ -169,7 +169,7 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
     - Avalanche Fuji (43113): `0x63CFd5c58332c38d89B231feDB5922f5817DF180`
     - Arbitrum Sepolia (421614): `0x07b1f448c3697d7379cd5fb1e57c898b5cef97cc`
     - Base Sepolia (84532): `0x2769a1ce97cc2d21e3723ee986b29173de3fe4ac`
-  - **Price Feed**: `0x86d67c3D38D2bCeE722E601025C25a575021c6EA`
+  - **Data Streams**: `0x86d67c3D38D2bCeE722E601025C25a575021c6EA`
 
 - **WBTC**
   - **Addresses**:
@@ -177,7 +177,7 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
     - Avalanche Fuji (43113): `0xa7A93C5F0691a5582BAB12C0dE7081C499aECE7f`
     - Arbitrum Sepolia (421614): `0xc0f3bbe559e78f2bcebbb588bb561c3030a00eeb`
     - Base Sepolia (84532): `0x548c22d340eb79915316f01e45b4133203a24e90`
-  - **Price Feed**: `0x31CF013A08c6Ac228C94551d535d5BAfE19c602a`
+  - **Data Streams**: `0x31CF013A08c6Ac228C94551d535d5BAfE19c602a`
 
 - **WAVAX**
   - **Addresses**:
@@ -185,7 +185,7 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
     - Avalanche Fuji (43113): `0xA61Eb0D33B5d69DC0D0CE25058785796296b1FBd`
     - Arbitrum Sepolia (421614): `0x0fe5fa3fb5e8815e66eeb50758f7a74d732445d9`
     - Base Sepolia (84532): `0x322b3326b5f7de4abd7554f6a32217825770fd41`
-  - **Price Feed**: `0x5498BB86BC934c8D34FDA08E81D444153d0D06aD`
+  - **Data Streams**: `0x5498BB86BC934c8D34FDA08E81D444153d0D06aD`
 
 - **USDC**
   - **Addresses**:
@@ -193,7 +193,7 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
     - Avalanche Fuji (43113): `0xC014F158EbADce5a8e31f634c0eb062Ce8CDaeFe`
     - Arbitrum Sepolia (421614): `0x5df6ed08eec2fd5e41914d291c0cf48cd3564421`
     - Base Sepolia (84532): `0xcba01c75d035ca98ffc7710dae710435ca53c03c`
-  - **Price Feed**: `0x97FE42a7E96640D932bbc0e1580c73E705A8EB73`
+  - **Data Streams**: `0x97FE42a7E96640D932bbc0e1580c73E705A8EB73`
 
 - **USDT**
   - **Addresses**:
@@ -201,7 +201,7 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
     - Avalanche Fuji (43113): `0x1E713E704336094585c3e8228d5A8d82684e4Fb0`
     - Arbitrum Sepolia (421614): `0x716bdb0129ad528162477e2f426ba061adb41621`
     - Base Sepolia (84532): `0x49f82b20894e6a1e66238fb50278ac60b57676ee`
-  - **Price Feed**: `0x7898AcCC83587C3C55116c5230C17a6Cd9C71bad`
+  - **Data Streams**: `0x7898AcCC83587C3C55116c5230C17a6Cd9C71bad`
 
 ## Integration with Caér Finance
 
@@ -210,8 +210,11 @@ These tokens are used for cross-chain lending, borrowing, and collateral swaps o
 ## 🔗 Links
 
 - 🌐 Website: [https://caerfi.vercel.app](https://caerfi.vercel.app/)
+- X [https://x.com/caerfinance](https://x.com/caerfinance)
 - 📚 Documentation: [https://caer-finance-ccip.gitbook.io/](https://caer-finance-ccip.gitbook.io/)
 - 🏢 Organization: [https://github.com/ghozzza/caer](https://github.com/ghozzza/caer)
+- Demo Video [https://www.youtube.com/watch?v=NI6Idm1UshY](https://www.youtube.com/watch?v=NI6Idm1UshY)
+- Presentation [prentation-slide](https://www.canva.com/design/DAGrMZrSlpk/H4G6irD6k-M8E3JTG7TYtw/edit?utm_content=DAGrMZrSlpk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 ---
 
