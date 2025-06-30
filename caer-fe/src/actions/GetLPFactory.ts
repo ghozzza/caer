@@ -23,7 +23,6 @@ export const getSelectedLPFactory = async (address: string) => {
         chain_id: chain_id.toString(),
       },
     });
-    console.log(chain_id.toString());
     return data;
   } else {
     return null;

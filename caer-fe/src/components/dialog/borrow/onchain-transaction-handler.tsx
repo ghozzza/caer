@@ -66,7 +66,6 @@ export default function useOnChainTransactionHandler({
 
   // Helper to call onSuccess only once
   const completeTransaction = () => {
-    console.log("On-chain transaction completing");
     if (!onSuccessCalled.current) {
       onSuccessCalled.current = true;
       setTxInProgress(false);
@@ -75,7 +74,6 @@ export default function useOnChainTransactionHandler({
       // Slightly delay the onSuccess call to avoid state conflicts
       setTimeout(() => {
         if (onSuccess) {
-          console.log("Calling onSuccess for on-chain transaction");
           onSuccess();
         }
       }, 100);
@@ -85,7 +83,6 @@ export default function useOnChainTransactionHandler({
   // Reset refs when transaction starts
   useEffect(() => {
     if (txInProgress) {
-      console.log("Starting new transaction, resetting state");
       successHandled.current = false;
       errorHandled.current = false;
       onSuccessCalled.current = false;
@@ -98,14 +95,12 @@ export default function useOnChainTransactionHandler({
 
     // When we get a hash from the write contract operation
     if (borrowHash && writeStatus === 'success' && transactionSteps.some(step => step.id === "initiate" && step.status === "loading")) {
-      console.log("Transaction hash received:", borrowHash);
       updateStepStatus("initiate", "completed", borrowHash);
       updateStepStatus("process", "loading");
     }
 
     // When transaction is confirmed
     if (borrowHash && txStatus === 'success' && isBorrowSuccess && !successHandled.current) {
-      console.log("Transaction confirmed successful");
       successHandled.current = true; // Mark as handled to prevent repeated execution
       
       updateStepStatus("process", "completed", borrowHash);
@@ -120,7 +115,6 @@ export default function useOnChainTransactionHandler({
         
         // Close the modal after success
         setTimeout(() => {
-          console.log("Closing modal after on-chain success");
           setIsModalOpen(false);
           
           // Complete transaction after dialog closes
@@ -152,7 +146,6 @@ export default function useOnChainTransactionHandler({
     return () => {
       // Ensure we reset any callbacks if component unmounts during transaction
       if (txInProgress) {
-        console.log("Component unmounting during transaction, cleaning up");
         setTxInProgress(false);
         onLoading(false);
       }
@@ -210,7 +203,6 @@ export default function useOnChainTransactionHandler({
       const decimal = tokens.find((option) => option.name === token)?.decimals;
       const parsedAmount = parseUnits(amount, decimal ?? 6);
 
-      console.log("Calling borrowByPosition with", parsedAmount, recipient);
 
       // Execute the borrowByPosition function from the lending pool
       // borrowTransaction({
@@ -245,7 +237,6 @@ export default function useOnChainTransactionHandler({
 
   const closeModal = () => {
     if (!txInProgress) {
-      console.log("Manual modal close");
       setIsModalOpen(false);
     } else {
       toast.warning("Please wait for the transaction to complete");

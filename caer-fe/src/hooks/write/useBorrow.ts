@@ -41,13 +41,6 @@ export function useBorrow(
 
       const destination = chains.find((c) => c.id === destinationChainId)?.destination;
 
-      console.log("Borrow Transaction Data:");
-      console.log("User Address:", address);
-      console.log("Parsed Amount:", parsedAmount.toString());
-      console.log("Chain ID:", fixedChainId); // selalu 43113
-      console.log("Destination:", destination);
-      console.log("Lending Pool Address:", lpAddress);
-
       await borrowTransaction({
         address: lpAddress as `0x${string}`,
         abi: poolAbi,

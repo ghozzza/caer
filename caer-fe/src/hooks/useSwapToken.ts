@@ -58,8 +58,6 @@ export const useSwapToken = ({
       // Calculate the amount with proper decimals
       const amountIn = parseUnits(fromAmount, fromToken.decimals);
 
-      console.log("fromToken", fromToken);
-
       // Then perform the swap
       writeContract({
         address: lpAddress,

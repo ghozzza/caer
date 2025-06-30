@@ -126,9 +126,6 @@ export const RepaySection = ({
     refetchTotalBorrowShares,
   } = useReadTotalBorrowShares(lpAddress as `0x${string}`);
 
-  console.log(tokenData);
-  console.log(tokenDecimal);
-
   const {
     approve,
     hash: approveHash,
