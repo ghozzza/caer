@@ -151,6 +151,15 @@ By combining CCIP and Data Streams, Caér achieves a robust and composable infra
 ---
 
 # Caér Finance Token Configuration
+## Lending Pools
+
+- **Avalanche Fuji**
+  - **Chain ID**: 43113
+  - **Contracts**:
+    - Lending Pool: `0xe10e79324c133DA09426972c9401b503a7b48186`
+    - Factory: `0x694B5A70f83062308aa60ecf12074Bc8f694612d`
+    - Position: `0x9ee9F9158b872fe812C3F2204588dfc8b0FC4Eda`
+    - Block Explorer: `https://testnet.snowtrace.io`
 
 
 - **WETH**
